@@ -201,6 +201,14 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 .ob .st{text-align:center;font-size:18px}.ob.done .st{color:var(--green)}.ob.cur{background:rgba(255,210,74,.08);border-radius:8px}.ob.cur .st{color:var(--gold)}.ob.lock{opacity:.55}
 .ob .nm{font-weight:700}
 .reg.long{font-size:clamp(19px,6.2vw,30px)}
+#auth{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#3a2a1c,#120c07);display:flex;align-items:center;justify-content:center;padding:16px}
+#auth[hidden]{display:none}
+#auth .ap{width:100%;max-width:380px;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:22px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
+#auth h2{margin:0 0 10px;font:900 clamp(22px,6.5vw,28px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
+#auth p{margin:8px 0 14px;line-height:1.4;color:var(--dim)}#auth p.bad{color:#ff8a7a}
+#auth input{width:100%;box-sizing:border-box;margin:5px 0;padding:12px;font-size:16px;border-radius:10px;border:1px solid var(--line);background:#150f0a;color:inherit}
+#auth .row{display:flex;gap:8px;margin-top:10px}#auth .row button{flex:1;min-height:46px;font-size:15px}
+#auth .row button.prim{background:var(--gold);color:#2a1d08;border-color:var(--gold);font-weight:700}
 /* animations */
 @keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
 canvas.shake{animation:shake .6s}
@@ -261,6 +269,7 @@ canvas.shake{animation:shake .6s}
    </div>
    <div class="pane" data-pane="relics" hidden>
     <div class="hint" style="margin-bottom:8px">Relics drop from fights (Ruins and Battlefield most often), boss kills and Relic Vaults. Duplicates stack.</div><div id="relics"></div>
+    <h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button>
     <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
    </div>
    <div class="pane" data-pane="log" hidden>
@@ -272,7 +281,97 @@ canvas.shake{animation:shake .6s}
   </div>
  </div>
 </div>
+<div id="auth" hidden><form class="ap" id="authForm" autocomplete="on">
+ <h2>Cartographer's Company</h2>
+ <p id="authMsg">Sign in to chart the realm. Your progress follows you to every device.</p>
+ <input id="authEmail" type="email" placeholder="Email" autocomplete="email" required>
+ <input id="authPass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" minlength="6" required>
+ <div class="row"><button type="submit" class="prim" id="authIn">Log in</button><button type="button" id="authUp">Create account</button></div>
+</form></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
+/* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
+const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
+const CC=(function(){
+ const KEY='cartographer-v3',$=id=>document.getElementById(id);
+ const dev=(()=>{try{let d=localStorage.getItem('cc-dev');if(!d){d=Math.random().toString(36).slice(2,10);localStorage.setItem('cc-dev',d);}return d;}catch(e){return 'x';}})();
+ let db=null,user=null,started=false,lastPush=0,lastSync=0,pushing=false,dirty=false,t=null;
+ const msg=(m,bad)=>{const e=$('authMsg');e.textContent=m;e.className=bad?'bad':'';};
+ const lget=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+ const lset=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+ function start(){
+  if(started)return;started=true;$('auth').hidden=true;
+  const el=document.createElement('script');el.textContent=$('game').textContent;document.body.appendChild(el);
+ }
+ async function pull(){   // bring the account's save into localStorage when it is newer than this device's copy
+  const {data,error}=await db.from('saves').select('data,updated_at,device').eq('user_id',user.id).maybeSingle();
+  if(error)throw error;
+  const same=lget('cc-uid')===user.id;
+  let local=null;if(same){try{local=JSON.parse(lget(KEY));}catch(e){}}
+  if(!same){try{localStorage.removeItem(KEY);}catch(e){}lset('cc-uid',user.id);}
+  if(data&&data.data&&(!local||(data.data.saved||0)>(local.saved||0))){lset(KEY,JSON.stringify(data.data));}
+  lastSync=data?Date.parse(data.updated_at):0;
+ }
+ async function push(force){
+  if(!user||pushing)return;
+  let raw=lget(KEY);if(!raw)return;
+  pushing=true;dirty=false;
+  try{
+   const {data,error}=await db.from('saves').upsert({user_id:user.id,data:JSON.parse(raw),device:dev,updated_at:new Date().toISOString()}).select('updated_at').single();
+   if(!error){lastSync=Date.parse(data.updated_at);lastPush=Date.now();}
+  }catch(e){dirty=true;}
+  pushing=false;
+ }
+ function queue(){   // called by the game after every local save; uploads at most every 15 seconds
+  dirty=true;if(t)return;
+  t=setTimeout(()=>{t=null;if(dirty)push();},Math.max(500,15000-(Date.now()-lastPush)));
+ }
+ async function checkOther(){   // another device saved while this one was in the background
+  if(!user||!started)return;
+  try{
+   const {data}=await db.from('saves').select('updated_at,device').eq('user_id',user.id).maybeSingle();
+   if(data&&data.device!==dev&&Date.parse(data.updated_at)>lastSync+1000&&window.showModal){
+    showModal('Newer save found',"<p>This account was played on another device more recently. Load that progress, or keep this device's progress and overwrite it?</p>",
+     [{t:'<b>Load newer save</b>',primary:1,fn:async()=>{await pull();location.reload();}},{t:'Keep this device',primary:0,fn:()=>{lastSync=Date.parse(data.updated_at);push();}}]);
+   }
+  }catch(e){}
+ }
+ async function enter(u){
+  user=u;
+  try{await pull();}catch(e){msg('Could not reach your cloud save. Check your connection and reload.',1);$('auth').hidden=false;return;}
+  start();
+ }
+ async function sign(up){
+  const email=$('authEmail').value.trim(),password=$('authPass').value;
+  if(!email||password.length<6)return msg('Enter an email and a password of at least 6 characters.',1);
+  msg(up?'Creating your account...':'Signing in...');
+  const r=up?await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}}):await db.auth.signInWithPassword({email,password});
+  if(r.error)return msg(r.error.message,1);
+  if(r.data.session)return enter(r.data.user);
+  msg('Account created. Check your email to confirm it, then log in.');
+ }
+ async function out(){
+  await push(true);
+  try{await db.auth.signOut();}catch(e){}
+  try{localStorage.removeItem(KEY);localStorage.removeItem('cc-uid');}catch(e){}
+  location.reload();
+ }
+ async function init(){
+  $('auth').hidden=false;
+  if(!window.supabase||SB_URL.startsWith('__')){msg(SB_URL.startsWith('__')?'Cloud saves are not configured yet.':'Could not load the sign-in service. Check your connection and reload.',1);return;}
+  db=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+  $('authForm').addEventListener('submit',e=>{e.preventDefault();sign(false);});
+  $('authUp').addEventListener('click',()=>sign(true));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(dirty)push();}else checkOther();});
+  window.addEventListener('pagehide',()=>{if(dirty)push();});
+  const {data}=await db.auth.getSession();
+  if(data.session)enter(data.session.user);else msg('Sign in to chart the realm. Your progress follows you to every device.');
+ }
+ document.addEventListener('DOMContentLoaded',init);
+ return {queue,out,get email(){return user?user.email:'';}};
+})();
+</script>
+<script type="text/plain" id="game">
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
 const KEY='cartographer-v3';
 const RECRUIT=[0,40,200,800];
@@ -1061,7 +1160,7 @@ function draw(dt){
 }
 
 /* ---------- loop ---------- */
-function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}CC.queue();}
 if(!S.road||S.road.length!==7)buildRoad();
 fillHand();
 if(S.hp.every(h=>!h))resetHeroes(true);
@@ -1081,6 +1180,8 @@ function frame(now){
 }
 fit();requestAnimationFrame(frame);
 window.addEventListener('beforeunload',save);
+$('acct').textContent='Signed in as '+CC.email+'. Progress syncs to your account automatically.';
+$('signout').onclick=()=>{save();CC.out();};
 window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase}};
 </script>
 </body>
