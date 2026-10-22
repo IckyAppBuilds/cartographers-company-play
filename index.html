@@ -462,7 +462,7 @@ const KINDS=['forest','village','springs','shrine','ruins','swamp','market','bat
 const buyable=k=>TILES[k].r<=1&&unlocked(k);   // rare and above only come from bosses
 const TILE_PRICE={forest:5,village:6,springs:7,shrine:8,ruins:10,swamp:12,market:12};   // in "tiles of income"
 const MIN_DECK=5,MAX_DECK=10;   // a deck holds at most 10 cards; each card is single-use until the next boss kill or a wipe
-const gpt=()=>6*1.15**S.depth;
+const gpt=()=>6*1.15**(region(S.depth)*10);   // card prices step up once per act, not per tile
 const cardCost=k=>TILE_PRICE[k]?Math.round(gpt()*TILE_PRICE[k]):0;
 const burnCost=()=>Math.round(gpt()*4);
 function kindOf(c){return c.split(':')[0];}   // cards are 'kind' or 'kind:glyph'
