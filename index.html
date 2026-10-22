@@ -1,0 +1,1087 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1a1410">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Cartographer's Company</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{--acc:111,207,111;color-scheme:dark;--bg:#1a1410;--parch:#e8d5a6;--parch2:#d6bf8a;--ink:#3b2a18;--panel:#271d15;--panel2:#33261b;--line:#5a4430;--txt:#f1e6cc;--dim:#b7a37e;--gold:#ffd24a;--red:#e0584a;--green:#6fcf6f;--blue:#6aa8ff}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.3 Georgia,'Times New Roman',serif;overflow:hidden;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation;overscroll-behavior:none}
+h3{margin:0 0 6px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);font-weight:600}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px}
+button{min-height:40px;font:inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 9px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--gold)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.on{border-color:var(--gold);color:var(--gold)}
+.gold{color:var(--gold)}.dim{color:var(--dim)}.sm{font-size:11px}
+.row{display:flex;gap:6px;flex-wrap:wrap}
+.hint{font-size:12px;color:var(--dim)}
+.pile{font-size:11px;color:var(--dim);margin:0 0 4px}
+
+/* ---------- app shell: always fits the screen, no page scrolling ---------- */
+#app{height:100vh;height:100dvh;max-width:760px;margin:0 auto;display:grid;gap:6px;
+ padding:calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+ grid-template-columns:minmax(0,1fr);
+ grid-template-rows:auto auto minmax(0,1fr) auto auto auto auto auto;
+ grid-template-areas:"top" "spoils" "stage" "mini" "roadw" "handw" "ctrl" "nav"}
+#side{display:contents}
+#top{grid-area:top;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px 7px;border:1px solid rgba(var(--acc),.55);border-radius:12px;
+ background:radial-gradient(130% 160% at 0% 0%,rgba(var(--acc),.28),transparent 62%),linear-gradient(180deg,rgba(255,255,255,.05),transparent 40%),var(--panel);
+ box-shadow:inset 0 0 0 1px rgba(255,210,74,.1),0 0 18px rgba(var(--acc),.18)}
+#top .ttl{min-width:0;flex:1}
+#top .pr .sub{overflow:hidden;text-overflow:ellipsis}
+.act{font:700 11px Cinzel,Georgia,serif;letter-spacing:.38em;color:rgb(var(--acc));text-transform:uppercase}
+.reg{font:900 clamp(26px,8.4vw,40px)/1.02 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;
+ background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent;
+ filter:drop-shadow(0 2px 0 rgba(0,0,0,.65)) drop-shadow(0 0 12px rgba(var(--acc),.5))}
+.pr{display:flex;align-items:center;gap:8px;margin-top:5px}
+.pips{display:flex;gap:3px;align-items:center}
+.p{display:block;width:13px;height:5px;border-radius:3px;background:#3a2c20}
+.p.done{background:var(--gold)}.p.cur{background:#fff;box-shadow:0 0 8px #fff;animation:blink 1.1s infinite}
+.p.boss{width:22px;background:#5a2020}.p.boss.cur{background:#ff6a5a;box-shadow:0 0 8px #ff6a5a}
+@keyframes blink{50%{opacity:.45}}
+#top .pr .sub{font-size:11px;color:var(--dim);white-space:nowrap}
+#stage{position:relative}
+#splash{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;padding:0 10px;
+ background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.6),rgba(0,0,0,.28) 70%,transparent);animation:splash 2.8s ease both}
+#splash .sa{font:700 13px Cinzel,Georgia,serif;letter-spacing:.5em;color:rgb(var(--acc))}
+#splash .sn{font:900 clamp(32px,11vw,64px)/1.05 Cinzel,Georgia,serif;letter-spacing:.07em;text-transform:uppercase;color:#fff3c4;text-shadow:0 3px 0 #5a3a08,0 0 26px rgba(var(--acc),.85)}
+#splash .sb{margin-top:8px;font:italic 14px Georgia,serif;color:var(--dim)}
+@keyframes splash{0%{opacity:0;transform:scale(1.4)}14%{opacity:1;transform:scale(1)}72%{opacity:1}100%{opacity:0;transform:scale(.97)}}
+@keyframes splashfade{0%,100%{opacity:0}15%,75%{opacity:1}}
+@media (prefers-reduced-motion:reduce){#splash{animation:splashfade 2.8s}.p.cur{animation:none}}
+@media (orientation:landscape){.reg{font-size:clamp(20px,7vh,30px)}.act{font-size:10px}#top{padding:5px 10px}.pr{margin-top:3px}}
+/* road */
+#top .big{font-size:clamp(16px,4.6vw,20px);font-weight:700;line-height:1.15}
+#top .r{text-align:right}
+#spoils{grid-area:spoils;background:var(--gold);color:#2a1d08;font-weight:700;border-color:var(--gold);min-height:36px;animation:glow 1.6s infinite}
+@keyframes glow{50%{box-shadow:0 0 0 4px rgba(255,210,74,.4)}}
+#roadw{grid-area:roadw}
+#stage{grid-area:stage;min-height:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0b0805}
+#mini{grid-area:mini;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#ctrl{grid-area:ctrl;display:grid;gap:6px}
+#handw{grid-area:handw;display:flex;flex-direction:column;min-height:0}
+#nav{grid-area:nav;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+
+canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:manipulation}
+
+/* road */
+#road{display:flex;gap:4px;justify-content:center}
+.tile{border-color:var(--rc,#8a6a3a)!important;position:relative;flex:1 1 0;min-width:0;height:clamp(58px,10dvh,86px);background:var(--parch);color:var(--ink);border:2px solid #8a6a3a;border-radius:8px;text-align:center;padding:4px 2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;max-width:96px;box-shadow:inset 0 0 14px rgba(120,80,20,.35);overflow:hidden}
+.tile:has(.chip){padding-bottom:15px}
+.tile .i{font-size:clamp(18px,5.5vw,26px);line-height:1.1}.tile .n{font-size:clamp(8px,2.4vw,11px);font-weight:700;white-space:nowrap}.tile .s{display:none}
+.tile.cur{outline:3px solid var(--gold);outline-offset:-1px}
+.tile.can{cursor:pointer;border-style:dashed}
+.tile.can:hover{border-color:#fff;background:#f3e4b8}
+.tile.lair{background:#c9a39a}
+.chip{position:absolute;left:0;right:0;bottom:0;background:#3b2a18;color:var(--gold);font-size:9px;padding:1px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .md,.hc .m{font-size:9px;font-weight:700;color:#8a4fd0;line-height:1.1}
+
+/* party strip */
+.mc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;min-height:56px;padding:3px 2px}
+.mc .ic{font-size:18px;line-height:1}.mc .mt{font-size:10px;color:var(--dim)}
+.mc .mbar{width:86%;height:4px;background:#150f0a;border-radius:2px;overflow:hidden}.mc .mbar i{display:block;height:100%;width:100%;background:#4caf6a}
+.mc.lock{opacity:.65}.mc.aff{border-color:var(--gold)}.mc.down{filter:grayscale(1);opacity:.6}
+
+/* controls */
+.bar{position:relative;height:18px;background:#150f0a;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0}
+.bar b{position:absolute;inset:0;text-align:center;font-size:11px;line-height:17px;text-shadow:0 1px 2px #000}
+.row3{display:grid;grid-template-columns:1fr 1fr auto;gap:6px}
+.row3 button{min-height:38px;font-size:13px;padding:3px 6px}
+#spd{display:contents}
+
+/* hand */
+#hand{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex:1;min-height:0;align-items:center}
+.hc{max-height:170px;height:100%;border-color:var(--rc,#8a6a3a);display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;background:var(--parch2);color:var(--ink);border:2px solid #8a6a3a;border-radius:8px;padding:4px;text-align:center;cursor:pointer}
+.hc{touch-action:none}.hc:hover{border-color:#fff}
+.hc.dragging{opacity:.3}
+.dragghost{position:fixed;left:0;top:0;z-index:50;pointer-events:none;margin:0;max-width:none!important;flex:none!important;border-style:solid!important;box-shadow:0 12px 26px rgba(0,0,0,.6),0 0 0 2px rgba(255,255,255,.55);opacity:.95}
+.tile.can{cursor:copy;border-style:dashed}
+.tile.drop{outline:3px solid #fff;outline-offset:-1px;background:#fff4c8;transform:scale(1.07);z-index:2}
+.hc.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(255,210,74,.6)}
+.hc .i{font-size:24px;line-height:1.1}.hc .n{font-weight:700;font-size:13px}
+.hc .r{font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.hc .d{font-size:10px;line-height:1.15;opacity:.85;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media (max-height:720px){.hc .d{display:none}}
+
+/* bottom nav */
+#nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:50px;padding:3px;position:relative}
+#nav .nv{font-size:20px;line-height:1}#nav small{font-size:10px;color:var(--dim)}
+#nav button.on small{color:var(--gold)}
+#nav button.dot::after{content:'';position:absolute;top:6px;right:calc(50% - 24px);width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 2px var(--panel2)}
+
+/* bottom sheets (menus) */
+#sheet{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+#sheet .sp{width:100%;max-width:640px;max-height:88dvh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-bottom:0;border-radius:16px 16px 0 0;padding:0 12px calc(12px + env(safe-area-inset-bottom))}
+#sheet .sh{display:flex;align-items:center;justify-content:space-between;padding:12px 2px 8px}
+#sheet .sh h3{margin:0;font-size:13px;color:var(--txt)}
+#sheet .sb{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(112px + env(safe-area-inset-top));max-width:min(92vw,520px);background:rgba(20,14,9,.96);border:1px solid var(--gold);padding:7px 12px;border-radius:10px;z-index:22;pointer-events:none;font-size:13px;opacity:0;transition:opacity .25s}
+#toast.show{opacity:1}
+#inscribe{position:fixed;left:8px;right:8px;bottom:calc(70px + env(safe-area-inset-bottom));max-width:620px;margin:0 auto;z-index:25;padding:10px;background:var(--panel);border:1px dashed #a56bff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.65)}
+#inscribe h3{color:#d6b8ff}#inscribe .row button{text-align:left;flex:1 1 90px}#inscribe small{color:var(--dim)}
+
+/* sheet contents */
+.hero.locked{opacity:.7}.hero.locked .nm{color:var(--dim)}
+.hero .ic{width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 50% 40%,#5a4630,#1f1710);box-shadow:inset 0 0 0 1px #6b5236;font-size:26px;display:flex;align-items:center;justify-content:center}
+.hero{display:grid;grid-template-columns:50px 1fr auto auto;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #3a2c20}
+.hero:last-child{border:0}
+.hero .ic{font-size:26px;text-align:center}
+.hero .nm{font-weight:700}.hero small{color:var(--dim)}
+.relics{display:flex;flex-wrap:wrap;gap:5px}
+.rel{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:12px}
+#log div{margin:3px 0;font-size:13px;color:var(--dim)}#log div:first-child{color:var(--txt)}
+#leg{border-color:#a56bff;color:#d6b8ff;width:100%}
+.dk{display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;padding:3px 0;border-bottom:1px solid #3a2c20}
+.dk:last-child{border:0}.dk .k{font-weight:700}.dk .k small{color:var(--dim);font-weight:400}
+.dk button{padding:3px 8px;min-height:34px;font-size:13px}
+#offer{margin:4px 0 8px;padding:8px;border:1px dashed var(--gold);border-radius:8px}
+#offer .row button{background:var(--parch2);color:var(--ink);font-weight:700}
+
+.mc .ic{position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 50% 40%,#5a4630,#1f1710);box-shadow:inset 0 0 0 1px #6b5236}
+.pt{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;padding:2px}
+.bang{position:absolute;top:-5px;right:-13px;width:17px;height:17px;border-radius:50%;background:var(--gold);color:#2a1d08;font:700 12px/17px system-ui,sans-serif;text-align:center;box-shadow:0 0 0 2px var(--panel2);animation:bump 1.1s infinite}
+@keyframes bump{50%{transform:scale(1.2)}}
+@media (prefers-reduced-motion:reduce){.bang{animation:none}}
+.mc .mcost{font-size:10px;color:var(--dim)}.mc.aff .mcost{color:var(--gold);font-weight:700}
+.mv{display:flex;flex-direction:column;gap:4px}.mv button{min-height:30px;padding:0 9px;font-size:12px}
+.rl{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #3a2c20}
+.rl:last-child{border:0}.rl .ic{font-size:26px;text-align:center}.rl .nm{font-weight:700}.rl .nm small{color:var(--gold);font-weight:700}
+.rl .eff{font-weight:700;color:var(--green);text-align:right;max-width:130px;font-size:13px}
+.rl.unk{opacity:.5}.rl.unk .eff{color:var(--dim);font-weight:400}
+.dgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media (min-width:520px){.dgrid{grid-template-columns:repeat(3,1fr)}}
+.dc{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;padding:22px 6px 6px;background:var(--parch2);color:var(--ink);border:2px solid var(--rc,#8a6a3a);border-radius:10px}
+.dc.shop{padding-top:8px;background:#d9c79a}
+.dc .i{font-size:26px;line-height:1.1}.dc .n{font-weight:700;font-size:14px}
+.dc .r{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.dc .d{font-size:11.5px;line-height:1.25;opacity:.92;flex:1}.dc .m{font-size:11px;font-weight:700;color:#7a3ab8;line-height:1.2}
+.dc button{margin-top:6px;width:100%;min-height:34px;font-size:12px;padding:2px 4px}
+.dc .st{position:absolute;top:5px;left:6px;font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px;background:rgba(59,42,24,.18);letter-spacing:.04em;text-transform:uppercase}
+.dc .st.hand{background:var(--ink);color:var(--gold)}
+.dc.spent{opacity:.55;filter:saturate(.6)}
+.oc{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1 1 96px;text-align:center;padding:8px 6px}
+.oc .i{font-size:26px;line-height:1.1}.oc .od{font-size:11px;line-height:1.2;font-weight:400;opacity:.9}
+.cmb{padding:6px 0;border-bottom:1px solid #3a2c20}.cmb:last-child{border:0}.cmb .cn{font-weight:700;color:var(--gold)}
+#insum{display:none}
+.ico{width:1.2em;height:1.2em;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 1.5px 1.5px rgba(0,0,0,.45));pointer-events:none;-webkit-user-drag:none}
+.ico.coin{width:1.05em;height:1.05em;margin-right:2px;margin-top:-2px}.ico.fl{width:1.1em;height:1.1em;margin-top:-2px}
+.tile .i{font-size:clamp(26px,7.4vw,36px)}.tile .i .ico{width:1.2em;height:1.2em}
+.hc .i,.dc .i,.oc .i{font-size:38px}
+#nav .nv .ico{width:32px;height:32px}
+.rl .ic{font-size:38px;display:flex;justify-content:center}
+#spoils .ico{width:26px;height:26px;margin-right:4px}
+/* short landscape phones: give the battle as much height as possible */
+@media (orientation:landscape) and (max-height:480px){
+ #top{padding:3px 10px}.act{display:none}.pr{margin-top:1px}.reg{font-size:22px}#top .big{font-size:16px}
+ #roadw{padding:3px}.tile{height:50px;padding:2px}.tile .i{font-size:22px}.tile .n{font-size:9px}.chip{display:none}
+ #ctrl{grid-template-columns:1fr 1.5fr;align-items:center;padding:4px}.bar{height:16px}
+ #app{gap:4px}
+ .mc{min-height:46px}
+}
+#modal{position:fixed;inset:0;z-index:60;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
+#modal .mp{width:100%;max-width:440px;max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:20px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
+#modal h2{margin:0 0 10px;font:900 clamp(22px,6.5vw,30px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
+#modal p{margin:8px 0;line-height:1.45}
+#modal .row{justify-content:center;margin-top:14px}#modal .row button{flex:1 1 140px;min-height:46px;font-size:15px}
+#modal .row button.prim{background:var(--gold);color:#2a1d08;border-color:var(--gold);font-weight:700}
+.mstats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}.mstats div{background:#150f0a;border:1px solid var(--line);border-radius:8px;padding:6px 2px}
+.mstats b{display:block;font-size:18px;color:var(--gold)}.mstats small{font-size:10px;color:var(--dim)}
+.obj{margin:4px 0 10px;line-height:1.4}
+.ob{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #3a2c20}.ob:last-child{border:0}
+.ob .st{text-align:center;font-size:18px}.ob.done .st{color:var(--green)}.ob.cur{background:rgba(255,210,74,.08);border-radius:8px}.ob.cur .st{color:var(--gold)}.ob.lock{opacity:.55}
+.ob .nm{font-weight:700}
+.reg.long{font-size:clamp(19px,6.2vw,30px)}
+/* animations */
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-6px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-2px)}}
+canvas.shake{animation:shake .6s}
+@keyframes deal{from{opacity:0;transform:translateY(-44px) rotate(-14deg) scale(.8)}to{opacity:1;transform:none}}
+#hand.reshuf .hc{animation:deal .55s cubic-bezier(.2,.8,.3,1) both}
+#hand.reshuf .hc:nth-child(2){animation-delay:.15s}#hand.reshuf .hc:nth-child(3){animation-delay:.3s}
+@keyframes pulse{50%{color:var(--gold)}}
+.pile.flash{animation:pulse .8s 2}
+@media (prefers-reduced-motion:reduce){canvas.shake,#hand.reshuf .hc,.pile.flash,#spoils{animation:none}}
+
+/* landscape: battle + road on the left, party / hand / menu on the right */
+@media (orientation:landscape){
+ #app{max-width:none;grid-template-columns:minmax(0,1fr) minmax(250px,330px);grid-template-rows:auto auto minmax(0,1fr) auto auto;grid-template-areas:"top side" "spoils side" "stage side" "roadw side" "ctrl side"}
+ #side{display:flex;flex-direction:column;grid-area:side;gap:6px;min-height:0}
+ #handw{flex:1}
+ .tile{height:clamp(50px,17dvh,86px)}
+ #sheet .sp{max-height:94dvh;border-radius:16px;border-bottom:1px solid var(--line);margin-bottom:max(0px,env(safe-area-inset-bottom))}
+ #toast{left:35%;top:calc(66px + env(safe-area-inset-top))}
+ #inscribe{bottom:calc(10px + env(safe-area-inset-bottom));right:auto;max-width:min(540px,62vw)}
+}
+</style>
+</head>
+<body>
+<div id="app">
+ <header id="top">
+  <div class="ttl"><div class="act" id="act"></div><div class="reg" id="region"></div><div class="pr"><div class="pips" id="pips"></div><div class="sub" id="sub"></div></div></div>
+  <div class="r"><div class="big gold" id="gold"></div><div class="dim sm" id="rate"></div></div>
+ </header>
+ <button id="spoils" data-sheet="deck" hidden><img class="ico" src="assets/icons/treasury.png" alt="" draggable="false"> Boss spoils! Tap to choose a tile</button>
+ <section id="roadw" class="card"><div id="road"></div></section>
+ <section id="stage"><canvas id="c" width="800" height="320"></canvas><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
+ <section id="ctrl" class="card">
+  <div class="bar"><i id="inkF" style="background:#6aa8ff"></i><b id="inkT"></b></div>
+  <div class="row3"><button id="reroll">↻ Redraw · 1 ink</button><button id="insbtn"></button><span id="spd"></span></div>
+ </section>
+ <div id="side">
+  <div id="mini"></div>
+  <section id="handw" class="card"><div class="pile" id="piles"></div><div id="hand"></div></section>
+  <nav id="nav">
+   <button id="nav-party" data-sheet="party"><span class="nv"><img class="ico" src="assets/icons/company.png" alt="" draggable="false"></span><small>Company</small></button>
+   <button id="nav-deck" data-sheet="deck"><span class="nv"><img class="ico" src="assets/icons/deck.png" alt="" draggable="false"></span><small>Deck</small></button>
+   <button id="nav-relics" data-sheet="relics"><span class="nv"><img class="ico" src="assets/icons/relics.png" alt="" draggable="false"></span><small>Relics</small></button>
+   <button id="nav-log" data-sheet="log"><span class="nv"><img class="ico" src="assets/icons/journal.png" alt="" draggable="false"></span><small>Journal</small></button>
+  </nav>
+ </div>
+</div>
+<div id="inscribe" hidden></div>
+<div id="modal" hidden><div class="mp"><h2 id="mTitle"></h2><div id="mBody"></div><div class="row" id="mBtns"></div></div></div>
+<div id="toast"></div>
+<div id="sheet" hidden>
+ <div class="sp" role="dialog" aria-modal="true">
+  <div class="sh"><h3 id="sheetTitle"></h3><button data-close aria-label="Close menu">✕ Close</button></div>
+  <div class="sb">
+   <div class="pane" data-pane="party" hidden><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div></div>
+   <div class="pane" data-pane="deck" hidden>
+    <div id="offer" hidden></div><div id="deck"></div><div class="pile" id="insum" style="margin-top:8px"></div>
+    <div class="hint" style="margin-top:6px">Your deck holds up to 10 cards and each card can be played once. Every card returns when you beat a boss or die. Buy common and uncommon tiles; rare, epic and legendary tiles drop only from bosses. Burn weak cards so better ones come up (deck keeps at least 5). Echo-glyph cards go back into the draw pile when played.</div>
+   </div>
+   <div class="pane" data-pane="relics" hidden>
+    <div class="hint" style="margin-bottom:8px">Relics drop from fights (Ruins and Battlefield most often), boss kills and Relic Vaults. Duplicates stack.</div><div id="relics"></div>
+    <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
+   </div>
+   <div class="pane" data-pane="log" hidden>
+    <div id="objective"></div><h3 style="margin-top:14px">Journal</h3><div id="log"></div>
+    <div class="hint" style="margin-top:10px">How to play: drag a tile card from your hand onto a tile on the road (or tap the card, then tap the tile) to replace it. Cards are single-use until the next boss or a wipe. Fights pay far more gold than rest tiles and build Battle Fervor: +20% gold per consecutive fight (up to +100%), lost when you rest at a Village or Springs or fall. Chain fights, then rest. Tap a hero icon under the battle to level them up; open Company to reorder the formation. Neighbouring tiles can make <span class="gold">combos</span> (gold chip under the tile). Select a card and tap Inscribe to etch a permanent glyph onto it.</div>
+    <h3 style="margin-top:16px">Combos</h3><div id="combos"></div>
+    <h3 style="margin-top:16px">Glyphs</h3><div id="glyphs"></div>
+   </div>
+  </div>
+ </div>
+</div>
+<script>
+const $=id=>document.getElementById(id),TAU=Math.PI*2;
+const KEY='cartographer-v3';
+const RECRUIT=[0,40,200,800];
+
+/* ---------- data ---------- */
+const TILES={
+ wilds:{n:'Wilds',i:'🌾',foes:['🐗','🦊','🦇'],cnt:2,pow:1,gold:1,relic:.03,d:'Easy beasts.',bg:['#8ed0ff','#6ea85c'],sc:'🌾',r:0},
+ forest:{n:'Forest',i:'🌲',foes:['🐺','🕷️','🐻'],cnt:3,pow:1.15,gold:1.2,relic:.05,d:'Packs of beasts. Herbs heal 15%.',bg:['#5e8f6e','#2f6b3a'],sc:'🌲',heal:.15,r:0},
+ ruins:{n:'Ruins',i:'🏛️',foes:['💀','🧟','👻'],cnt:3,pow:1.3,gold:1,relic:.25,d:'Undead. High relic chance.',bg:['#6b6a85','#4b4a5e'],sc:'🏛️',r:1},
+ swamp:{n:'Swamp',i:'🪷',foes:['🐸','🐊','🪱'],cnt:3,pow:1.4,gold:1.7,relic:.08,d:'Tough, but pays gold.',bg:['#8aa070','#4b5e3a'],sc:'🌿',r:1},
+ crypt:{n:'Crypt',i:'⚰️',foes:['🧛','🧟','💀'],cnt:2,pow:2.1,gold:2.6,relic:.15,d:'Elite undead. Big gold.',bg:['#3a2e4a','#241a30'],sc:'🪦',r:2},
+ village:{n:'Village',i:'🏘️',ev:'village',d:'Rest: heal 60%, a little gold. Ends Battle Fervor.',bg:['#ffd9a0','#b8935a'],sc:'🏠',r:0},
+ shrine:{n:'Shrine',i:'⛩️',ev:'shrine',d:'Blessing: +30% dmg for 3 fights, +2 ink.',bg:['#c9b8ff','#5a6dc0'],sc:'⛩️',r:1},
+ springs:{n:'Springs',i:'♨️',ev:'springs',d:'Full heal for the whole company, +1 ink. Ends Battle Fervor.',bg:['#bfe9ff','#5aa6a0'],sc:'♨️',r:1},
+ market:{n:'Market',i:'🏪',ev:'market',d:'A busy bazaar: pays 2 tiles of income.',bg:['#ffe2b0','#a8743a'],sc:'🏪',r:1},
+ battlefield:{n:'Battlefield',i:'🚩',foes:['👺','🧌','👹'],cnt:3,pow:1.7,gold:3.2,relic:.18,d:'Goblin and troll warbands. Great gold and relics.',bg:['#9aa0a8','#6a5a48'],sc:'🚩',r:2},
+ leyline:{n:'Leyline',i:'🔷',ev:'leyline',d:'Blessing: +30% dmg for 5 fights, +3 ink.',bg:['#9fd8ff','#3a4ab0'],sc:'🔷',r:2},
+ treasury:{n:'Treasury',i:'💎',ev:'treasury',d:'A dragon-sized stash: pays 15 tiles of income.',bg:['#ffe27a','#8a5a1a'],sc:'💎',r:3},
+ vault:{n:'Relic Vault',i:'🗝️',ev:'vault',d:'Sealed chamber: two random relics.',bg:['#e8d0ff','#5a3a8a'],sc:'🗝️',r:4},
+ lair:{n:'Lair',i:'🌋',boss:true,cnt:1,pow:1,gold:10,relic:1,d:'Boss. Cannot be moved.',bg:['#3a1414','#5a1f1f'],sc:'🌋'}
+};
+const UNLOCK={wilds:1,forest:1,village:1,ruins:2,shrine:2,springs:2,swamp:3,market:3,crypt:4};
+const RAR=[{n:'Common',c:'#9a8a6a',d:'#6a5a3a',w:40},{n:'Uncommon',c:'#5fbf6a',d:'#2f8f3a',w:35},{n:'Rare',c:'#5aa0ff',d:'#2a6fd0',w:17},{n:'Epic',c:'#b06bff',d:'#7a3ad0',w:6},{n:'Legendary',c:'#ffb02e',d:'#b36b00',w:2}];
+const REGIONS=[['Greenwood','🐗','Grubnak the Boar King'],['Mirefen','🐊','Old Gator Moss'],['Ashen Hills','🦂','The Cinder Scorpion'],['Frostpeak','🐻‍❄️','Rimefang'],['Sunken Crypt','🧛','Count Veyl'],['Dragonspine','🐉','Vharax the Elder'],['The Void Rim','👹','The Unmapped']];
+const SYN={
+ 'forest>forest':{n:'Deep Woods',d:'Foes ×1.3, gold ×1.6',foe:1.3,rew:1.6},
+ 'swamp>swamp':{n:'Bottomless Mire',d:'Foes ×1.3, gold ×2',foe:1.3,rew:2},
+ 'ruins>crypt':{n:'Haunted Halls',d:'Guaranteed relic',relic:1},
+ 'shrine>ruins':{n:"Pilgrim's Find",d:'+30% relic chance',relic:.3},
+ 'crypt>village':{n:'Sanctuary',d:'Full heal, village gold ×3',heal:1,rew:3},
+ 'forest>village':{n:"Hunter's Feast",d:'Full heal',heal:1},
+ 'shrine>lair':{n:'Blessed Duel',d:'+50% damage vs boss',dmg:1.5},
+ 'crypt>shrine':{n:'Cleansing',d:'+3 ink',ink:3},
+ 'wilds>village':{n:'Market Day',d:'Village gold ×2',rew:2},
+ 'battlefield>market':{n:'War Profiteers',d:'Market gold ×2',rew:2},
+ 'springs>shrine':{n:'Pilgrim Rest',d:'+2 ink',ink:2}
+};
+const HEROES=[
+ {n:'Ser Bram',c:'Knight',hp:150,atk:7,spd:.8,col:'#6b8cff',hat:'helm',w:'🗡️',sk:'Every 3rd strike: Shield Bash (2×).'},
+ {n:'Wren',c:'Ranger',hp:80,atk:11,spd:1.1,col:'#4caf6a',hat:'hood',w:'🏹',sk:'Targets weakest foe. 25% crit (2.2×).'},
+ {n:'Ysolde',c:'Mage',hp:65,atk:9,spd:.7,col:'#b06bff',hat:'wiz',w:'🔮',sk:'Every 3rd cast: Fireball hits all foes.'},
+ {n:'Brother Ansel',c:'Cleric',hp:95,atk:5,spd:.65,col:'#f2e6b0',hat:'halo',w:'✨',sk:'Every 2nd action heals the weakest ally.'}
+];
+const RELICS={
+ whet:{n:'Whetstone',i:'⚔️',d:'+12% damage'},oak:{n:'Oak Charm',i:'🌰',d:'+12% max HP'},coin:{n:'Lucky Coin',i:'💰',d:'+15% gold'},
+ ink:{n:'Ink Vial',i:'🧪',d:'+20% ink regen'},fang:{n:'Vampire Fang',i:'🦷',d:'Heal 3% of damage dealt'},boots:{n:'Swift Boots',i:'🥾',d:'+8% speed'}
+};
+const RK=Object.keys(RELICS);
+
+/* ---------- state ---------- */
+function fresh(keep){
+ const S={gold:20,ink:4,depth:keep?keep.regionStart:0,best:keep?keep.best:0,legend:keep?keep.legend:0,
+  lv:[1,1,1,1],un:[true,false,false,false],hp:[0,0,0,0],relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:[0,1,2,3],streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,saved:Date.now()};
+ S.draw=shuffle(S.deck.slice());
+ return S;
+}
+function starterDeck(){return ['forest','forest','forest','forest','forest','village','village','village'];}   // Wilds is the free default road tile, never a card
+let S=fresh();
+S.draw=shuffle(S.deck.slice());
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(fresh(),JSON.parse(r));}catch(e){}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+for(const p of ['deck','draw','disc','hand'])S[p]=(S[p]||[]).filter(k=>kindOf(k)!=='wilds');
+if(!S.rmod||S.rmod.length!==S.road.length)S.rmod=S.road.map(()=>null);
+if(!S.boons)S.boons={};
+if(!Array.isArray(S.order)||S.order.length!==4||[0,1,2,3].some(i=>!S.order.includes(i)))S.order=[0,1,2,3];   // party formation, front to back
+while(S.deck.length>10){const c=S.deck.pop();for(const p of ['draw','disc','hand'])if(removeOne(S[p],c))break;}
+if(S.hand.length+S.draw.length+S.disc.length!==S.deck.length){S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}   // repair an inconsistent save
+while(S.deck.length<5)S.deck.push('forest'),S.disc.push('forest');
+let log=[],selCard=-1,speed=1,sig='',phase='walk',pt=0,foes=[],H=[],fxT=[],scroll=0,gained=0,saveT=0,curSyn=null,curBoss=false,curMod=null,inscribing=false,inscribeOpts=[];
+function say(m){log.unshift(m);log=log.slice(0,6);}
+const region=d=>Math.floor(d/10);
+const heroMax=i=>HEROES[i].hp*1.16**(S.lv[i]-1)*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
+const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
+const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*(1+i*.15));
+const goldMul=()=>(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
+const inkRegen=()=>.2*(1+.2*(S.relics.ink||0))*(1+.1*((S.boons||{}).ink||0));
+const maxInk=()=>6+((S.boons||{}).ink||0);
+const legGain=()=>S.depth>=30?Math.floor(S.depth/10)-1:0;
+const unlocked=k=>(UNLOCK[k]||1)<=region(S.best)+1;
+function synFor(p,k){return SYN[p+'>'+k]||null;}
+
+function kindAt(d){return d%10===9?'lair':'wilds';}
+function buildRoad(){S.road=[];S.rmod=[];for(let j=0;j<7;j++){S.road.push(kindAt(S.depth+j));S.rmod.push(null);}}
+/* ---- tile deck: draw pile -> hand -> discard, reshuffle when the draw pile is empty ---- */
+const KINDS=['forest','village','springs','shrine','ruins','swamp','market','battlefield','crypt','leyline','treasury','vault'];
+const buyable=k=>TILES[k].r<=1&&unlocked(k);   // rare and above only come from bosses
+const TILE_PRICE={forest:5,village:6,springs:7,shrine:8,ruins:10,swamp:12,market:12};   // in "tiles of income"
+const MIN_DECK=5,MAX_DECK=10;   // a deck holds at most 10 cards; each card is single-use until the next boss kill or a wipe
+const gpt=()=>6*1.15**S.depth;
+const cardCost=k=>TILE_PRICE[k]?Math.round(gpt()*TILE_PRICE[k]):0;
+const burnCost=()=>Math.round(gpt()*4);
+function kindOf(c){return c.split(':')[0];}   // cards are 'kind' or 'kind:glyph'
+function modOf(c){return c.split(':')[1]||null;}
+function cardKey(k,m){return m?k+':'+m:k;}
+const countKind=k=>S.deck.filter(x=>kindOf(x)===k).length;
+const isFight=k=>!!TILES[k].foes;
+/* Glyphs etched onto a single card. They travel with the card through the deck and apply when that tile is played. */
+const MODS={
+ gilded:{n:'Gilded',d:'Gold x1.6 from this tile.',ok:k=>isFight(k)||['village','market','treasury'].includes(k)},
+ lucky:{n:'Lucky',d:'+30% relic chance.',ok:isFight},
+ warded:{n:'Warded',d:'Foes hit 35% softer.',ok:isFight},
+ empowered:{n:'Empowered',d:'Heroes deal +30% damage.',ok:isFight},
+ restorative:{n:'Restorative',d:'Heals the company 30% after.',ok:()=>true},
+ inkwell:{n:'Inkwell',d:'Refunds 1 ink when it resolves.',ok:()=>true},
+ echo:{n:'Echo',d:'Shuffles back into your draw pile instead of the discard.',ok:()=>true}
+};
+const modGold=()=>curMod==='gilded'?1.6:1;
+function modAfter(){
+ if(curMod==='restorative')for(let i=0;i<4;i++)if(S.un[i]&&S.hp[i]>0)healHero(i,heroMax(i)*.3,true);
+ if(curMod==='inkwell')S.ink=Math.min(maxInk()+4,S.ink+1);
+}
+const inscribeCost=()=>Math.round(gpt()*3);
+function removeOne(arr,k){   // remove a card of this kind, preferring un-etched ones
+ let i=arr.findIndex(c=>c===k);if(i<0)i=arr.findIndex(c=>kindOf(c)===k);
+ if(i>=0)arr.splice(i,1);return i>=0;
+}
+function startInscribe(){
+ if(selCard<0||!S.hand[selCard]||S.ink<1||S.gold<inscribeCost())return;
+ const k=kindOf(S.hand[selCard]);
+ inscribeOpts=shuffle(Object.keys(MODS).filter(m=>MODS[m].ok(k))).slice(0,3);inscribing=true;sig='';
+}
+function applyInscribe(m){
+ const old=S.hand[selCard];if(!old||!MODS[m]||S.ink<1||S.gold<inscribeCost())return;
+ const k=kindOf(old),nw=cardKey(k,m);
+ S.ink-=1;S.gold-=inscribeCost();S.hand[selCard]=nw;
+ const di=S.deck.indexOf(old);if(di>=0)S.deck[di]=nw;
+ inscribing=false;say('Etched '+MODS[m].n+' onto a '+TILES[k].n+' card.');sig='';
+}
+function drawCard(){
+ return S.draw.length?S.draw.pop():null;
+}
+function fillHand(){while(S.hand.length<3){const c=drawCard();if(!c)break;S.hand.push(c);}}
+function addCard(k){S.deck.push(k);S.draw.splice(Math.random()*(S.draw.length+1)|0,0,k);}
+function buyTile(k){const c=cardCost(k);if(!buyable(k)||S.gold<c||S.deck.length>=MAX_DECK)return;S.gold-=c;addCard(k);say('Added '+TILES[k].n+' to your deck.');sig='';}
+let burnArm=null,burnArmT=0;
+function burnCard(key){   // burn one specific card; two taps to confirm (no hover/confirm dialogs on mobile)
+ const [c,w]=key.split('|'),pile={hand:S.hand,draw:S.draw,disc:S.disc}[w];
+ if(!pile||S.deck.length<=MIN_DECK||S.gold<burnCost())return;
+ if(burnArm!==key||Date.now()>burnArmT){burnArm=key;burnArmT=Date.now()+3000;sig='';setTimeout(()=>{sig='';},3100);return;}
+ const i=pile.indexOf(c),d=S.deck.indexOf(c);if(i<0||d<0)return;
+ S.gold-=burnCost();pile.splice(i,1);S.deck.splice(d,1);burnArm=null;
+ if(selCard>=S.hand.length)selCard=-1;say('Burned a '+TILES[kindOf(c)].n+' card.');sig='';
+}
+function rollRarity(br){
+ const w=RAR.map((r,i)=>i===0?Math.max(10,r.w-6*br):i===1?r.w:r.w+(i===2?3:i===3?1.5:.8)*br);   // later bosses skew rarer
+ let x=Math.random()*w.reduce((p,q)=>p+q,0);for(let i=0;i<w.length;i++){x-=w[i];if(x<0)return i;}return 0;
+}
+function makeOffer(){
+ const br=Math.max(0,Math.floor((S.depth-1)/10)),offer=[];
+ while(offer.length<3){
+  const r=rollRarity(br);let pool=KINDS.filter(k=>TILES[k].r===r&&!offer.includes(k));
+  if(!pool.length)pool=KINDS.filter(k=>!offer.includes(k));
+  offer.push(pool[Math.random()*pool.length|0]);
+ }
+ return offer.sort((x,y)=>TILES[x].r-TILES[y].r);
+}
+let pendingTake=null;   // spoils tile waiting for the player to pick which card to replace (deck is full)
+function takeOffer(k){
+ if(!S.offer||!S.offer.includes(k))return;
+ if(S.deck.length>=MAX_DECK){pendingTake=k;sig='';return;}
+ addCard(k);S.offer=null;pendingTake=null;say('Added '+TILES[k].n+' to your deck (boss spoils).');sig='';
+}
+function replaceCard(kind){   // deck is full: swap one existing card for the chosen spoils tile
+ if(!pendingTake||!S.offer||!countKind(kind))return;
+ const nk=pendingTake;
+ removeOne(S.deck,kind);for(const pile of [S.disc,S.draw,S.hand])if(removeOne(pile,kind))break;
+ if(selCard>=S.hand.length)selCard=-1;
+ addCard(nk);S.offer=null;pendingTake=null;fillHand();say('Swapped a '+TILES[kind].n+' card for '+TILES[nk].n+'.');sig='';
+}
+function skipOffer(){S.offer=null;pendingTake=null;say('You leave the spoils behind.');sig='';}
+function reshuffleAll(why){   // every card (hand, draw pile and spent pile) goes back into one shuffled deck
+ S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];selCard=-1;inscribing=false;fillHand();
+ say(why);replay($('hand'),'reshuf',1600);replay($('piles'),'flash',1700);sig='';
+}
+const active=()=>S.un.filter(Boolean).length;
+const slot=i=>S.order.filter(h=>S.un[h]).indexOf(i);   // battlefield position among recruited heroes, front first
+const fervor=()=>1+Math.min(1,(S.streak||0)*.2);   // +20% gold per consecutive fight, up to +100%
+const heroPx=i=>152+(active()-1-slot(i))*56;   // the front line stands nearest the enemies (rightmost)
+function resetHeroes(full){for(let i=0;i<4;i++)S.hp[i]=S.un[i]?(full?heroMax(i):S.hp[i]):0;}
+
+/* ---------- encounters ---------- */
+function startTile(){
+ const k=S.road[0],t=TILES[k];
+ curSyn=synFor(S.prev,k);curBoss=!!t.boss;curMod=S.rmod[0]||null;
+ foes=[];pt=0;
+ if(t.ev){phase='event';return;}
+ const d=S.depth,r=region(d);
+ const hpM=22*1.16**d,atk=3.2*1.13**d;
+ const synF=curSyn&&curSyn.foe||1;
+ const n=t.boss?1:Math.max(1,Math.min(t.cnt,active()+1));   // small parties face smaller packs
+ for(let j=0;j<n;j++){
+  const boss=t.boss;
+  const hp=hpM*t.pow*synF*(boss?7:1)*(.85+.3*Math.random());
+  foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],
+   hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?1.8:1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?548:446+j*88,y:230+(j%2?18:-6),
+   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold});
+ }
+ H=HEROES.map((h,i)=>({cd:Math.random()*.4,n:0,flash:0,lunge:0}));
+ phase='fight';
+ if(t.boss)say('⚠ '+RG(r)[2]+' blocks the road!');
+}
+function floatTxt(t,x,y,c){fxT.push({t:0,txt:t,x,y,c});}
+function dmgFoe(f,d,i){
+ if(f.hp<=0)return;
+ f.hp-=d;f.flash=1;floatTxt(fmt(d),f.x,f.y-50,'#fff');
+ if(S.relics.fang&&i>=0)healHero(i,d*.03*S.relics.fang,true);
+}
+function healHero(i,a,quiet){
+ if(S.hp[i]<=0)return;
+ const m=heroMax(i);S.hp[i]=Math.min(m,S.hp[i]+a);
+ if(!quiet)floatTxt('+'+fmt(a),heroPx(i),200,'#6fcf6f');
+}
+function heroAct(i){
+ const h=H[i],d=HEROES[i],atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1);
+ const alive=foes.filter(f=>f.hp>0);if(!alive.length)return;
+ h.n++;h.lunge=1;
+ if(i===0){const f=alive[0];dmgFoe(f,h.n%3===0?atk*2:atk,i);}
+ else if(i===1){const f=alive.reduce((a,b)=>a.hp<b.hp?a:b);dmgFoe(f,Math.random()<.25?atk*2.2:atk,i);}
+ else if(i===2){if(h.n%3===0){alive.forEach(f=>dmgFoe(f,atk*1.3,i));fxT.push({t:0,txt:'🔥',x:620,y:210,c:'#fff',big:1});}else dmgFoe(alive[0],atk,i);}
+ else{
+  if(h.n%2===0){let w=-1,wr=2;for(let j=0;j<4;j++)if(S.hp[j]>0){const r=S.hp[j]/heroMax(j);if(r<wr){wr=r;w=j;}}
+   if(w>=0&&wr<.98){healHero(w,.1*heroMax(w)+2.2*atk);return;}}
+  dmgFoe(alive[0],atk,i);
+ }
+}
+function foeAct(f){
+ const living=S.order.filter(j=>S.hp[j]>0);   // formation order: first = front line
+ if(!living.length)return;
+ const t=Math.random()<.5?living[0]:living[Math.random()*living.length|0];   // the front hero soaks about half of all attacks
+ f.lunge=1;S.hp[t]-=f.atk;H[t].flash=1;
+ floatTxt('-'+fmt(f.atk),heroPx(t),200,'#e0584a');
+ if(S.hp[t]<=0){S.hp[t]=0;say(HEROES[t].n+' has fallen!');}
+}
+function win(){
+ const k=S.road[0],t=TILES[k];
+ let rew=((curSyn&&curSyn.rew)||1)*modGold();
+ let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
+ S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;
+ let rc=t.relic+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
+ if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');}
+ // revive fallen at 30%, small heal
+ for(let i=0;i<4;i++){if(!S.un[i])continue;if(S.hp[i]<=0)S.hp[i]=heroMax(i)*.3;if(t.heal)healHero(i,heroMax(i)*t.heal,true);}
+ if(curSyn&&curSyn.heal)for(let i=0;i<4;i++)if(S.un[i])S.hp[i]=heroMax(i);
+ if(S.bless>0)S.bless--;
+ modAfter();
+ if(t.boss)say('Victory! '+RG(region(S.depth))[2]+' is slain. Map piece '+(region(S.depth)+1)+' restored. +'+fmt(g)+' gold.');
+ advance();
+ if(t.boss){S.offer=makeOffer();pendingTake=null;reshuffleAll('The boss falls: every card returns to your deck.');say('Boss spoils! Pick a tile for your deck.');}
+}
+function event(){
+ const k=S.road[0],t=TILES[k];
+ if(t.ev==='village'||t.ev==='springs'){if((S.streak||0)>=2)say('You rest. Battle Fervor fades.');S.streak=0;}
+ if(t.ev==='village'){
+  const g=6*1.15**S.depth*1*((curSyn&&curSyn.rew)||1)*modGold()*goldMul();
+  S.gold+=g;gained+=g;
+  for(let i=0;i<4;i++){if(!S.un[i])continue;S.hp[i]=Math.min(heroMax(i),Math.max(S.hp[i],0)+heroMax(i)*.6);S.hp[i]=Math.max(S.hp[i],heroMax(i)*.3);}
+  if(curSyn&&curSyn.heal)for(let i=0;i<4;i++)if(S.un[i])S.hp[i]=heroMax(i);
+  floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
+  if(curSyn)say('Combo: '+curSyn.n+'!');
+ }else if(t.ev==='shrine'){
+  S.bless=3;S.ink=Math.min(maxInk()+4,S.ink+2+((curSyn&&curSyn.ink)||0));
+  say('The shrine blesses you: +30% damage for 3 fights.');
+ }else if(t.ev==='springs'){
+  for(let i=0;i<4;i++)if(S.un[i])S.hp[i]=heroMax(i);
+  S.ink=Math.min(maxInk()+4,S.ink+1);say('The hot springs restore the whole company.');
+ }else if(t.ev==='market'||t.ev==='treasury'){
+  const g=6*1.15**S.depth*(t.ev==='market'?2:15)*((curSyn&&curSyn.rew)||1)*modGold()*goldMul();
+  S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
+  say(t.ev==='market'?'The market pays '+fmt(g)+' gold.':'The treasury yields '+fmt(g)+' gold!');
+  if(curSyn)say('Combo: '+curSyn.n+'!');
+ }else if(t.ev==='leyline'){
+  S.bless=5;S.ink=Math.min(maxInk()+4,S.ink+3+((curSyn&&curSyn.ink)||0));
+  say('Leyline surge: +30% damage for 5 fights.');
+ }else if(t.ev==='vault'){
+  for(let n=0;n<2;n++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Vault relic: '+RELICS[r].i+' '+RELICS[r].n+'!');}
+ }
+ modAfter();
+ advance();
+}
+function advance(){
+ S.prev=S.road[0];
+ S.depth++;S.best=Math.max(S.best,S.depth);S.jbest=Math.max(S.jbest||0,S.depth);
+ if(S.depth%10===0&&(S.depth/10)%5===0)setTimeout(showBoon,1300);   // a boon every 5th Warden
+ S.road.shift();S.road.push(kindAt(S.depth+6));S.rmod.shift();S.rmod.push(null);
+ if(selCard>=0&&S.hand.length<=selCard)selCard=-1;
+ phase='walk';pt=0;foes=[];
+ if(S.depth%10===0){say('Entered '+RG(region(S.depth))[0]+'.');}
+ sig='';
+}
+const DEATH_TIME=2.6;
+function startDeath(){
+ phase='dead';pt=0;say('The company has fallen...');
+ cv.classList.remove('shake');void cv.offsetWidth;cv.classList.add('shake');setTimeout(()=>cv.classList.remove('shake'),700);
+}
+function replay(el,cls,ms){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms);}
+function wipe(){
+ const rs=region(S.depth)*10,lost=S.gold*.1;S.gold-=lost;
+ say('The company is routed! Retreating to '+RG(region(S.depth))[0]+"'s edge. Lost "+fmt(lost)+' gold.');
+ S.streak=0;S.deaths=(S.deaths||0)+1;S.depth=rs;S.prev='wilds';buildRoad();resetHeroes(true);S.bless=0;phase='walk';pt=0;foes=[];
+ // everything goes back into the deck: hand, discard and draw pile are gathered and reshuffled
+ reshuffleAll('You died: every card returns to your deck.');
+}
+
+/* ---------- sim ---------- */
+function step(dt){
+ S.playSec=(S.playSec||0)+dt;
+ S.ink=Math.min(maxInk(),S.ink+inkRegen()*dt);
+ if(phase==='walk'){
+  scroll+=dt*140;pt+=dt;
+  for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
+  if(pt>=1.0)startTile();
+ }else if(phase==='event'){pt+=dt;if(pt>=1.3)event();}
+ else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME)wipe();}
+ else if(phase==='fight'){
+  H.forEach((h,i)=>{
+   h.lunge=Math.max(0,h.lunge-dt*4);h.flash=Math.max(0,h.flash-dt*4);
+   if(S.hp[i]<=0)return;
+   h.cd+=dt*HEROES[i].spd*spdMul();
+   if(h.cd>=1){h.cd-=1;heroAct(i);}
+  });
+  for(const f of foes){
+   f.lunge=Math.max(0,f.lunge-dt*4);f.flash=Math.max(0,f.flash-dt*5);
+   if(f.hp<=0)continue;
+   f.cd+=dt*.75;if(f.cd>=1){f.cd-=1;foeAct(f);}
+  }
+  if(foes.every(f=>f.hp<=0)){win();}
+  else if(S.hp.every((h,i)=>!S.un[i]||h<=0))startDeath();
+ }
+}
+
+/* ---------- actions ---------- */
+function placeTile(j){
+ if(selCard<0||j<1)return;
+ if((S.depth+j)%10===9)return;
+  const c=S.hand[selCard];if(!c||S.ink<1)return;
+ if(S.road[j]===kindOf(c)&&(S.rmod[j]||null)===modOf(c))return;
+ S.ink-=1;S.road[j]=kindOf(c);S.rmod[j]=modOf(c);
+ if(modOf(c)==='echo')S.draw.splice(Math.random()*(S.draw.length+1)|0,0,c);else S.disc.push(c);
+ S.hand.splice(selCard,1);selCard=-1;inscribing=false;fillHand();sig='';
+}
+function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[j]]=[S.order[j],S.order[pos]];sig='';}
+function recruit(i){if(S.un[i]||S.gold<RECRUIT[i])return;S.gold-=RECRUIT[i];S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
+function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c)return;S.gold-=c;const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
+function reroll(){if(S.ink<1)return;S.ink-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
+let retireArmed=0;   // two-tap confirm (window.confirm is unavailable in embedded viewers)
+function retire(){
+ const g=legGain();if(!g)return;
+ if(Date.now()>retireArmed){retireArmed=Date.now()+4000;say('Tap Retire again within 4s to confirm: gold, levels, relics and recruits reset. Each Legend gives +12% to all heroes permanently.');$('leg').textContent='Tap again to confirm';return;}
+ retireArmed=0;
+ const keep={regionStart:0,best:S.best,legend:S.legend+g,boons:S.boons||{}};
+ S=fresh(keep);buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';
+}
+
+/* ---------- UI ---------- */
+function fmt(n){
+ if(n<1000)return n<10?(+n.toFixed(1)).toString():Math.floor(n).toString();
+ const s=['','K','M','B','T','Qa','Qi','Sx'];const e=Math.min(s.length-1,Math.floor(Math.log10(n)/3));return (n/1000**e).toFixed(2)+s[e];
+}
+function build(){
+ const g=Math.floor(S.gold);
+ const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost()&&S.ink>=1,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):RECRUIT[i])]),S.relics,legGain(),speed,S.ink>=1,S.prev,S.depth,S.bless]);
+ if(s===sig)return;sig=s;
+ // road
+ $('road').innerHTML=S.road.map((k,j)=>{
+  const t=TILES[k],pk=j===0?S.prev:S.road[j-1],sy=(j===0&&phase==='walk')||j>0?synFor(pk,k):null;
+  const can=selCard>=0&&j>=1&&k!=='lair'&&(S.depth+j)%10!==9;
+  return `<div class="tile ${j===0?'cur':''} ${can?'can':''} ${k==='lair'?'lair':''}" data-j="${j}" title="${t.d}" ${k==='lair'?'':`style="--rc:${RAR[t.r].c}"`}><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="s">tile ${S.depth+j+1}</div>${S.rmod[j]?`<div class="md" title="${MODS[S.rmod[j]].n}: ${MODS[S.rmod[j]].d}">✦ ${MODS[S.rmod[j]].n}</div>`:''}${sy?`<div class="chip" title="${sy.d}">★ ${sy.n}</div>`:''}</div>`;
+ }).join('');
+ $('hand').innerHTML=S.hand.map((c,i)=>{const t=TILES[kindOf(c)],m=modOf(c);return `<div class="hc ${i===selCard?'sel':''}" data-h="${i}" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m" title="${MODS[m].d}">✦ ${MODS[m].n}</div>`:''}<div class="d">${m?MODS[m].d:t.d}</div></div>`;}).join('')+(S.hand.length?'':'<div class="hint" style="grid-column:1/-1;text-align:center">No tiles left to play. Beat the boss or fall in battle to gather your deck again. Empty road defaults to Wilds.</div>');
+ const ib=$('insbtn'),icost=inscribeCost();ib.textContent='Inscribe ✦ '+fmt(icost);ib.disabled=!(selCard>=0&&S.hand[selCard]&&S.ink>=1&&S.gold>=icost);
+ const ip=$('inscribe');ip.hidden=!(inscribing&&S.hand[selCard]);
+ if(!ip.hidden){const ik=kindOf(S.hand[selCard]);ip.innerHTML=`<h3>Etch a glyph onto ${TILES[ik].n} (${fmt(icost)} gold + 1 ink)</h3><div class="row">${inscribeOpts.map(m=>`<button data-mod="${m}"><b>${MODS[m].n}</b><br><small>${MODS[m].d}</small></button>`).join('')}<button data-cancel>Cancel</button></div>`;}
+ {const g={};for(const c of S.deck)if(modOf(c)){const n=TILES[kindOf(c)].n+' ('+MODS[modOf(c)].n+')';g[n]=(g[n]||0)+1;}const ks=Object.keys(g);$('insum').textContent=ks.length?'Inscribed: '+ks.map(n=>n+(g[n]>1?' x'+g[n]:'')).join(', '):'Select a card in your hand and Inscribe it to etch a permanent glyph.';}
+ $('piles').textContent='Draw '+S.draw.length+' · Spent '+S.disc.length+' · Deck '+S.deck.length+'/'+MAX_DECK+' · drag a card onto the road';
+ {const loc=[];S.hand.forEach(c=>loc.push([c,'hand']));S.draw.forEach(c=>loc.push([c,'draw']));S.disc.forEach(c=>loc.push([c,'disc']));
+  loc.sort((a,b)=>KINDS.indexOf(kindOf(a[0]))-KINDS.indexOf(kindOf(b[0]))||(modOf(a[0])||'').localeCompare(modOf(b[0])||''));
+  const LBL={hand:'In hand',draw:'Draw pile',disc:'Spent'},bc=burnCost(),canBurn=S.deck.length>MIN_DECK,full=S.deck.length>=MAX_DECK;
+  const dcard=([c,w])=>{const k=kindOf(c),m=modOf(c),t=TILES[k],key=c+'|'+w,armed=burnArm===key&&Date.now()<burnArmT;
+   return `<div class="dc ${w==='disc'?'spent':''}" style="--rc:${RAR[t.r].c}"><div class="st ${w}">${LBL[w]}</div><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m">✦ ${MODS[m].n}: ${MODS[m].d}</div>`:''}<div class="d">${t.d}</div><button data-burn="${key}" ${(!canBurn||S.gold<bc)?'disabled':''}>${armed?'Tap again to burn':'Burn <span class="gold">'+fmt(bc)+'</span>'}</button></div>`;};
+  const shop=KINDS.filter(buyable).map(k=>{const t=TILES[k],c=cardCost(k);return `<div class="dc shop" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div><div class="d">${t.d}</div><button data-buy="${k}" ${(full||S.gold<c)?'disabled':''}>${full?'Deck full':'Buy <span class="gold">'+fmt(c)+'</span>'}</button></div>`;}).join('');
+  $('deck').innerHTML=`<h3>Your deck · ${S.deck.length}/${MAX_DECK}</h3><div class="pile">${S.hand.length} in hand · ${S.draw.length} in draw pile · ${S.disc.length} spent. Spent cards return when you beat a boss or die.</div><div class="dgrid">${loc.map(dcard).join('')}</div><h3 style="margin-top:16px">Shop</h3><div class="dgrid">${shop}</div>`;}
+ $('combos').innerHTML=Object.entries(SYN).map(([k,v])=>{const [a,b]=k.split('>');return `<div class="cmb"><div class="cn">★ ${v.n}</div><div class="hint">${TILES[a].i} ${TILES[a].n} then ${TILES[b].i} ${TILES[b].n}: ${v.d}</div></div>`;}).join('');
+ $('glyphs').innerHTML=Object.values(MODS).map(m=>`<div class="cmb"><div class="cn">✦ ${m.n}</div><div class="hint">${m.d}</div></div>`).join('');
+ const of=$('offer');of.hidden=!S.offer;
+ if(S.offer){
+  if(pendingTake){
+   const kinds=[...new Set(S.deck.map(kindOf))];
+   of.innerHTML=`<h3 style="color:var(--gold)">Deck full (${MAX_DECK}). Replace which card with ${TILES[pendingTake].n}?</h3><div class="row">${kinds.map(k=>`<button data-replace="${k}">${TILES[k].i} ${TILES[k].n} <small>×${countKind(k)}</small></button>`).join('')}<button data-cancel-take>Back</button></div>`;
+  }else{
+   of.innerHTML=`<h3 style="color:var(--gold)">Boss spoils: pick one tile (later bosses drop rarer ones)</h3><div class="row">${S.offer.map(k=>`<button data-offer="${k}" class="oc" style="border:2px solid ${RAR[TILES[k].r].c}"><span class="i">${TILES[k].i}</span><b>${TILES[k].n}</b><small style="color:${RAR[TILES[k].r].d}">${RAR[TILES[k].r].n}</small><span class="od">${TILES[k].d}</span></button>`).join('')}</div><div class="row" style="margin-top:6px"><button data-skip>Leave them</button></div>`;
+  }
+ }
+ {const cur=region(S.depth),done=Math.floor((S.jbest||0)/10),nm=(Math.floor(done/5)+1)*5;
+  const rowOf=(r,state)=>{const rg=RG(r);return `<div class="ob ${state}"><div class="st">${state==='done'?'✔':state==='cur'?'➤':'🔒'}</div><div><div class="nm">Act ${roman(r+1)} · ${rg[0]}</div><div class="hint">${state==='done'?'Warden defeated':state==='cur'?'Warden ahead':'Warden'}: ${rg[2]}${state==='cur'?' · tile '+(S.depth%10+1)+'/10':''}</div></div></div>`;};
+  const rows=(cur>0?rowOf(cur-1,'done'):'')+rowOf(cur,'cur')+rowOf(cur+1,'lock')+rowOf(cur+2,'lock');
+  const bl=Object.keys(S.boons||{}).filter(k=>S.boons[k]).map(k=>BOONS[k].n+(S.boons[k]>1?' ×'+S.boons[k]:'')).join(', ');
+  $('objective').innerHTML=`<h3>Objective</h3><div class="obj"><b>Chart the endless realm.</b> The Unmapped keeps spreading and the map has no edge. Every Warden you defeat restores a piece of it and reveals another region beyond. How far can you chart?</div>
+   <div class="mstats"><div><b>${done}</b><small>map pieces</small></div><div><b>${Math.floor(Math.max(S.best,S.depth)/10)+1}</b><small>furthest act</small></div><div><b>${S.deaths||0}</b><small>falls</small></div><div><b>${S.legend}</b><small>Legend</small></div></div>
+   <div class="hint" style="margin-bottom:6px">Next Cartographer's Boon after Warden ${nm} (${nm-done} to go).${bl?' Boons: '+bl+'.':''}</div>${rows}`;}
+ $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):RECRUIT[i];return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
+ $('nav-party').classList.toggle('dot',HEROES.some((h,i)=>S.gold>=(S.un[i]?lvCost(i):RECRUIT[i])));
+ $('nav-deck').classList.toggle('dot',!!S.offer);$('spoils').hidden=!S.offer;
+ $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):RECRUIT[i],first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${h.sk}</small></div><div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div><button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
+ // relics list (see below)
+ {const EFF={whet:n=>'+'+12*n+'% damage',oak:n=>'+'+12*n+'% max HP',coin:n=>'+'+15*n+'% gold',ink:n=>'+'+20*n+'% ink regen',fang:n=>'heals '+3*n+'% of damage dealt',boots:n=>'+'+8*n+'% speed'};
+  const keys=RK.slice().sort((a,b)=>(S.relics[b]||0)-(S.relics[a]||0));
+  $('relics').innerHTML=keys.map(k=>{const n=S.relics[k]||0,r=RELICS[k];return `<div class="rl ${n?'':'unk'}"><div class="ic">${r.ico}</div><div><div class="nm">${r.n}${n?' <small>×'+n+'</small>':''}</div><div class="hint">${r.d} each, stacks</div></div><div class="eff">${n?EFF[k](n):'Not found yet'}</div></div>`;}).join('');}
+ const lg=legGain();$('leg').disabled=!lg;$('leg').textContent=lg?(Date.now()<retireArmed?'Tap again to confirm':`Retire the company: +${lg} Legend`):'Retire the company';
+ $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats). Unlocks at tile 30.`;
+ $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">▶ x${speed}</button>`;
+ $('reroll').disabled=S.ink<1;
+}
+/* ---------- story beats: opening card and victory ---------- */
+let modalBtns=[];
+/* ---------- the realm never ends: hand-made regions first, then generated ones ---------- */
+const ADJ=['Gilded','Hollow','Shattered','Crimson','Drowned','Whispering','Sunless','Frozen','Burning','Ancient','Forgotten','Veiled','Sundered','Thorned','Glass','Ember','Silent','Wandering','Bleak','Starless'];
+const NOUN=['Barrens','Expanse','Reach','Wastes','Moors','Depths','Spires','Vale','Marches','Fells','Steppes','Cairns','Hollows','Basin','Crossing','Wilds'];
+const EPI=['Morrigan','Valkor','Ishtara','Draegoth','Sylvane','Orrick','Vexara','Thulgar','Nyx','Kharzul','Ombra','Bastion','Hexen','Mordaine','Tarrow','Zephyra'];
+const WTITLE=['Wraith-King','Devourer','Colossus','Matriarch','Tyrant','Hierophant','Behemoth','Lich','Hydra','Warlord','Harbinger','Ravager'];
+const BOSSFORM=['🐗','🐊','🦂','🐻‍❄️','🧛','🐉','👹'];
+const _rg={};
+function RG(r){   // [name, boss emoji (picks the boss sprite), warden name] for any region number
+ if(r<REGIONS.length)return REGIONS[r];
+ if(_rg[r])return _rg[r];
+ const h=n=>Math.floor(hash(r*7.13+n)*1000);
+ return _rg[r]=[ADJ[h(1)%ADJ.length]+' '+NOUN[h(2)%NOUN.length],BOSSFORM[(r+h(5))%BOSSFORM.length],EPI[h(3)%EPI.length]+' the '+WTITLE[h(4)%WTITLE.length]];
+}
+function roman(n){const m=[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];let o='';for(const [v,s] of m)while(n>=v){o+=s;n-=v;}return o;}
+/* ---------- Cartographer's Boons: permanent upgrades, one chosen every 5 Wardens (kept when you retire) ---------- */
+const BOONS={
+ gold:{n:'Gold Veins',d:'+20% gold from everything',ic:'coin'},
+ hp:{n:'Fortified Company',d:'+15% hero HP',ic:'company'},
+ dmg:{n:'Sharpened Steel',d:'+15% hero damage',ic:'whet'},
+ ink:{n:'Ink Well',d:'+1 max ink and +10% ink regen',ic:'ink'},
+ speed:{n:'Swift March',d:'+8% hero speed',ic:'boots'},
+ relic:{n:'Treasure Sense',d:'+8% relic chance from fights',ic:'treasury'}
+};
+function showBoon(){
+ if(!$('modal').hidden)return setTimeout(showBoon,1500);
+ const pool=Object.keys(BOONS).sort(()=>Math.random()-.5).slice(0,3);
+ showModal("Cartographer's Boon",'<p>A Warden falls and the map grows. Choose a permanent boon. It stays with you, even when you retire.</p>',
+  pool.map(k=>({t:ic(BOONS[k].ic)+' <b>'+BOONS[k].n+'</b><br><small>'+BOONS[k].d+'</small>',primary:0,fn:()=>{S.boons[k]=(S.boons[k]||0)+1;say('Boon gained: '+BOONS[k].n+'.');sig='';save();}})));
+}
+function fitRegion(){   // shrink the act title until the whole name fits
+ const el=$('region');el.style.fontSize='';let fs=parseFloat(getComputedStyle(el).fontSize),w=el.parentElement.clientWidth;
+ while(w>0&&el.scrollWidth>w&&fs>13){fs-=1;el.style.fontSize=fs+'px';}
+}
+window.addEventListener('resize',()=>{if(typeof lastRegion!=='undefined')fitRegion();});
+function showModal(title,html,btns){
+ $('mTitle').textContent=title;$('mBody').innerHTML=html;modalBtns=btns;
+ $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
+ $('modal').hidden=false;
+}
+function closeModal(i){const b=modalBtns[i];$('modal').hidden=true;modalBtns=[];if(b&&b.fn)b.fn();}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(b)closeModal(+b.dataset.mb);});
+function showIntro(){
+ showModal("The Cartographer's Oath",'<p>The <b>Unmapped</b> has swallowed the realm\'s roads, and a <b>Warden</b> guards every region it left behind. You are the Royal Cartographer. You do not swing a sword; you lay the tiles, and the Company marches where your map leads.</p><p>Win fights for gold, rest when you must, and defeat each Warden to <span class="gold">restore a piece of the map</span>. The Unmapped never stops spreading, so the road never ends.</p>',[{t:'Begin the journey',primary:1,fn:()=>{S.seenIntro=true;save();}}]);
+}
+/* ---------- menus (bottom sheets) and toasts ---------- */
+const SHEETS={party:'Company',deck:'Tile Deck',relics:'Relics & Legacy',log:'Journal'};
+const RACC=['111,207,111','95,208,176','255,138,61','122,208,255','176,107,255','255,92,77','215,123,255'];   // per-region accent colours
+const ROMAN=['I','II','III','IV','V','VI','VII'];
+let sheet=null,lastLog,toastT,lastRegion,lastPips,splT,lastSub,lastGold;
+function showSplash(r){   // big act title over the battle when a new region begins
+ const sp=$('splash');sp.querySelector('.sa').textContent='ACT '+roman(r+1);sp.querySelector('.sn').textContent=RG(r)[0];sp.querySelector('.sb').textContent='Warden: '+RG(r)[2];
+ sp.hidden=false;sp.style.animation='none';void sp.offsetWidth;sp.style.animation='';
+ clearTimeout(splT);splT=setTimeout(()=>{sp.hidden=true;},2900);
+}
+function showSheet(n){
+ sheet=(!n||sheet===n)?null:n;
+ $('sheet').hidden=!sheet;
+ if(sheet){$('sheetTitle').textContent=SHEETS[sheet];document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==sheet);}
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.sheet===sheet));
+}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')showSheet(null);});
+function hud(){
+ const r=region(S.depth);
+ const ti=S.depth%10;   // tile within the region (the 10th is the boss)
+ if(r!==lastRegion){document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
+ if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
+ {const sh=((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
+ {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
+ $('rate').textContent='≈ '+fmt(S.rate)+' gold/s';
+ $('inkF').style.width=100*S.ink/maxInk()+'%';$('inkT').textContent='Ink '+Math.floor(S.ink)+' / '+maxInk();
+ for(let i=0;i<4;i++){const f=$('hb'+i),t=$('ht'+i);if(!f)continue;const m=heroMax(i);f.style.width=100*Math.max(0,S.hp[i])/m+'%';t.textContent=S.hp[i]<=0?'Fallen':Math.ceil(S.hp[i])+' / '+Math.ceil(m);}
+ $('log').innerHTML=log.map(l=>'<div>'+l+'</div>').join('');
+ for(let i=0;i<4;i++){const m=$('mb'+i);if(m){m.style.width=100*Math.max(0,S.hp[i])/heroMax(i)+'%';m.parentElement.parentElement.classList.toggle('down',S.hp[i]<=0);}}
+ if(log[0]!==lastLog){lastLog=log[0];if(lastLog)toast(lastLog);}
+}
+document.addEventListener('click',e=>{
+ const b=e.target.closest('button'),h=e.target.closest('[data-h]'),t=e.target.closest('[data-j]');
+ const sh=e.target.closest('[data-sheet]');if(sh){showSheet(sh.dataset.sheet);return;}
+ if(e.target.closest('[data-close]')||e.target.id==='sheet'){showSheet(null);return;}
+ const hh=e.target.closest('[data-hero]');   // tap a hero icon under the battle: level up / recruit
+ if(hh){const i=+hh.dataset.hero;
+  if(S.un[i]){if(S.gold>=lvCost(i))levelUp(i);else toast('Need '+fmt(lvCost(i))+' gold to level up '+HEROES[i].n+'.');}
+  else{if(S.gold>=RECRUIT[i])recruit(i);else toast('Need '+fmt(RECRUIT[i])+' gold to recruit '+HEROES[i].n+'.');}
+  return;}
+ const mv=e.target.closest('[data-move]');if(mv){const [p,d]=mv.dataset.move.split(':').map(Number);moveHero(p,d);return;}
+ if(b){
+  if(b.dataset.lv!==undefined){const i=+b.dataset.lv;S.un[i]?levelUp(i):recruit(i);}
+  else if(b.id==='insbtn')startInscribe();
+  else if(b.dataset.mod)applyInscribe(b.dataset.mod);
+  else if('cancel' in b.dataset){inscribing=false;sig='';}
+  else if(b.dataset.buy)buyTile(b.dataset.buy);
+  else if(b.dataset.burn)burnCard(b.dataset.burn);
+  else if(b.dataset.offer)takeOffer(b.dataset.offer);
+  else if(b.dataset.replace)replaceCard(b.dataset.replace);
+  else if('skip' in b.dataset)skipOffer();
+  else if('cancelTake' in b.dataset){pendingTake=null;sig='';}
+  else if(b.dataset.s)speed=+b.dataset.s,sig='';
+  else if(b.id==='reroll')reroll();
+  else if(b.id==='leg')retire();
+  return;
+ }
+ if(h){if(Date.now()<noClickUntil)return;const i=+h.dataset.h;selCard=selCard===i?-1:i;inscribing=false;sig='';}
+ else if(t)placeTile(+t.dataset.j);
+});
+
+/* ---------- drag a hand card onto the road (touch + mouse); a plain tap still selects ---------- */
+let drag=null,noClickUntil=0;
+function dropTargets(){return [...document.querySelectorAll('#road .tile')].filter(t=>{const j=+t.dataset.j;return j>=1&&S.road[j]!=='lair'&&(S.depth+j)%10!==9;});}
+document.addEventListener('pointerdown',e=>{
+ if(e.button>0)return;
+ const c=e.target.closest('#hand .hc');if(!c||sheet)return;
+ drag={i:+c.dataset.h,el:c,x0:e.clientX,y0:e.clientY,active:false,id:e.pointerId,ghost:null,w:0,h:0,off:e.pointerType==='touch'?64:0};
+});
+document.addEventListener('pointermove',e=>{
+ if(!drag||e.pointerId!==drag.id)return;
+ if(!drag.active){
+  if(Math.hypot(e.clientX-drag.x0,e.clientY-drag.y0)<10)return;
+  drag.active=true;inscribing=false;
+  const ref=document.querySelector('#road .tile'),r=ref?ref.getBoundingClientRect():drag.el.getBoundingClientRect();
+  const cd=S.hand[drag.i],ck=kindOf(cd),cm=modOf(cd),ct=TILES[ck],g=document.createElement('div');
+  g.className='tile dragghost';g.style.setProperty('--rc',RAR[ct.r].c);g.style.width=r.width+'px';g.style.height=r.height+'px';
+  g.innerHTML='<div class="i">'+ct.i+'</div><div class="n">'+ct.n+'</div>'+(cm?'<div class="md">✦ '+MODS[cm].n+'</div>':'');
+  document.body.appendChild(g);drag.ghost=g;drag.w=r.width;drag.h=r.height;
+  drag.el.classList.add('dragging');dropTargets().forEach(t=>t.classList.add('can'));
+ }
+ e.preventDefault();
+ const gx=e.clientX,gy=e.clientY-drag.off;   // ghost centre
+ drag.ghost.style.transform='translate('+(gx-drag.w/2)+'px,'+(gy-drag.h/2)+'px)';
+ const tile=tileAtPoint(gx,gy);
+ document.querySelectorAll('#road .tile.drop').forEach(x=>x.classList.remove('drop'));
+ if(tile&&tile.classList.contains('can'))tile.classList.add('drop');
+},{passive:false});
+function tileAtPoint(x,y){   // road tile under a point (small tolerance covers the gaps between tiles)
+ let best=null,bd=1e9;
+ for(const t of document.querySelectorAll('#road .tile')){
+  const r=t.getBoundingClientRect();
+  if(x>=r.left-4&&x<=r.right+4&&y>=r.top-4&&y<=r.bottom+4){const d=Math.abs(x-(r.left+r.width/2));if(d<bd){bd=d;best=t;}}
+ }
+ return best;
+}
+function endDrag(e,cancel){
+ if(!drag||e.pointerId!==drag.id)return;
+ const d=drag;drag=null;
+ if(!d.active)return;
+ noClickUntil=Date.now()+350;
+ let target=null;
+ if(!cancel){const t=tileAtPoint(e.clientX,e.clientY-d.off);target=t&&t.classList.contains('can')?t:null;}
+ d.ghost.remove();d.el.classList.remove('dragging');
+ document.querySelectorAll('#road .tile').forEach(x=>x.classList.remove('can','drop'));
+ if(target){if(S.ink<1)toast('Not enough ink to place a tile.');else{selCard=d.i;placeTile(+target.dataset.j);}}
+ sig='';
+}
+document.addEventListener('pointerup',e=>endDrag(e,false));
+document.addEventListener('pointercancel',e=>endDrag(e,true));
+/* ---------- render ---------- */
+const cv=$('c'),g=cv.getContext('2d');
+const SK='#f1c9a0';
+let EX=0,CW=800,OX=0,K=1;   // extra canvas height, canvas width and x-offset: the scene is cropped/extended to fill the stage
+function fit(){
+ const st=$('stage');if(!st)return;
+ const w=st.clientWidth,h=st.clientHeight;if(!w||!h)return;
+ const dpr=Math.min(3,window.devicePixelRatio||1);
+ const tall=h/w>.62,wc=tall?600:800,ex=Math.max(-70,Math.min(420,Math.round(wc*h/w)-320));
+ const k=w*dpr/wc,bw=Math.round(w*dpr),bh=Math.round((320+ex)*k);
+ if(wc!==CW||ex!==EX||cv.width!==bw||cv.height!==bh){CW=wc;EX=ex;OX=tall?-95:0;K=k;cv.width=bw;cv.height=bh;}
+}
+if(window.ResizeObserver)new ResizeObserver(fit).observe($('stage'));
+window.addEventListener('resize',fit);
+function drawHero(i,x,y){
+ const d=HEROES[i],h=H[i]||{lunge:0,flash:0},dead=S.hp[i]<=0;
+ g.save();
+ const walkBob=phase==='walk'?Math.abs(Math.sin(performance.now()/110+i))*5:0;
+ g.translate(x+h.lunge*22,y-walkBob);
+ if(dead){g.rotate(-Math.PI/2);g.translate(0,18);g.globalAlpha=.6;}
+ g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(0,2,16,5,0,0,TAU);g.fill();
+ g.fillStyle=h.flash>0?'#fff':d.col;g.beginPath();g.roundRect(-11,-30,22,30,6);g.fill();
+ g.fillStyle=SK;g.beginPath();g.arc(0,-38,10,0,TAU);g.fill();
+ g.fillStyle='#222';g.fillRect(-4,-40,2,2);g.fillRect(3,-40,2,2);
+ if(d.hat==='helm'){g.fillStyle='#b8c0d8';g.beginPath();g.arc(0,-40,11,Math.PI,0);g.fill();g.fillRect(-11,-41,22,3);}
+ else if(d.hat==='hood'){g.fillStyle='#2f7a48';g.beginPath();g.arc(0,-40,11,Math.PI,0);g.lineTo(11,-32);g.lineTo(-11,-32);g.fill();}
+ else if(d.hat==='wiz'){g.fillStyle='#6a3aa8';g.beginPath();g.moveTo(-13,-45);g.lineTo(13,-45);g.lineTo(2,-70);g.fill();}
+ else{g.strokeStyle='#ffe27a';g.lineWidth=2;g.beginPath();g.ellipse(0,-52,9,3,0,0,TAU);g.stroke();}
+ g.font='20px serif';g.textAlign='center';g.fillText(d.w,18,-18);
+ g.restore();
+ if(!dead){const m=heroMax(i),w=36;g.fillStyle='#150f0a';g.fillRect(x-w/2,y+8,w,5);g.fillStyle='#4caf6a';g.fillRect(x-w/2,y+8,w*Math.max(0,S.hp[i])/m,5);}
+}
+/* ---------- painted sprite assets (generated art). If an image is missing the simple drawn version is used. ---------- */
+const IMG={},HID=['knight','ranger','mage','cleric'];
+function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;
+ if(key==='f_bear')IMG.f_icebear=tintImg(im,L=>[Math.min(255,L*.75+55),Math.min(255,L*.9+90),Math.min(255,L*1.05+130)],'f_icebear');
+ if(key==='f_ogre')IMG.f_void=tintImg(im,L=>[Math.min(255,L*.7+45),Math.min(255,L*.35+5),Math.min(255,L*1.0+95)],'f_void');};im.onerror=()=>{};im.src=src;}
+HID.forEach((id,i)=>loadImg('hero'+i,'assets/heroes/'+id+'.png'));
+function heroIcon(i){return '<img class="pt" src="assets/heroes/'+HID[i]+'_p.png" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">';}
+const _fc={};
+function flashed(im,f){   // the sprite washed toward white (hit flash)
+ const key=im.src||im._k,w=im.naturalWidth||im.width,h=im.naturalHeight||im.height;let c=_fc[key];if(!c){c=document.createElement('canvas');c.width=w;c.height=h;_fc[key]=c;}
+ const x=c.getContext('2d');x.globalCompositeOperation='source-over';x.clearRect(0,0,c.width,c.height);x.drawImage(im,0,0);
+ x.globalCompositeOperation='source-atop';x.fillStyle='rgba(255,255,255,'+Math.min(1,f)+')';x.fillRect(0,0,c.width,c.height);x.globalCompositeOperation='source-over';return c;
+}
+function hpBar(x,y,w,f,col){
+ f=Math.max(0,Math.min(1,f));g.fillStyle='rgba(10,6,3,.85)';g.beginPath();g.roundRect(x-w/2-1,y-1,w+2,7,3.5);g.fill();
+ g.fillStyle=col;g.beginPath();g.roundRect(x-w/2,y,Math.max(0,w*f),5,2.5);g.fill();
+ g.fillStyle='rgba(255,255,255,.28)';g.fillRect(x-w/2+1.5,y+.7,Math.max(0,w*f-3),1.4);
+}
+const HH=[104,96,116,108];   // on-screen hero heights in world units
+function drawHeroImg(i,x,y){
+ const im=IMG['hero'+i],h=H[i]||{lunge:0,flash:0},dead=S.hp[i]<=0,T=performance.now()/1000;
+ const hh=HH[i],ww=hh*im.naturalWidth/im.naturalHeight,walk=phase==='walk'&&!dead;
+ const bob=walk?Math.abs(Math.sin(T*9+i))*5:0,breathe=1+Math.sin(T*2.4+i*1.7)*.014;
+ g.save();
+ g.fillStyle='rgba(0,0,0,.34)';g.beginPath();g.ellipse(x,y+1,ww*.4,6,0,0,TAU);g.fill();
+ g.translate(x+h.lunge*18,y-bob);
+ if(dead){g.rotate(-1.35);g.globalAlpha=.55;}else g.rotate(h.lunge*.1);
+ g.scale(1/breathe,breathe);                         // breathing squash and stretch around the feet
+ g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+ g.drawImage(h.flash>0?flashed(im,h.flash*.75):im,-ww/2,-hh,ww,hh);
+ g.restore();
+ if(!dead)hpBar(x,y+9,38,S.hp[i]/heroMax(i),'#4cd07a');
+}
+/* ---------- painted enemies, icons and scenery ---------- */
+const FOEFILE={'🐗':'boar','🦊':'fox','🦇':'bat','🐺':'wolf','🕷️':'spider','🐻':'bear','💀':'skeleton','🧟':'zombie','👻':'ghost','🐸':'frog','🐊':'gator','🪱':'leech','🧛':'vampire','👺':'goblin','🧌':'troll','👹':'ogre','🦂':'scorpion','🐻‍❄️':'bear','🐉':'dragon'};
+const FOEH={boar:64,fox:54,bat:58,wolf:64,spider:58,bear:78,icebear:78,skeleton:88,zombie:88,ghost:88,frog:58,gator:52,leech:46,vampire:96,goblin:68,troll:104,ogre:110,void:112,scorpion:84,dragon:124};
+['boar','fox','bat','wolf','spider','bear','skeleton','zombie','ghost','frog','gator','leech','vampire','goblin','troll','ogre','scorpion','dragon'].forEach(n=>loadImg('f_'+n,'assets/enemies/'+n+'.png'));
+const ICONS=['wilds','forest','village','ruins','swamp','crypt','shrine','springs','market','battlefield','leyline','treasury','vault','lair','coin','whet','oak','ink','fang','boots','company','deck','relics','journal','flame'];
+ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'));
+function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png" alt="" draggable="false">';}
+for(const k in TILES)TILES[k].i=ic(k);                // tile icons are now images (HTML), used in every card and tile
+for(const k in RELICS)RELICS[k].ico=ic(k);
+function glow(x,y,r,c0,c1){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,c0);gr.addColorStop(1,c1||'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
+function foeKey(f){let n=FOEFILE[f.e]||'boar';if(f.boss){if(f.e==='🐻‍❄️')n='icebear';if(f.e==='👹')n='void';}return n;}
+function drawFoeEmoji(f){
+ g.save();g.translate(f.x-f.lunge*26,f.y);
+ g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(0,0,24,6,0,0,TAU);g.fill();
+ g.font=(f.boss?96:56)+'px serif';g.textAlign='center';g.globalAlpha=f.flash>0?.55:1;g.fillText(f.e,0,f.boss?-6:-4);g.globalAlpha=1;
+ g.restore();hpBar(f.x,f.y+(f.boss?-112:-72),f.boss?90:44,f.hp/f.max,'#e0584a');
+}
+function drawFoeImg(f,nm,im){
+ const now=performance.now(),T=now/1000,dying=f.hp<=0,dt=dying?Math.min(1,(now-f.dieT)/450):0;
+ const bs=f.boss?(nm==='dragon'?1.45:nm==='scorpion'?1.55:1.75):1,hh=(FOEH[nm]||70)*bs;
+ const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,ww=hh*iw/ih;
+ const fly=(nm==='bat'||nm==='ghost')?18+Math.sin(T*2.3+f.x)*6:0,breathe=1+Math.sin(T*3.1+f.x*.05)*.015;
+ if(f.boss&&!dying)glow(f.x,f.y-hh*.5,hh*.95,'rgba(255,70,40,.30)','rgba(255,70,40,0)');
+ g.save();
+ g.fillStyle='rgba(0,0,0,'+(.36*(1-dt))+')';g.beginPath();g.ellipse(f.x,f.y+1,ww*.36,6*Math.min(1.6,bs),0,0,TAU);g.fill();
+ g.translate(f.x-f.lunge*30+(dying?dt*14:0),f.y-fly-(dying?dt*16:0));
+ g.rotate(-f.lunge*.07+(dying?dt*.35:0));
+ g.scale((1/breathe)*(1+dt*.1),breathe*(1-dt*.25));
+ g.globalAlpha=1-dt;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+ g.drawImage(f.flash>0?flashed(im,f.flash*.8):im,-ww/2,-hh,ww,hh);
+ g.restore();
+ if(!dying)hpBar(f.x,f.y-hh-fly-8,f.boss?96:48,f.hp/f.max,'#e0584a');
+}
+function tintImg(im,fn,key){
+ const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);
+ const d=x.getImageData(0,0,c.width,c.height),p=d.data;
+ for(let i=0;i<p.length;i+=4){if(!p[i+3])continue;const L=.3*p[i]+.59*p[i+1]+.11*p[i+2],o=fn(L);p[i]=o[0];p[i+1]=o[1];p[i+2]=o[2];}
+ x.putImageData(d,0,0);c._k=key;return c;
+}
+/* ---------- painted backdrops: 4 generated scenes, the other biomes are tinted variants made at load time ---------- */
+const BGB={},BGV={};
+const BGSPEC={
+ wilds:['meadow'],forest:['forest'],ruins:['ruins'],lair:['lair'],
+ swamp:['forest','overlay','rgba(150,175,55,.6)','multiply','rgba(170,185,140,.45)'],
+ crypt:['ruins','multiply','rgba(80,90,175,.6)'],
+ village:['meadow','overlay','rgba(255,140,60,.5)'],
+ shrine:['meadow','overlay','rgba(150,105,255,.55)'],
+ springs:['meadow','overlay','rgba(90,200,255,.35)'],
+ market:['meadow','overlay','rgba(255,190,80,.4)'],
+ battlefield:['ruins','overlay','rgba(230,70,50,.45)'],
+ leyline:['ruins','overlay','rgba(70,200,255,.5)'],
+ treasury:['meadow','overlay','rgba(255,205,60,.55)'],
+ vault:['ruins','overlay','rgba(165,90,255,.5)']
+};
+function buildBGV(){
+ for(const k in BGSPEC){
+  if(BGV[k])continue;const sp=BGSPEC[k],b=BGB[sp[0]];if(!b)continue;
+  if(sp.length===1){BGV[k]=b;continue;}
+  const c=document.createElement('canvas');c.width=b.naturalWidth;c.height=b.naturalHeight;const x=c.getContext('2d');x.drawImage(b,0,0);
+  for(let i=1;i<sp.length;i+=2){x.globalCompositeOperation=sp[i];x.fillStyle=sp[i+1];x.fillRect(0,0,c.width,c.height);}
+  x.globalCompositeOperation='source-over';BGV[k]=c;
+ }
+}
+['meadow','forest','ruins','lair'].forEach(n=>{const im=new Image();im.onload=()=>{BGB[n]=im;buildBGV();};im.onerror=()=>{};im.src='assets/bg/'+n+'.jpg';});
+function drawBG(k){
+ const im=BGV[k];if(!im)return false;
+ const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,T=performance.now()/1000;
+ const vw=CW,left=-OX,wide=CW===800;
+ const H=Math.max(vw/iw*ih*(wide?.62:1),(250+EX)/.86,500),W=vw*1.06;   // keep the path under the heroes' feet (y~250)
+ const yTop=250-.86*H,pan=Math.sin(T*.12+scroll*.002)*(W-vw)/2*.9;
+ g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+ g.drawImage(im,left+(vw-W)/2+pan,yTop,W,H);
+ return true;
+}
+function hash(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+function ambient(k){   // drifting pollen / spores / wisps / embers, stateless
+ const T=performance.now()/1000,base=BGSPEC[k]?BGSPEC[k][0]:'meadow',left=-OX,hh=320+EX;
+ const col={meadow:'255,250,225',forest:'255,230,140',ruins:'190,205,255',lair:'255,150,60'}[base]||'255,250,225',rise=base==='lair';
+ for(let i=0;i<26;i++){
+  const sp=.4+hash(i+13),walk=phase==='walk'?scroll*.35:0;
+  const px=left+(((hash(i)*CW-(walk+T*6)*sp)%CW)+CW)%CW;
+  let py=-EX+hash(i+7)*hh;if(rise)py=((py+EX-T*16*sp)%hh+hh)%hh-EX;
+  g.fillStyle='rgba('+col+','+(.18+.2*Math.sin(T*2+i))+')';g.beginPath();g.arc(px,py,.8+hash(i+3)*1.6,0,TAU);g.fill();
+ }
+}
+function vignette(){
+ const left=-OX,hh=320+EX,cx=left+CW/2,cy=-EX+hh/2+20;
+ const vg=g.createRadialGradient(cx,cy,Math.min(CW,hh)*.38,cx,cy,Math.max(CW,hh)*.78);
+ vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.4)');g.fillStyle=vg;g.fillRect(left-4,-EX-4,CW+8,hh+8);
+}
+function draw(dt){
+ const k=S.road[0],t=TILES[k];
+ const gr=g.createLinearGradient(0,0,0,250);gr.addColorStop(0,t.bg[0]);gr.addColorStop(1,'#00000022');
+ g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(K,0,0,K,OX*K,EX*K);const TOPY=Math.max(0,-EX);   // keep top-anchored labels visible when sky is trimmed
+ const usedBG=drawBG(k);
+ if(!usedBG){
+ g.fillStyle=t.bg[0];g.fillRect(0,-EX,800,320+EX);
+ // drifting clouds fill the extra sky on tall screens
+ g.fillStyle='rgba(255,255,255,.55)';
+ for(let k=0;k<6;k++){const cx=((k*190-scroll*.06-performance.now()/900*(k%2+1))%1100+1100)%1100-150,cy=-EX+28+(k*53)%Math.max(60,EX+120);
+  g.beginPath();g.ellipse(cx,cy,46,13,0,0,TAU);g.ellipse(cx+26,cy-8,30,12,0,0,TAU);g.ellipse(cx-28,cy-4,28,10,0,0,TAU);g.fill();}
+ // far hills
+ g.fillStyle='rgba(0,0,0,.18)';
+ for(let i=-1;i<7;i++){const x=i*160-(scroll*.2%160);g.beginPath();g.ellipse(x+80,235,110,60,0,Math.PI,0);g.fill();}
+ // ground
+ g.fillStyle=t.bg[1];g.fillRect(0,236,800,84);
+ g.fillStyle='rgba(0,0,0,.2)';g.fillRect(0,236,800,4);
+ // scenery
+ g.font='44px serif';g.textAlign='center';
+ {const sim=IMG['i_'+(k==='lair'?'ruins':k)];for(let i=-1;i<8;i++){const x=i*130-(scroll*.7%130);if(sim){const hh=66+(i&3)*8,ww=hh*sim.width/sim.height;g.globalAlpha=.62;g.drawImage(sim,x-ww/2,238-hh,ww,hh);}else{g.globalAlpha=.9;g.fillText(t.sc,x,226);}}}
+ g.globalAlpha=1;
+ // path
+ g.fillStyle='rgba(255,230,170,.15)';g.fillRect(0,262,800,22);
+ }
+ else ambient(k);
+ // heroes
+ for(let i=0;i<4;i++)if(S.un[i])(IMG['hero'+i]?drawHeroImg:drawHero)(i,heroPx(i),244+(slot(i)%2?16:-4));
+ // foes (painted sprites; emoji fallback)
+ for(const f of foes){
+  if(f.hp<=0&&!f.dieT)f.dieT=performance.now();
+  if(f.hp<=0&&performance.now()-f.dieT>450)continue;
+  const nm=foeKey(f),im=IMG['f_'+nm];
+  if(im)drawFoeImg(f,nm,im);else if(f.hp>0)drawFoeEmoji(f);
+ }
+ vignette();
+ // event / banner
+ g.textAlign='center';
+ if(phase==='event'){g.fillStyle='rgba(0,0,0,.35)';g.fillRect(250,90,300,60);g.fillStyle='#fff';g.font='bold 22px Georgia';g.fillText(t.n,400,128);}
+ if(phase==='fight'&&curSyn){g.fillStyle='rgba(0,0,0,.4)';g.fillRect(300,10+TOPY,200,26);g.fillStyle='#ffd24a';g.font='bold 14px Georgia';g.fillText('★ '+curSyn.n,400,28+TOPY);}
+ if(S.bless>0){g.fillStyle='rgba(255,230,120,.8)';g.font='14px serif';g.textAlign='left';g.fillText('✨ Blessed',10,22+TOPY);}
+ if(phase==='dead'){
+  const p=Math.min(1,pt/DEATH_TIME);
+  g.fillStyle='rgba(110,0,12,'+(.5*Math.min(1,p*2.5))+')';g.fillRect(0,-EX,800,320+EX);
+  const v=g.createRadialGradient(400,160,80,400,160,420);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,'+(.75*p)+')');g.fillStyle=v;g.fillRect(0,-EX,800,320+EX);
+  if(p>.3){   // the deck's cards spiral in to be gathered and reshuffled
+   const q=(p-.3)/.7;
+   for(let k=0;k<14;k++){
+    const a=k/14*TAU+q*5,rad=(1-q)*230+14,x=400+Math.cos(a)*rad*1.5,y=165+Math.sin(a)*rad*.55;
+    g.save();g.translate(x,y);g.rotate(a+q*8);g.globalAlpha=Math.min(1,q*3)*(q>.9?(1-q)*10:1);
+    g.fillStyle='#e8d5a6';g.strokeStyle='#8a6a3a';g.lineWidth=2;g.fillRect(-12,-16,24,32);g.strokeRect(-12,-16,24,32);g.restore();
+   }
+  }
+  g.globalAlpha=Math.min(1,p*3);g.textAlign='center';g.fillStyle='#ffd9d9';g.font='bold 34px Georgia';g.fillText('THE COMPANY HAS FALLEN',400,140);
+  g.font='14px Georgia';g.fillStyle='#e8c8c8';g.fillText('Retreating to the edge of '+RG(region(S.depth))[0]+'  ·  reshuffling your tile deck…',400,172);g.globalAlpha=1;
+ }
+ // floaters
+ fxT=fxT.filter(f=>(f.t+=dt)<.9);
+ for(const f of fxT){g.globalAlpha=1-f.t/.9;g.fillStyle=f.c;g.font=(f.big?'50px serif':'bold 16px Georgia');g.textAlign='center';g.lineWidth=3;g.strokeStyle='#000';if(!f.big)g.strokeText(f.txt,f.x,f.y-f.t*40);g.fillText(f.txt,f.x,f.y-f.t*40);}
+ g.globalAlpha=1;
+}
+
+/* ---------- loop ---------- */
+function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+if(!S.road||S.road.length!==7)buildRoad();
+fillHand();
+if(S.hp.every(h=>!h))resetHeroes(true);
+{const secs=Math.min(7200,(Date.now()-S.saved)/1000);if(secs>60&&S.rate>0){const gg=S.rate*secs*.5;S.gold+=gg;say('Welcome back! The company earned '+fmt(gg)+' gold while you were away.');}}
+if(!S.road.length)buildRoad();
+say('The company sets out from the village...');
+if(!S.seenIntro)setTimeout(showIntro,700);
+let prev=performance.now(),fitN=0;
+function frame(now){
+ const dt=Math.min(.25,(now-prev)/1000);prev=now;
+ let rem=dt*speed;while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
+ saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(gained/saveT);gained=0;saveT=0;save();}
+ if((fitN=(fitN||0)+1)%20===0)fit();   // keep the canvas matched to its box
+ if(!(drag&&drag.active))build();
+ hud();draw(dt);
+ requestAnimationFrame(frame);
+}
+fit();requestAnimationFrame(frame);
+window.addEventListener('beforeunload',save);
+window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase}};
+</script>
+</body>
+</html>
