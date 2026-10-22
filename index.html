@@ -242,7 +242,7 @@ canvas.shake{animation:shake .6s}
  <section id="stage"><canvas id="c" width="800" height="320"></canvas><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
  <section id="ctrl" class="card">
   <div class="bar"><i id="inkF" style="background:#6aa8ff"></i><b id="inkT"></b></div>
-  <div class="row3"><button id="reroll">↻ Redraw · 1 ink</button><button id="insbtn"></button><span id="spd"></span></div>
+  <div class="row3"><button id="reroll">↻ Redraw</button><button id="insbtn"></button><span id="spd"></span></div>
  </section>
  <div id="side">
   <div id="mini"></div>
@@ -384,11 +384,11 @@ const TILES={
  swamp:{n:'Swamp',i:'🪷',foes:['🐸','🐊','🪱'],cnt:3,pow:1.4,gold:1.7,relic:.08,d:'Tough, but pays gold.',bg:['#8aa070','#4b5e3a'],sc:'🌿',r:1},
  crypt:{n:'Crypt',i:'⚰️',foes:['🧛','🧟','💀'],cnt:2,pow:2.1,gold:2.6,relic:.15,d:'Elite undead. Big gold.',bg:['#3a2e4a','#241a30'],sc:'🪦',r:2},
  village:{n:'Village',i:'🏘️',ev:'village',d:'Rest: heal 60%, a little gold. Ends Battle Fervor.',bg:['#ffd9a0','#b8935a'],sc:'🏠',r:0},
- shrine:{n:'Shrine',i:'⛩️',ev:'shrine',d:'Blessing: +30% dmg for 3 fights, +2 ink.',bg:['#c9b8ff','#5a6dc0'],sc:'⛩️',r:1},
- springs:{n:'Springs',i:'♨️',ev:'springs',d:'Full heal for the whole company, +1 ink. Ends Battle Fervor.',bg:['#bfe9ff','#5aa6a0'],sc:'♨️',r:1},
+ shrine:{n:'Shrine',i:'⛩️',ev:'shrine',d:'Blessing: +30% dmg for 3 fights.',bg:['#c9b8ff','#5a6dc0'],sc:'⛩️',r:1},
+ springs:{n:'Springs',i:'♨️',ev:'springs',d:'Full heal for the whole company. Ends Battle Fervor.',bg:['#bfe9ff','#5aa6a0'],sc:'♨️',r:1},
  market:{n:'Market',i:'🏪',ev:'market',d:'A busy bazaar: pays 2 tiles of income.',bg:['#ffe2b0','#a8743a'],sc:'🏪',r:1},
  battlefield:{n:'Battlefield',i:'🚩',foes:['👺','🧌','👹'],cnt:3,pow:1.7,gold:3.2,relic:.18,d:'Goblin and troll warbands. Great gold and relics.',bg:['#9aa0a8','#6a5a48'],sc:'🚩',r:2},
- leyline:{n:'Leyline',i:'🔷',ev:'leyline',d:'Blessing: +30% dmg for 5 fights, +3 ink.',bg:['#9fd8ff','#3a4ab0'],sc:'🔷',r:2},
+ leyline:{n:'Leyline',i:'🔷',ev:'leyline',d:'Blessing: +30% dmg for 5 fights.',bg:['#9fd8ff','#3a4ab0'],sc:'🔷',r:2},
  treasury:{n:'Treasury',i:'💎',ev:'treasury',d:'A dragon-sized stash: pays 15 tiles of income.',bg:['#ffe27a','#8a5a1a'],sc:'💎',r:3},
  vault:{n:'Relic Vault',i:'🗝️',ev:'vault',d:'Sealed chamber: two random relics.',bg:['#e8d0ff','#5a3a8a'],sc:'🗝️',r:4},
  lair:{n:'Lair',i:'🌋',boss:true,cnt:1,pow:1,gold:10,relic:1,d:'Boss. Cannot be moved.',bg:['#3a1414','#5a1f1f'],sc:'🌋'}
@@ -404,10 +404,10 @@ const SYN={
  'crypt>village':{n:'Sanctuary',d:'Full heal, village gold ×3',heal:1,rew:3},
  'forest>village':{n:"Hunter's Feast",d:'Full heal',heal:1},
  'shrine>lair':{n:'Blessed Duel',d:'+50% damage vs boss',dmg:1.5},
- 'crypt>shrine':{n:'Cleansing',d:'+3 ink',ink:3},
+ 'crypt>shrine':{n:'Cleansing',d:'+1 redraw',rd:1},
  'wilds>village':{n:'Market Day',d:'Village gold ×2',rew:2},
  'battlefield>market':{n:'War Profiteers',d:'Market gold ×2',rew:2},
- 'springs>shrine':{n:'Pilgrim Rest',d:'+2 ink',ink:2}
+ 'springs>shrine':{n:'Pilgrim Rest',d:'+1 redraw',rd:1}
 };
 const HEROES=[
  {n:'Ser Bram',c:'Knight',hp:150,atk:7,spd:.8,col:'#6b8cff',hat:'helm',w:'🗡️',sk:'Every 3rd strike: Shield Bash (2×).'},
@@ -417,13 +417,13 @@ const HEROES=[
 ];
 const RELICS={
  whet:{n:'Whetstone',i:'⚔️',d:'+12% damage'},oak:{n:'Oak Charm',i:'🌰',d:'+12% max HP'},coin:{n:'Lucky Coin',i:'💰',d:'+15% gold'},
- ink:{n:'Ink Vial',i:'🧪',d:'+20% ink regen'},fang:{n:'Vampire Fang',i:'🦷',d:'Heal 3% of damage dealt'},boots:{n:'Swift Boots',i:'🥾',d:'+8% speed'}
+ ink:{n:'Spare Page',i:'🧪',d:'+1 redraw per deck'},fang:{n:'Vampire Fang',i:'🦷',d:'Heal 3% of damage dealt'},boots:{n:'Swift Boots',i:'🥾',d:'+8% speed'}
 };
 const RK=Object.keys(RELICS);
 
 /* ---------- state ---------- */
 function fresh(keep){
- const S={gold:20,ink:4,depth:keep?keep.regionStart:0,best:keep?keep.best:0,legend:keep?keep.legend:0,
+ const S={gold:20,rd:3,depth:keep?keep.regionStart:0,best:keep?keep.best:0,legend:keep?keep.legend:0,
   lv:[1,1,1,1],un:[true,false,false,false],hp:[0,0,0,0],relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:[0,1,2,3],streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  return S;
@@ -437,6 +437,7 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;
 for(const p of ['deck','draw','disc','hand'])S[p]=(S[p]||[]).filter(k=>kindOf(k)!=='wilds');
 if(!S.rmod||S.rmod.length!==S.road.length)S.rmod=S.road.map(()=>null);
 if(!S.boons)S.boons={};
+if(S.rd==null)S.rd=3;delete S.ink;
 if(!Array.isArray(S.order)||S.order.length!==4||[0,1,2,3].some(i=>!S.order.includes(i)))S.order=[0,1,2,3];   // party formation, front to back
 while(S.deck.length>10){const c=S.deck.pop();for(const p of ['draw','disc','hand'])if(removeOne(S[p],c))break;}
 if(S.hand.length+S.draw.length+S.disc.length!==S.deck.length){S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}   // repair an inconsistent save
@@ -449,8 +450,7 @@ const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*(S.relics.whet||0))*(1+.
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*(1+i*.15));
 const goldMul=()=>(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
-const inkRegen=()=>.2*(1+.2*(S.relics.ink||0))*(1+.1*((S.boons||{}).ink||0));
-const maxInk=()=>6+((S.boons||{}).ink||0);
+const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
 const legGain=()=>S.depth>=30?Math.floor(S.depth/10)-1:0;
 const unlocked=k=>(UNLOCK[k]||1)<=region(S.best)+1;
 function synFor(p,k){return SYN[p+'>'+k]||null;}
@@ -477,13 +477,13 @@ const MODS={
  warded:{n:'Warded',d:'Foes hit 35% softer.',ok:isFight},
  empowered:{n:'Empowered',d:'Heroes deal +30% damage.',ok:isFight},
  restorative:{n:'Restorative',d:'Heals the company 30% after.',ok:()=>true},
- inkwell:{n:'Inkwell',d:'Refunds 1 ink when it resolves.',ok:()=>true},
+ inkwell:{n:'Inkwell',d:'Refunds 1 redraw when it resolves.',ok:()=>true},
  echo:{n:'Echo',d:'Shuffles back into your draw pile instead of the discard.',ok:()=>true}
 };
 const modGold=()=>curMod==='gilded'?1.6:1;
 function modAfter(){
  if(curMod==='restorative')for(let i=0;i<4;i++)if(S.un[i]&&S.hp[i]>0)healHero(i,heroMax(i)*.3,true);
- if(curMod==='inkwell')S.ink=Math.min(maxInk()+4,S.ink+1);
+ if(curMod==='inkwell')S.rd=Math.min(maxRd()+3,S.rd+1);
 }
 const inscribeCost=()=>Math.round(gpt()*3);
 function removeOne(arr,k){   // remove a card of this kind, preferring un-etched ones
@@ -491,14 +491,14 @@ function removeOne(arr,k){   // remove a card of this kind, preferring un-etched
  if(i>=0)arr.splice(i,1);return i>=0;
 }
 function startInscribe(){
- if(selCard<0||!S.hand[selCard]||S.ink<1||S.gold<inscribeCost())return;
+ if(selCard<0||!S.hand[selCard]||S.gold<inscribeCost())return;
  const k=kindOf(S.hand[selCard]);
  inscribeOpts=shuffle(Object.keys(MODS).filter(m=>MODS[m].ok(k))).slice(0,3);inscribing=true;sig='';
 }
 function applyInscribe(m){
- const old=S.hand[selCard];if(!old||!MODS[m]||S.ink<1||S.gold<inscribeCost())return;
+ const old=S.hand[selCard];if(!old||!MODS[m]||S.gold<inscribeCost())return;
  const k=kindOf(old),nw=cardKey(k,m);
- S.ink-=1;S.gold-=inscribeCost();S.hand[selCard]=nw;
+ S.gold-=inscribeCost();S.hand[selCard]=nw;
  const di=S.deck.indexOf(old);if(di>=0)S.deck[di]=nw;
  inscribing=false;say('Etched '+MODS[m].n+' onto a '+TILES[k].n+' card.');sig='';
 }
@@ -545,7 +545,7 @@ function replaceCard(kind){   // deck is full: swap one existing card for the ch
 }
 function skipOffer(){S.offer=null;pendingTake=null;say('You leave the spoils behind.');sig='';}
 function reshuffleAll(why){   // every card (hand, draw pile and spent pile) goes back into one shuffled deck
- S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];selCard=-1;inscribing=false;fillHand();
+ S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];selCard=-1;inscribing=false;S.rd=maxRd();fillHand();
  say(why);replay($('hand'),'reshuf',1600);replay($('piles'),'flash',1700);sig='';
 }
 const active=()=>S.un.filter(Boolean).length;
@@ -634,18 +634,18 @@ function event(){
   floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
   if(curSyn)say('Combo: '+curSyn.n+'!');
  }else if(t.ev==='shrine'){
-  S.bless=3;S.ink=Math.min(maxInk()+4,S.ink+2+((curSyn&&curSyn.ink)||0));
+  S.bless=3;S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
   say('The shrine blesses you: +30% damage for 3 fights.');
  }else if(t.ev==='springs'){
   for(let i=0;i<4;i++)if(S.un[i])S.hp[i]=heroMax(i);
-  S.ink=Math.min(maxInk()+4,S.ink+1);say('The hot springs restore the whole company.');
+  say('The hot springs restore the whole company.');
  }else if(t.ev==='market'||t.ev==='treasury'){
   const g=6*1.15**S.depth*(t.ev==='market'?2:15)*((curSyn&&curSyn.rew)||1)*modGold()*goldMul();
   S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
   say(t.ev==='market'?'The market pays '+fmt(g)+' gold.':'The treasury yields '+fmt(g)+' gold!');
   if(curSyn)say('Combo: '+curSyn.n+'!');
  }else if(t.ev==='leyline'){
-  S.bless=5;S.ink=Math.min(maxInk()+4,S.ink+3+((curSyn&&curSyn.ink)||0));
+  S.bless=5;S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
   say('Leyline surge: +30% damage for 5 fights.');
  }else if(t.ev==='vault'){
   for(let n=0;n<2;n++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Vault relic: '+RELICS[r].i+' '+RELICS[r].n+'!');}
@@ -680,7 +680,6 @@ function wipe(){
 /* ---------- sim ---------- */
 function step(dt){
  S.playSec=(S.playSec||0)+dt;
- S.ink=Math.min(maxInk(),S.ink+inkRegen()*dt);
  if(phase==='walk'){
   scroll+=dt*140;pt+=dt;
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
@@ -708,16 +707,16 @@ function step(dt){
 function placeTile(j){
  if(selCard<0||j<1)return;
  if((S.depth+j)%10===9)return;
-  const c=S.hand[selCard];if(!c||S.ink<1)return;
+  const c=S.hand[selCard];if(!c)return;
  if(S.road[j]===kindOf(c)&&(S.rmod[j]||null)===modOf(c))return;
- S.ink-=1;S.road[j]=kindOf(c);S.rmod[j]=modOf(c);
+ S.road[j]=kindOf(c);S.rmod[j]=modOf(c);
  if(modOf(c)==='echo')S.draw.splice(Math.random()*(S.draw.length+1)|0,0,c);else S.disc.push(c);
  S.hand.splice(selCard,1);selCard=-1;inscribing=false;fillHand();sig='';
 }
 function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[j]]=[S.order[j],S.order[pos]];sig='';}
 function recruit(i){if(S.un[i]||S.gold<RECRUIT[i])return;S.gold-=RECRUIT[i];S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
 function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c)return;S.gold-=c;const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
-function reroll(){if(S.ink<1)return;S.ink-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
+function reroll(){if(S.rd<1)return;S.rd-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
 let retireArmed=0;   // two-tap confirm (window.confirm is unavailable in embedded viewers)
 function retire(){
  const g=legGain();if(!g)return;
@@ -734,7 +733,7 @@ function fmt(n){
 }
 function build(){
  const g=Math.floor(S.gold);
- const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost()&&S.ink>=1,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):RECRUIT[i])]),S.relics,legGain(),speed,S.ink>=1,S.prev,S.depth,S.bless]);
+ const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost(),S.rd,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):RECRUIT[i])]),S.relics,legGain(),speed,S.ink>=1,S.prev,S.depth,S.bless]);
  if(s===sig)return;sig=s;
  // road
  $('road').innerHTML=S.road.map((k,j)=>{
@@ -743,9 +742,9 @@ function build(){
   return `<div class="tile ${j===0?'cur':''} ${can?'can':''} ${k==='lair'?'lair':''}" data-j="${j}" title="${t.d}" ${k==='lair'?'':`style="--rc:${RAR[t.r].c}"`}><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="s">tile ${S.depth+j+1}</div>${S.rmod[j]?`<div class="md" title="${MODS[S.rmod[j]].n}: ${MODS[S.rmod[j]].d}">✦ ${MODS[S.rmod[j]].n}</div>`:''}${sy?`<div class="chip" title="${sy.d}">★ ${sy.n}</div>`:''}</div>`;
  }).join('');
  $('hand').innerHTML=S.hand.map((c,i)=>{const t=TILES[kindOf(c)],m=modOf(c);return `<div class="hc ${i===selCard?'sel':''}" data-h="${i}" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m" title="${MODS[m].d}">✦ ${MODS[m].n}</div>`:''}<div class="d">${m?MODS[m].d:t.d}</div></div>`;}).join('')+(S.hand.length?'':'<div class="hint" style="grid-column:1/-1;text-align:center">No tiles left to play. Beat the boss or fall in battle to gather your deck again. Empty road defaults to Wilds.</div>');
- const ib=$('insbtn'),icost=inscribeCost();ib.textContent='Inscribe ✦ '+fmt(icost);ib.disabled=!(selCard>=0&&S.hand[selCard]&&S.ink>=1&&S.gold>=icost);
+ const ib=$('insbtn'),icost=inscribeCost();ib.textContent='Inscribe ✦ '+fmt(icost);ib.disabled=!(selCard>=0&&S.hand[selCard]&&S.gold>=icost);
  const ip=$('inscribe');ip.hidden=!(inscribing&&S.hand[selCard]);
- if(!ip.hidden){const ik=kindOf(S.hand[selCard]);ip.innerHTML=`<h3>Etch a glyph onto ${TILES[ik].n} (${fmt(icost)} gold + 1 ink)</h3><div class="row">${inscribeOpts.map(m=>`<button data-mod="${m}"><b>${MODS[m].n}</b><br><small>${MODS[m].d}</small></button>`).join('')}<button data-cancel>Cancel</button></div>`;}
+ if(!ip.hidden){const ik=kindOf(S.hand[selCard]);ip.innerHTML=`<h3>Etch a glyph onto ${TILES[ik].n} (${fmt(icost)} gold)</h3><div class="row">${inscribeOpts.map(m=>`<button data-mod="${m}"><b>${MODS[m].n}</b><br><small>${MODS[m].d}</small></button>`).join('')}<button data-cancel>Cancel</button></div>`;}
  {const g={};for(const c of S.deck)if(modOf(c)){const n=TILES[kindOf(c)].n+' ('+MODS[modOf(c)].n+')';g[n]=(g[n]||0)+1;}const ks=Object.keys(g);$('insum').textContent=ks.length?'Inscribed: '+ks.map(n=>n+(g[n]>1?' x'+g[n]:'')).join(', '):'Select a card in your hand and Inscribe it to etch a permanent glyph.';}
  $('piles').textContent='Draw '+S.draw.length+' · Spent '+S.disc.length+' · Deck '+S.deck.length+'/'+MAX_DECK+' · drag a card onto the road';
  {const loc=[];S.hand.forEach(c=>loc.push([c,'hand']));S.draw.forEach(c=>loc.push([c,'draw']));S.disc.forEach(c=>loc.push([c,'disc']));
@@ -778,13 +777,13 @@ function build(){
  $('nav-deck').classList.toggle('dot',!!S.offer);$('spoils').hidden=!S.offer;
  $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):RECRUIT[i],first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${h.sk}</small></div><div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div><button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
  // relics list (see below)
- {const EFF={whet:n=>'+'+12*n+'% damage',oak:n=>'+'+12*n+'% max HP',coin:n=>'+'+15*n+'% gold',ink:n=>'+'+20*n+'% ink regen',fang:n=>'heals '+3*n+'% of damage dealt',boots:n=>'+'+8*n+'% speed'};
+ {const EFF={whet:n=>'+'+12*n+'% damage',oak:n=>'+'+12*n+'% max HP',coin:n=>'+'+15*n+'% gold',ink:n=>'+'+n+' redraw'+(n>1?'s':''),fang:n=>'heals '+3*n+'% of damage dealt',boots:n=>'+'+8*n+'% speed'};
   const keys=RK.slice().sort((a,b)=>(S.relics[b]||0)-(S.relics[a]||0));
   $('relics').innerHTML=keys.map(k=>{const n=S.relics[k]||0,r=RELICS[k];return `<div class="rl ${n?'':'unk'}"><div class="ic">${r.ico}</div><div><div class="nm">${r.n}${n?' <small>×'+n+'</small>':''}</div><div class="hint">${r.d} each, stacks</div></div><div class="eff">${n?EFF[k](n):'Not found yet'}</div></div>`;}).join('');}
  const lg=legGain();$('leg').disabled=!lg;$('leg').textContent=lg?(Date.now()<retireArmed?'Tap again to confirm':`Retire the company: +${lg} Legend`):'Retire the company';
  $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats). Unlocks at tile 30.`;
  $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">▶ x${speed}</button>`;
- $('reroll').disabled=S.ink<1;
+ $('reroll').disabled=S.rd<1;
 }
 /* ---------- story beats: opening card and victory ---------- */
 let modalBtns=[];
@@ -807,7 +806,7 @@ const BOONS={
  gold:{n:'Gold Veins',d:'+20% gold from everything',ic:'coin'},
  hp:{n:'Fortified Company',d:'+15% hero HP',ic:'company'},
  dmg:{n:'Sharpened Steel',d:'+15% hero damage',ic:'whet'},
- ink:{n:'Ink Well',d:'+1 max ink and +10% ink regen',ic:'ink'},
+ ink:{n:'Spare Pages',d:'+1 redraw per deck',ic:'ink'},
  speed:{n:'Swift March',d:'+8% hero speed',ic:'boots'},
  relic:{n:'Treasure Sense',d:'+8% relic chance from fights',ic:'treasury'}
 };
@@ -858,7 +857,7 @@ function hud(){
  {const sh=((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
  $('rate').textContent='≈ '+fmt(S.rate)+' gold/s';
- $('inkF').style.width=100*S.ink/maxInk()+'%';$('inkT').textContent='Ink '+Math.floor(S.ink)+' / '+maxInk();
+ $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
  for(let i=0;i<4;i++){const f=$('hb'+i),t=$('ht'+i);if(!f)continue;const m=heroMax(i);f.style.width=100*Math.max(0,S.hp[i])/m+'%';t.textContent=S.hp[i]<=0?'Fallen':Math.ceil(S.hp[i])+' / '+Math.ceil(m);}
  $('log').innerHTML=log.map(l=>'<div>'+l+'</div>').join('');
  for(let i=0;i<4;i++){const m=$('mb'+i);if(m){m.style.width=100*Math.max(0,S.hp[i])/heroMax(i)+'%';m.parentElement.parentElement.classList.toggle('down',S.hp[i]<=0);}}
@@ -938,7 +937,7 @@ function endDrag(e,cancel){
  if(!cancel){const t=tileAtPoint(e.clientX,e.clientY-d.off);target=t&&t.classList.contains('can')?t:null;}
  d.ghost.remove();d.el.classList.remove('dragging');
  document.querySelectorAll('#road .tile').forEach(x=>x.classList.remove('can','drop'));
- if(target){if(S.ink<1)toast('Not enough ink to place a tile.');else{selCard=d.i;placeTile(+target.dataset.j);}}
+ if(target){selCard=d.i;placeTile(+target.dataset.j);}
  sig='';
 }
 document.addEventListener('pointerup',e=>endDrag(e,false));
