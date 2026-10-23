@@ -651,7 +651,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023143304';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023144740';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1770,7 +1770,7 @@ function syncSpoils(){
 }
 /* ---------- loot popups: a celebration whenever a relic or a new card lands ---------- */
 const lootQ=[];let lootEl=null,lootTm=0;
-function loot(o){lootQ.push(o);if(!lootEl)nextLoot();}
+function loot(o){if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl)nextLoot();}
 function nextLoot(){
  const o=lootQ.shift();if(!o){lootEl=null;return;}
  SND.play('loot',{rar:o.rar});
@@ -1783,7 +1783,7 @@ function nextLoot(){
  document.body.appendChild(el);lootEl=el;
  try{navigator.vibrate&&navigator.vibrate(big?[40,40,90]:30);}catch(e){}
  const done=()=>{clearTimeout(lootTm);if(lootEl!==el)return;el.classList.add('out');setTimeout(()=>{el.remove();lootEl=null;nextLoot();},240);};
- el.onclick=done;lootTm=setTimeout(done,dbl?12000:lootQ.length?2400:4200);
+ el.onclick=done;lootTm=setTimeout(done,dbl?12000:lootQ.length?3000:5000);
  if(dbl)el.querySelector('.ldb').onclick=async e=>{e.stopPropagation();clearTimeout(lootTm);const b=e.currentTarget;b.disabled=true;if(await ADS.show()){o.dbl();sig='';save();toast('Doubled!');}else{toast('No reward: the ad was not finished.');}done();};
 }
 const RCOL=[[154,138,106],[95,191,106],[90,160,255],[176,107,255],[255,176,46]];
@@ -2404,15 +2404,16 @@ const ADS=(()=>{
 })();
 const AD_CD={boost:60,shard:1800,chest:4*3600};   // seconds between uses of the Shop rewards
 const adLeft=k=>Math.max(0,Math.ceil(((S.adT||{})[k]||0)+AD_CD[k]-Date.now()/1000));
+function chestGold(){const g0=S.gold,t=gGold(1.5,1),got=S.gold-g0;loot({head:'Free chest',icon:'<img src="assets/icons/coin.png'+V+'" alt="" draggable="false">',name:'+'+fmt(got)+' gold',sub:'Free chest',desc:'About 1.5 hours of income.',rar:2,col:[255,208,74]});return t;}
 const BOOST_ADD=1800,BOOST_CAP=4*3600;   // each ad adds 30 minutes of gold x2, stacking up to 4 hours
 const boostTxt=s=>s>=3600?Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m':Math.ceil(s/60)+' min';
-const longTxt=s=>s>=3600?Math.floor(s/3600)+'h '+Math.ceil(s%3600/60)+'m':Math.ceil(s/60)+' min';
+const longTxt=s=>{const m=Math.ceil(s/60);return m>=60?Math.floor(m/60)+'h '+(m%60)+'m':m+' min';};
 async function adReward(k){
  if(k==='boost'&&(S.boostT||0)>=BOOST_CAP-60){toast('Your boost is already full (4 hours).');return;}
  if(k==='boost'||k==='shard'||k==='chest'){if(adLeft(k)>0)return;}
  const ok=await ADS.show();if(!ok){toast('No reward: the ad was not finished.');return;}
  if(k==='boost'){S.boostT=Math.min(BOOST_CAP,(S.boostT||0)+BOOST_ADD);(S.adT||(S.adT={})).boost=Date.now()/1000;toast('+30 min gold x2 ('+boostTxt(S.boostT)+' stored)');say('Ad bonus: +30 minutes of gold x2, '+boostTxt(S.boostT)+' stored.');}
- else if(k==='chest'){(S.adT||(S.adT={})).chest=Date.now()/1000;const q=Math.random();const txt=q<.5?gGold(1.5,1):q<.7?gRelic(1,1):q<.9?gShard(3,1):gRelic(1,1)+', '+gShard(3,1)+' and '+gGold(2,1);toast('Chest: '+txt);say('Free chest: '+txt+'.');}
+ else if(k==='chest'){(S.adT||(S.adT={})).chest=Date.now()/1000;const q=Math.random();gRelic.head='Free chest';const txt=q<.5?chestGold():q<.7?gRelic(1,1):q<.9?gShard(3,1):gRelic(1,1)+', '+gShard(3,1)+' and '+gGold(2,1);gRelic.head=null;toast('Chest: '+txt);say('Free chest: '+txt+'.');}
  else if(k==='shard'){const per=addShards(1);(S.adT||(S.adT={})).shard=Date.now()/1000;say('Ad bonus: '+shardMsg(per)+'.');shardPopup(per,'Ad bonus');}
  sig='';save();
 }
@@ -2433,8 +2434,8 @@ const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+S
 const dayNum=k=>{const [y,m,d]=k.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/86400000);};
 const hrGold=(h,m)=>Math.max(S.rate*3600*h,6*1.15**S.depth*40*h)*m;   // hours of income, with a floor so early players still feel it
 const gGold=(h,m)=>{const g=hrGold(h,m);S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';};
-const gShard=(n,m)=>{n=Math.round(n*m);const per=addShards(n);shardPopup(per,'Reward');return '+'+n+' hero shard'+(n>1?'s':'');};
-const gRelic=(n,m)=>{n=Math.max(1,Math.round(n*m));const names=[];for(let i=0;i<n;i++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;names.push(RELICS[r].n);lootRelic(r,'Daily relic!',true);}return names.join(' and ');};
+const gShard=(n,m)=>{n=Math.round(n*m);const per=addShards(n);shardPopup(per,gRelic.head||'Reward');return '+'+n+' hero shard'+(n>1?'s':'');};
+const gRelic=(n,m)=>{n=Math.max(1,Math.round(n*m));const names=[];for(let i=0;i<n;i++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;names.push(RELICS[r].n);lootRelic(r,gRelic.head||'Daily relic!',true);}return names.join(' and ');};
 const gBoost=(min,m)=>{S.boostT=Math.max(S.boostT||0,min*60*m);return 'Gold x2 for '+Math.round(min*m)+' minutes';};
 const gRedraw=(n,m)=>{n=Math.round(n*m);S.rd=Math.min(maxRd()+n,S.rd+n);return '+'+n+' redraws';};
 const DAILY_R=[   // [short label, icon, long label, give(multiplier)]
@@ -2491,9 +2492,11 @@ document.addEventListener('visibilitychange',holdStop);
 document.addEventListener('click',e=>{if(holdFired){e.stopPropagation();e.preventDefault();holdFired=false;}},true);   // the click that ends a hold must not buy one extra
 document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hero],button[data-lv],button[data-sk]'))e.preventDefault();});
 
+const popupOpen=()=>!!lootEl||lootQ.length>0||!$('modal').hidden||!!document.getElementById('adtest');
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
- let rem=dt*speed;while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
+ let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
+ while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
  saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(gained/saveT);st('gold',gained);gained=0;saveT=0;save();}
  if((fitN=(fitN||0)+1)%20===0)fit();   // keep the canvas matched to its box
  if(!(drag&&drag.active))build();
