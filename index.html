@@ -600,7 +600,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023115749';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023120009';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1000,6 +1000,7 @@ const goldMul=()=>(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.re
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
 const legGain=()=>{if(S.depth<30)return 0;const a=Math.floor(S.depth/10)-1;return Math.floor(a*a/2);};   // retire from tile 30, but the payout grows with the square of how far you got (+2 at Act IV, +8 at Act VI, +32 at Act IX)
+const TRIPLE_REGION=20;   // from Act XXI the Warden brings two more guardians (three bosses at once)
 const NORMAL_ACTS=10;   // acts with their own art before the cycle repeats and bosses double up
 const unlocked=k=>(UNLOCK[k]||1)<=region(S.best)+1;
 function synFor(p,k){return SYN[p+'>'+k]||null;}
@@ -1128,19 +1129,20 @@ function startTile(){
  const d=S.depth,r=region(d);
  const hpM=22*1.16**d,atk=3.2*1.13**d;
  const synF=curSyn&&curSyn.foe||1;
- const dual=t.boss&&r>=NORMAL_ACTS;   // after the ten normal acts, the Warden brings a second guardian
- const n=t.boss?(dual?2:1):Math.max(1,Math.min(t.cnt,active()+1));   // small parties face smaller packs
+ const multi=t.boss?(r>=TRIPLE_REGION?3:r>=NORMAL_ACTS?2:1):1;   // after the ten normal acts the Warden brings a second guardian; from Act XXI, two more
+ const dual=multi>1;
+ const n=t.boss?multi:Math.max(1,Math.min(t.cnt,active()+1));   // small parties face smaller packs
  for(let j=0;j<n;j++){
-  const boss=t.boss,k2=dual&&j===1;
-  const hp=hpM*t.pow*synF*(boss?(dual?4.6:7):1)*(.85+.3*Math.random());
+  const boss=t.boss;
+  const hp=hpM*t.pow*synF*(boss?(multi===3?3.4:dual?4.6:7):1)*(.85+.3*Math.random());
   foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],
-   hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(dual?1.4:1.8):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
-   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(dual?.6:1)*rkM(curRank),art:boss?'boss'+(k2?(bossArt(r)+3+r%5)%BOSS_N:bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%NORMAL_ACTS)+'_'+(Math.random()*3|0):null)});
+   hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.4:1.8):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
+   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(multi===3?.42:dual?.6:1)*rkM(curRank),art:boss?'boss'+(j>0?(bossArt(r)+[0,3,7][j]+r%5)%BOSS_N:bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%NORMAL_ACTS)+'_'+(Math.random()*3|0):null)});
  }
  H=HEROES.map((h,i)=>({cd:Math.random()*.4,n:0,flash:0,lunge:0}));
  phase='fight';
  if(t.boss)SND.play('boss');
- if(t.boss)say('⚠ '+RG(r)[2]+(dual?' and a second guardian block':' blocks')+' the road!');
+ if(t.boss)say('⚠ '+RG(r)[2]+(multi===3?' and two more guardians block':dual?' and a second guardian block':' blocks')+' the road!');
 }
 function floatTxt(t,x,y,c){fxT.push({t:0,txt:t,x,y,c});}
 const st=(k,v=1)=>{const l=S.life||(S.life={});l[k]=(l[k]||0)+v;};   // lifetime statistics, kept through Legend retire
@@ -1890,7 +1892,7 @@ function drawFoeEmoji(f){
 const FACES_RIGHT=new Set(['boss1','a7_2','a8_0','a8_1','a8_2','a9_0','a9_1','a9_2']);
 function drawFoeImg(f,nm,im){
  const now=performance.now(),T=now/1000,dying=f.hp<=0,dt=dying?Math.min(1,(now-f.dieT)/450):0;
- const bs=(f.boss?(/^boss\d/.test(nm)?1.15:nm==='dragon'?1.45:nm==='scorpion'?1.55:1.75):1)*(f.boss&&foes.filter(x=>x.boss).length>1?.8:1),hh=(FOEH[nm]||70)*bs;
+ const bs=(f.boss?(/^boss\d/.test(nm)?1.15:nm==='dragon'?1.45:nm==='scorpion'?1.55:1.75):1)*(f.boss?(()=>{const nb=foes.filter(x=>x.boss).length;return nb>2?.62:nb>1?.8:1;})():1),hh=(FOEH[nm]||70)*bs;
  const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,ww=hh*iw/ih;
  const fly=(nm==='bat'||nm==='ghost'||nm==='a0_2'||nm==='a1_2'||nm==='a3_1'||nm==='a6_0')?18+Math.sin(T*2.3+f.x)*6:0,breathe=1+Math.sin(T*3.1+f.x*.05)*.015;
  if(f.boss&&!dying)glow(f.x,f.y-hh*.5,hh*.95,'rgba(255,70,40,.30)','rgba(255,70,40,0)');
