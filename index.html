@@ -595,7 +595,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023091159';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023092100';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1378,6 +1378,7 @@ function shopBuy(id){
 }
 const shopHTML={v:''};
 /* ---------- premium store (TEST MODE: purchases are free and recorded in the account's purchases table; Stripe comes later) ---------- */
+const CASH_STORE=false;   // paid items are switched off for now; flip to true when Stripe or the app stores are wired in
 const ENT={},PREM={
  deck_slot:{n:'Extra Deck Slot',ic:'🎒',d:'Permanent +1 card slot, so your deck holds 11.',p:'$2.99',once:1},
  shard_bundle:{n:'Shard Bundle',ic:'💎',d:'+25 hero shards, delivered instantly. Buy as many as you like.',p:'$1.99'},
@@ -1398,6 +1399,7 @@ function applyEnt(){MAX_DECK=10+(ENT.deck_slot||0);applySkin();document.body.cla
 async function loadEnt(){try{const rows=await CC.purchases();for(const k in ENT)delete ENT[k];rows.forEach(r=>ENT[r.sku]=(ENT[r.sku]||0)+r.qty);}catch(e){}applyEnt();}
 let premBusy=false;
 async function premBuy(sku){
+ if(!CASH_STORE)return;
  if(premBusy||!PREM[sku])return;premBusy=true;
  try{await CC.buy(sku);await loadEnt();const p=PREM[sku];
   if(sku==='shard_bundle'){S.shards=(S.shards||0)+25;}
@@ -1424,7 +1426,7 @@ function shopRender(){
  if(ADS.ok()){const bl=adLeft('boost'),sl=adLeft('shard'),mm=x=>Math.ceil(x/60)+' min';
   const ac=(id,ico,name,desc,left)=>'<div class="sc"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-ad="'+id+'"'+(left>0?' disabled':'')+'>'+(left>0?mm(left):'▶ Watch')+'</button></div>';
   h+='<h3 style="margin-top:14px">Free rewards</h3>'+ac('boost','🪙','Gold x2','Double gold for 10 minutes.'+(S.boostT>0?' Active: '+mm(S.boostT)+' left.':''),bl)+ac('shard','◆','Hero Shard','One free shard.',sl);}
- h+='<h3 style="margin-top:14px">Premium <small style="opacity:.7;font-weight:400">· test mode: nothing is charged</small></h3>'+Object.keys(PREM).map(premCard).join('');
+ if(CASH_STORE)h+='<h3 style="margin-top:14px">Premium <small style="opacity:.7;font-weight:400">· test mode: nothing is charged</small></h3>'+Object.keys(PREM).map(premCard).join('');
  return h;
 }
 function fuseHTML(){
