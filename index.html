@@ -632,7 +632,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023132209';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023135253';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -657,7 +657,7 @@ const TELE=(()=>{
  const post=(table,row)=>{try{fetch(SB_URL+'/rest/v1/'+table,{method:'POST',keepalive:true,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(row)}).catch(()=>{});}catch(e){}};
  const cut=(s,n)=>String(s==null?'':s).slice(0,n);
  function err(kind,msg,stack,src){
-  if(off||sent>=5)return;const key=cut(msg,80)+cut(src,60);if(seen[key])return;seen[key]=1;sent++;
+  if(off||sent>=5||/ResizeObserver loop/.test(msg))return;   // harmless browser notice, not a crashconst key=cut(msg,80)+cut(src,60);if(seen[key])return;seen[key]=1;sent++;
   let depth=null;try{depth=S.depth;}catch(e){}
   post('client_errors',{build:BUILD,platform:plat,kind,msg:cut(msg,500)||'(no message)',stack:stack?cut(stack,2000):null,src:src?cut(src,200):null,ua:cut(navigator.userAgent,200),depth});
  }
@@ -901,7 +901,7 @@ const SND=(()=>{
  function play(name,o){
   if(!cfg.sfx||held||!R[name])return;
   const now=performance.now(),g=GAP[name]||0;if(g&&last[name]&&now-last[name]<g)return;last[name]=now;
-  if(!init())return;if(ctx.state==='suspended'&&unlocked)ctx.resume();
+  if(!init())return;if(ctx.state!=='running'&&unlocked)wake();
   try{R[name](o||{});}catch(e){}
  }
  /* background music: every act has its own theme (tempo, scale, chords, instruments, melody) to match its setting; drums join in during fights and bosses */
@@ -982,19 +982,22 @@ const SND=(()=>{
   while(nextT<ctx.currentTime+.45){sched(step,nextT);nextT+=E;step=(step+1)%64;}
  }
  function startMusic(){if(!cfg.music||!unlocked||!init()||timer)return;nextT=ctx.currentTime+.1;timer=setInterval(tick,120);}
+ const wake=()=>{try{if(ctx&&ctx.state!=='running')Promise.resolve(ctx.resume()).catch(()=>{});}catch(e){}};
+ const idle=()=>{try{Promise.resolve(ctx.suspend()).catch(()=>{});}catch(e){}};
  function stopMusic(){clearInterval(timer);timer=0;}
  function unlock(){
   if(unlocked)return;unlocked=true;
-  if(init()){ctx.resume();startMusic();}
+  if(init()){wake();startMusic();}
   ['pointerdown','keydown','touchend'].forEach(ev=>document.removeEventListener(ev,unlock,true));
  }
  ['pointerdown','keydown','touchend'].forEach(ev=>document.addEventListener(ev,unlock,true));
- document.addEventListener('visibilitychange',()=>{if(!ctx)return;if(document.hidden)ctx.suspend();else if(!held)ctx.resume();});
+ document.addEventListener('visibilitychange',()=>{if(!ctx)return;if(document.hidden)idle();else if(!held)wake();});
+ document.addEventListener('pointerdown',()=>{if(unlocked&&!held&&!document.hidden)wake();},true);   // phones can drop the audio device (calls, silent switch, app switching): any tap brings it back
  return{
   cfg,play,
   hit:i=>play('hit',{i}),
   mood(phase,boss,depth){mood.fight=phase==='fight';mood.boss=!!boss&&mood.fight;mood.act=Math.floor(depth/10);},
-  hold(on){held=on;if(ctx){if(on)ctx.suspend();else ctx.resume();}},
+  hold(on){held=on;if(ctx){if(on)idle();else wake();}},
   setSfx(b){cfg.sfx=!!b;if(sfxBus)sfxBus.gain.value=cfg.sfx?1:0;save();},
   setMusic(b){cfg.music=!!b;if(musBus)musBus.gain.value=cfg.music?.55:0;if(cfg.music)startMusic();else stopMusic();save();},
   setVol(v){cfg.vol=Math.max(0,Math.min(1,v));if(master)master.gain.value=cfg.vol;save();}
