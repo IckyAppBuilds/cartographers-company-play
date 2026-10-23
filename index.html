@@ -514,6 +514,8 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 .ldb{margin-top:12px;min-height:44px;padding:0 16px;font-size:15px;font-weight:700;background:var(--gold);color:#2a1d08;border:2px solid var(--gold);border-radius:10px;cursor:pointer;position:relative;z-index:2}
 #auth .legal{margin:12px 0 0;font-size:12px;color:var(--dim);text-align:center}#auth .legal a,#acct~div a{color:var(--gold)}
 #delacct{color:#ff9a8a}
+#mute{position:absolute;right:6px;top:6px;z-index:6;width:30px;height:30px;padding:0;min-height:0;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.45);color:#fff;font-size:15px;line-height:1;cursor:pointer}
+.sndrow{display:flex;gap:8px}.sndrow button{flex:1}
 </style>
 </head>
 <body>
@@ -524,7 +526,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  </header>
  <button id="spoils" data-sheet="deck" hidden><img class="ico" src="assets/icons/treasury.png" alt="" draggable="false"> Boss spoils! Tap to choose a tile</button>
  <section id="roadw" class="card"><div class="rl"><b>Road ahead</b><span id="rsub"></span></div><div id="road"></div></section>
- <section id="stage"><canvas id="c" width="800" height="320"></canvas><button id="retbtn" hidden></button><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
+ <section id="stage"><canvas id="c" width="800" height="320"></canvas><button id="mute" aria-label="Sound"></button><button id="retbtn" hidden></button><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
  <section id="ctrl" class="card">
   <div class="bar"><i id="inkF" style="background:#6aa8ff"></i><b id="inkT"></b></div>
   <div class="row3"><button id="reroll">↻ Redraw</button><button id="insbtn"></button><span id="spd"></span></div>
@@ -557,6 +559,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
    </div>
    <div class="pane" data-pane="relics" hidden>
     <div class="hint" style="margin-bottom:8px">Relics drop from fights (Ruins and Battlefield most often), boss kills and Relic Vaults. Duplicates stack.</div><div id="relics"></div>
+    <h3 style="margin-top:16px">Sound</h3><div class="sndrow"><button id="sfxbtn"></button><button id="musbtn"></button></div><label class="hint" style="display:block;margin:6px 0 2px">Volume</label><input id="volr" type="range" min="0" max="100" step="5" style="width:100%">
     <h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button> <button id="delacct">Delete account</button>
     <div class="hint" style="margin-top:8px"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a></div>
     <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
@@ -596,7 +599,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023110144';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023113205';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -738,6 +741,108 @@ const CC=(function(){
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
 const V=BUILD==='dev'?'':'?v='+BUILD;   // cache-busting suffix for art
 const KEY='cartographer-v3';
+/* ---------- sound: everything is synthesised with Web Audio, so there are no audio files to download ---------- */
+const SND=(()=>{
+ const cfg={sfx:true,music:true,vol:.7};
+ try{Object.assign(cfg,JSON.parse(localStorage.getItem('cc-snd')||'{}'));}catch(e){}
+ const AC=window.AudioContext||window.webkitAudioContext;
+ let ctx=null,master,sfxBus,musBus,noiseBuf,held=false,timer=0,nextT=0,step=0,unlocked=false;
+ const mood={fight:false,boss:false,act:0},last={};
+ const save=()=>{try{localStorage.setItem('cc-snd',JSON.stringify(cfg));}catch(e){}};
+ function init(){
+  if(ctx)return ctx;if(!AC)return null;
+  try{ctx=new AC();}catch(e){return null;}
+  master=ctx.createGain();master.gain.value=cfg.vol;master.connect(ctx.destination);
+  sfxBus=ctx.createGain();sfxBus.gain.value=cfg.sfx?1:0;sfxBus.connect(master);
+  musBus=ctx.createGain();musBus.gain.value=cfg.music?.55:0;musBus.connect(master);   // music sits under the effects
+  const n=ctx.sampleRate;noiseBuf=ctx.createBuffer(1,n,n);const d=noiseBuf.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+  return ctx;
+ }
+ const hz=m=>440*Math.pow(2,(m-69)/12);
+ function tone(o){   // {f,f2,dur,type,vol,delay,att,bus}
+  const t=ctx.currentTime+(o.delay||0),g=ctx.createGain(),os=ctx.createOscillator();
+  os.type=o.type||'sine';os.frequency.setValueAtTime(o.f,t);if(o.f2)os.frequency.exponentialRampToValueAtTime(Math.max(1,o.f2),t+o.dur);
+  const v=o.vol==null?.2:o.vol,a=Math.min(o.att||.005,o.dur*.6);
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+o.dur);
+  os.connect(g);g.connect(o.bus||sfxBus);os.start(t);os.stop(t+o.dur+.05);
+ }
+ function noise(o){  // {dur,vol,type,f,f2,q,delay,bus}
+  const t=ctx.currentTime+(o.delay||0),g=ctx.createGain(),s=ctx.createBufferSource(),fl=ctx.createBiquadFilter();
+  s.buffer=noiseBuf;s.loop=true;fl.type=o.type||'lowpass';fl.frequency.setValueAtTime(o.f||1000,t);if(o.f2)fl.frequency.exponentialRampToValueAtTime(Math.max(20,o.f2),t+o.dur);fl.Q.value=o.q||1;
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(o.vol==null?.2:o.vol,t+.004);g.gain.exponentialRampToValueAtTime(.0001,t+o.dur);
+  s.connect(fl);fl.connect(g);g.connect(o.bus||sfxBus);s.start(t,Math.random()*.5);s.stop(t+o.dur+.05);
+ }
+ const arp=(notes,type,vol,gap,dur)=>notes.forEach((n,i)=>tone({f:hz(n),dur:dur||.24,type,vol,delay:i*gap}));
+ const jit=()=>.93+Math.random()*.14;
+ const R={   // sound effects
+  click:()=>tone({f:900,f2:600,dur:.05,type:'square',vol:.04}),
+  place:()=>{noise({dur:.09,vol:.16,f:900,f2:200});tone({f:180,f2:90,dur:.12,vol:.22});},
+  hit:o=>{const k=jit();switch(o.i){
+   case 0:noise({dur:.07,vol:.13,type:'highpass',f:2500});tone({f:520*k,f2:300,dur:.1,type:'square',vol:.08});break;   // knight: steel
+   case 1:tone({f:820*k,f2:380,dur:.09,type:'triangle',vol:.12});noise({dur:.04,vol:.07,type:'highpass',f:4000});break;   // ranger: arrow
+   case 2:tone({f:1100*k,f2:260,dur:.16,vol:.1});tone({f:1650*k,f2:500,dur:.12,type:'triangle',vol:.05});break;   // mage: zap
+   case 3:tone({f:640*k,f2:520,dur:.12,vol:.1});break;   // cleric: mace
+   default:noise({dur:.08,vol:.12,type:'highpass',f:2000,f2:900});tone({f:320*k,f2:140,dur:.09,type:'sawtooth',vol:.07});}},
+  kill:()=>{tone({f:260,f2:70,dur:.2,type:'sawtooth',vol:.12});noise({dur:.14,vol:.12,f:1400,f2:200});},
+  bosskill:()=>{tone({f:180,f2:40,dur:.6,type:'sawtooth',vol:.2});noise({dur:.5,vol:.2,f:900,f2:80});tone({f:90,f2:30,dur:.7,vol:.3});},
+  foehit:()=>{tone({f:120,f2:55,dur:.14,vol:.22});noise({dur:.08,vol:.1,f:700,f2:200});},
+  herodown:()=>tone({f:380,f2:90,dur:.4,type:'sawtooth',vol:.14}),
+  heal:()=>arp([76,81,88],'sine',.08,.07,.22),
+  win:()=>arp([72,76,79,84],'triangle',.12,.09,.3),
+  bossWin:()=>{arp([67,72,76,79,84,88],'triangle',.14,.11,.45);tone({f:hz(48),dur:1.2,type:'sine',vol:.2});},
+  defeat:()=>arp([69,66,62,57],'sawtooth',.07,.2,.5),
+  boss:()=>{tone({f:75,f2:42,dur:.9,type:'sawtooth',vol:.2,att:.05});tone({f:80,f2:46,dur:.9,type:'square',vol:.08,att:.05});noise({dur:.8,vol:.1,f:300,f2:80});},
+  level:()=>arp([72,76,79],'square',.07,.07,.16),
+  recruit:()=>arp([67,72,76,79,84],'triangle',.12,.08,.35),
+  coin:()=>{tone({f:1250,dur:.08,type:'square',vol:.05});tone({f:1760,dur:.14,type:'square',vol:.05,delay:.07});},
+  popup:()=>noise({dur:.18,vol:.07,type:'bandpass',f:600,f2:2400,q:2}),
+  loot:o=>{const r=Math.max(0,Math.min(4,o.rar||0)),b=[72,74,76,79,81,84,88,91];arp(b.slice(0,3+r),'triangle',.1,.065,.4);if(r>=3)tone({f:hz(60),dur:.9,vol:.12});},
+  act:()=>{arp([60,67,72,76,79],'triangle',.12,.16,.7);tone({f:hz(48),dur:1.6,vol:.16});},
+  retire:()=>{noise({dur:1.1,vol:.12,type:'bandpass',f:200,f2:5000,q:1.5});arp([60,64,67,72,76,79,84],'sawtooth',.06,.1,.6);},
+  nope:()=>tone({f:160,f2:110,dur:.12,type:'square',vol:.06})
+ };
+ const GAP={hit:60,kill:90,foehit:80,heal:150,click:40,coin:100,place:60,popup:120,loot:150,herodown:120};
+ function play(name,o){
+  if(!cfg.sfx||held||!R[name])return;
+  const now=performance.now(),g=GAP[name]||0;if(g&&last[name]&&now-last[name]<g)return;last[name]=now;
+  if(!init())return;if(ctx.state==='suspended'&&unlocked)ctx.resume();
+  try{R[name](o||{});}catch(e){}
+ }
+ /* background music: a slow generative loop (pad, bass and a plucked arpeggio); drums join in during fights and bosses */
+ const PROG=[[0,3,7],[-4,0,3],[3,7,10],[-2,2,5]],ROOTS=[57,55,52,59,50,56,53,58,54,60],E=60/76/2;
+ function sched(s,t){
+  const ch=PROG[(s>>4)&3],root=ROOTS[mood.act%ROOTS.length],d=t-ctx.currentTime;
+  if(s%16===0)for(const n of ch){tone({f:hz(root+n),dur:16*E+.5,type:'triangle',vol:.05,att:1.4,delay:d,bus:musBus});tone({f:hz(root+n+12)*1.004,dur:16*E+.5,type:'sine',vol:.025,att:1.8,delay:d,bus:musBus});}
+  if(s%4===0)tone({f:hz(root+ch[0]-12),dur:E*3.2,vol:.14,delay:d,bus:musBus});
+  const pat=[0,1,2,1,2,1,0,2],mask=[1,0,1,1,0,1,0,1];
+  if(mask[s%8]||mood.fight){const n=root+ch[pat[s%8]%3]+(s%16>=8?12:0)+12;tone({f:hz(n),dur:E*1.6,type:'triangle',vol:mood.fight?.08:.06,delay:d,bus:musBus});}
+  if(mood.fight){
+   if(s%4===0)tone({f:150,f2:42,dur:.16,vol:.22,delay:d,bus:musBus});
+   if(s%2===1)noise({dur:.04,vol:.05,type:'highpass',f:7000,delay:d,bus:musBus});
+   if(mood.boss&&s%8===4){noise({dur:.12,vol:.12,type:'bandpass',f:1800,delay:d,bus:musBus});tone({f:210,f2:120,dur:.1,type:'triangle',vol:.08,delay:d,bus:musBus});}
+   if(mood.boss&&s%2===0)tone({f:hz(root+ch[0]-24),dur:E*1.2,type:'sawtooth',vol:.05,delay:d,bus:musBus});
+  }
+ }
+ function tick(){if(!ctx||held||ctx.state!=='running')return;while(nextT<ctx.currentTime+.45){sched(step,nextT);nextT+=E;step=(step+1)%64;}}
+ function startMusic(){if(!cfg.music||!unlocked||!init()||timer)return;nextT=ctx.currentTime+.1;timer=setInterval(tick,120);}
+ function stopMusic(){clearInterval(timer);timer=0;}
+ function unlock(){
+  if(unlocked)return;unlocked=true;
+  if(init()){ctx.resume();startMusic();}
+  ['pointerdown','keydown','touchend'].forEach(ev=>document.removeEventListener(ev,unlock,true));
+ }
+ ['pointerdown','keydown','touchend'].forEach(ev=>document.addEventListener(ev,unlock,true));
+ document.addEventListener('visibilitychange',()=>{if(!ctx)return;if(document.hidden)ctx.suspend();else if(!held)ctx.resume();});
+ return{
+  cfg,play,
+  hit:i=>play('hit',{i}),
+  mood(phase,boss,depth){mood.fight=phase==='fight';mood.boss=!!boss&&mood.fight;mood.act=Math.floor(depth/10);},
+  hold(on){held=on;if(ctx){if(on)ctx.suspend();else ctx.resume();}},
+  setSfx(b){cfg.sfx=!!b;if(sfxBus)sfxBus.gain.value=cfg.sfx?1:0;save();},
+  setMusic(b){cfg.music=!!b;if(musBus)musBus.gain.value=cfg.music?.55:0;if(cfg.music)startMusic();else stopMusic();save();},
+  setVol(v){cfg.vol=Math.max(0,Math.min(1,v));if(master)master.gain.value=cfg.vol;save();}
+ };
+})();
 const RECRUIT=[0,40,200,800];
 
 /* ---------- data ---------- */
@@ -980,6 +1085,7 @@ function startTile(){
  }
  H=HEROES.map((h,i)=>({cd:Math.random()*.4,n:0,flash:0,lunge:0}));
  phase='fight';
+ if(t.boss)SND.play('boss');
  if(t.boss)say('⚠ '+RG(r)[2]+(dual?' and a second guardian block':' blocks')+' the road!');
 }
 function floatTxt(t,x,y,c){fxT.push({t:0,txt:t,x,y,c});}
@@ -988,12 +1094,13 @@ function dmgFoe(f,d,i){
  if(f.hp<=0)return;
  {const l=S.life||(S.life={});const real=Math.min(d,Math.max(0,f.hp));l.dmg=(l.dmg||0)+real;if(d>(l.maxHit||0))l.maxHit=d;if(i>=0){const h=l.hd||(l.hd={});h[i]=(h[i]||0)+real;}if(d>=f.hp){l.kills=(l.kills||0)+1;if(f.boss)l.wardens=(l.wardens||0)+1;}}
  f.hp-=d;f.flash=1;floatTxt(fmt(d),f.x,f.y-50,'#fff');
+ if(f.hp<=0)SND.play(f.boss?'bosskill':'kill');else SND.hit(i);
  if(S.relics.fang&&i>=0)healHero(i,d*.03*S.relics.fang,true);
 }
 function healHero(i,a,quiet){
  if(S.hp[i]<=0)return;
  const m=heroMax(i);S.hp[i]=Math.min(m,S.hp[i]+a);
- if(!quiet)floatTxt('+'+fmt(a),heroPx(i),200,'#6fcf6f');
+ if(!quiet){floatTxt('+'+fmt(a),heroPx(i),200,'#6fcf6f');SND.play('heal');}
 }
 function heroAct(i){
  const h=H[i],r=skr(i),atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1);
@@ -1018,12 +1125,13 @@ function foeAct(f){
  if(!living.length)return;
  const t=Math.random()<.5?living[0]:living[Math.random()*living.length|0];   // the front hero soaks about half of all attacks
  const dm=f.atk*(1-((S.un[7]&&S.hp[7]>0&&S.order.includes(7))?.06+.03*skr(7):0));   // Aegis: the Paladin shields the company
- f.lunge=1;S.hp[t]-=dm;H[t].flash=1;st('taken',dm);
+ f.lunge=1;S.hp[t]-=dm;H[t].flash=1;st('taken',dm);SND.play('foehit');
  floatTxt('-'+fmt(dm),heroPx(t),200,'#e0584a');
- if(S.hp[t]<=0){S.hp[t]=0;say(HEROES[t].n+' has fallen!');}
+ if(S.hp[t]<=0){S.hp[t]=0;say(HEROES[t].n+' has fallen!');SND.play('herodown');}
 }
 function win(){
  const k=S.road[0],t=TILES[k];
+ SND.play(t.boss?'bossWin':'win');setTimeout(()=>SND.play('coin'),260);
  let rew=((curSyn&&curSyn.rew)||1)*modGold();
  let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
  S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;st('fights');{const l=S.life;if(S.streak>(l.bstreak||0))l.bstreak=S.streak;}
@@ -1068,7 +1176,7 @@ function evChoose(i,relic){
 }
 function renderEv(){
  const k=evState.k,t=TILES[k],opts=EVOPT[t.ev];
- if(!evEl){evEl=document.createElement('div');evEl.id='evpop';document.body.appendChild(evEl);}
+ if(!evEl){evEl=document.createElement('div');evEl.id='evpop';document.body.appendChild(evEl);SND.play('popup');}
  const bg=BGB[k]?'assets/bg/'+k+'.jpg'+V:'';
  let body;
  if(evState.stage===1)body='<div class="evt">Choose a relic</div><div class="evo">'+evState.offer.map(r=>'<button data-evr="'+r+'"><span class="evi">'+(RELICS[r].ico||RELICS[r].i)+'</span><b>'+RELICS[r].n+'</b><small>'+RELICS[r].d+'</small></button>').join('')+'</div>';
@@ -1129,7 +1237,7 @@ function advance(){
 }
 const DEATH_TIME=2.6;
 function startDeath(){
- phase='dead';pt=0;say('The company has fallen...');
+ phase='dead';pt=0;say('The company has fallen...');SND.play('defeat');
  cv.classList.remove('shake');void cv.offsetWidth;cv.classList.add('shake');setTimeout(()=>cv.classList.remove('shake'),700);
 }
 function replay(el,cls,ms){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms);}
@@ -1182,13 +1290,13 @@ function placeTile(j){st('tiles');
  if((S.depth+j)%10===9)return;
   const c=S.hand[selCard];if(!c)return;
  if(S.road[j]===kindOf(c)&&(S.rmod[j]||null)===modOf(c)&&(S.rrank[j]||1)===rankOf(c))return;
- S.road[j]=kindOf(c);S.rmod[j]=modOf(c);S.rrank[j]=rankOf(c);
+ S.road[j]=kindOf(c);S.rmod[j]=modOf(c);S.rrank[j]=rankOf(c);SND.play('place');
  if(modOf(c)==='echo')S.draw.splice(Math.random()*(S.draw.length+1)|0,0,c);else S.disc.push(c);
  S.hand.splice(selCard,1);selCard=-1;inscribing=false;fillHand();sig='';
 }
 function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[j]]=[S.order[j],S.order[pos]];sig='';}
-function recruit(i){if(S.un[i]||S.gold<recruitCost(i))return;S.gold-=recruitCost(i);S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
-function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c)return;S.gold-=c;const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
+function recruit(i){if(S.un[i])return;if(S.gold<recruitCost(i)){SND.play('nope');return;}S.gold-=recruitCost(i);SND.play('recruit');S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
+function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c){SND.play('nope');return;}S.gold-=c;SND.play('level');const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
 let swapId=null;
 function starUp(i){   // after the last skill rank of the current star, a champion can ascend: +5 more ranks and +12% stats
  const s=star(i);if(!S.owned.includes(i)||skr(i)<skMax(i)||s>=STAR_MAX||S.shards<starCost(s))return;
@@ -1214,7 +1322,7 @@ function retire(){
 function doRetire(){
  const g=legGain();if(!g)return;
  const keep={regionStart:0,best:S.best,legend:S.legend+g,boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),shards:S.shards||0,life:S.life||{}};
- S=fresh(keep);st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
+ S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
 /* ---------- UI ---------- */
@@ -1329,7 +1437,7 @@ function showModal(title,html,btns){
  if(!$('modal').hidden){modalQ.push([title,html,btns]);return;}   // one at a time; the rest wait their turn instead of replacing it
  $('mTitle').textContent=title;$('mBody').innerHTML=html;modalBtns=btns;
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
- $('modal').hidden=false;
+ $('modal').hidden=false;SND.play('popup');
 }
 /* ---------- boss spoils: the three offered cards appear as a celebratory pick-one popup ---------- */
 let spoilsEl=null,spoilsKey='',spoilsLater=false;
@@ -1357,6 +1465,7 @@ const lootQ=[];let lootEl=null,lootTm=0;
 function loot(o){lootQ.push(o);if(!lootEl)nextLoot();}
 function nextLoot(){
  const o=lootQ.shift();if(!o){lootEl=null;return;}
+ SND.play('loot',{rar:o.rar});
  const col=o.col||[255,208,74],big=o.rar>=3,n=big?64:o.rar>=1?42:28;
  const el=document.createElement('div');el.id='loot';el.className=big?'big':'';el.style.setProperty('--lc',col.join(','));
  let ps='';const pal=['#ffd24a','#fff3c4','rgb('+col.join(',')+')','#ffffff'];
@@ -1480,6 +1589,7 @@ const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X'];
 let sheet=null,lastRsub,lastLog,toastT,lastRegion,lastPips,splT,lastSub,lastGold;
 function showSplash(r){   // big act title over the battle when a new region begins
  const sp=$('splash');sp.querySelector('.sa').textContent='ACT '+roman(r+1);sp.querySelector('.sn').textContent=RG(r)[0];sp.querySelector('.sb').textContent='Warden: '+RG(r)[2];
+ SND.play('act');
  sp.hidden=false;{const n=sp.querySelector('.sn');n.style.fontSize='';let f=parseFloat(getComputedStyle(n).fontSize);const room=sp.clientWidth-24;while(n.scrollWidth>room&&f>12){f-=1;n.style.fontSize=f+'px';}}   // shrink long names until they fit the battle view
  sp.style.animation='none';void sp.offsetWidth;sp.style.animation='';
  clearTimeout(splT);splT=setTimeout(()=>{sp.hidden=true;},2900);
@@ -1895,7 +2005,7 @@ const ADS=(()=>{
  const nativeAd=async()=>{rewarded=false;try{await A.prepareRewardVideoAd({adId:cap.getPlatform()==='ios'?ADMOB.ios:ADMOB.android,isTesting:ADMOB.test});await A.showRewardVideoAd();}catch(e){return false;}return rewarded;};
  return{
   ok:()=>native||bridge||demo,
-  show:async()=>{if(busy||!(native||bridge||demo))return false;busy=true;try{return bridge?await bridgeAd():native?await nativeAd():await testAd();}finally{busy=false;}}
+  show:async()=>{if(busy||!(native||bridge||demo))return false;busy=true;SND.hold(true);try{return bridge?await bridgeAd():native?await nativeAd():await testAd();}finally{busy=false;SND.hold(false);}}
  };
 })();
 const AD_CD={boost:600,shard:1800};   // seconds between uses of the Shop rewards
@@ -1961,17 +2071,30 @@ if(!S.road.length)buildRoad();
 say('The company sets out from the village...');
 if(!S.seenIntro)setTimeout(showIntro,700);
 let prev=performance.now(),fitN=0;
+document.addEventListener('click',e=>{if(e.target.closest('button:not(:disabled),.hc,.tile.can'))SND.play('click');},true);
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
  let rem=dt*speed;while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
  saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(gained/saveT);st('gold',gained);gained=0;saveT=0;save();}
  if((fitN=(fitN||0)+1)%20===0)fit();   // keep the canvas matched to its box
  if(!(drag&&drag.active))build();
- hud();draw(dt);
+ hud();draw(dt);SND.mood(phase,curBoss,S.depth);
  requestAnimationFrame(frame);
 }
 fit();requestAnimationFrame(frame);
 window.addEventListener('beforeunload',save);
+
+/* ---------- sound controls ---------- */
+function sndUI(){
+ const c=SND.cfg;$('sfxbtn').textContent='Effects: '+(c.sfx?'On':'Off');$('musbtn').textContent='Music: '+(c.music?'On':'Off');
+ $('volr').value=Math.round(c.vol*100);$('mute').textContent=(c.sfx||c.music)?'🔊':'🔇';
+}
+$('mute').onclick=()=>{const on=!(SND.cfg.sfx||SND.cfg.music);SND.setSfx(on);SND.setMusic(on);sndUI();if(on)SND.play('click');};
+$('sfxbtn').onclick=()=>{SND.setSfx(!SND.cfg.sfx);sndUI();};
+$('musbtn').onclick=()=>{SND.setMusic(!SND.cfg.music);sndUI();};
+$('volr').oninput=e=>{SND.setVol(e.target.value/100);};
+$('volr').onchange=()=>SND.play('level');
+sndUI();
 $('acct').textContent='Signed in as '+CC.email+'. Progress syncs to your account automatically.';
 $('signout').onclick=()=>{save();CC.out();};
 $('delacct').onclick=()=>showModal('Delete your account?','<p>This <b>permanently deletes</b> your account and your cloud save: progress, heroes, Legend, relics and purchases. It cannot be undone.</p><p class="hint">To start over without deleting your account, use Retire instead.</p>',[{t:'Keep my account',primary:true},{t:'Delete forever',fn:async()=>{try{await CC.del();}catch(e){toast('Could not delete the account. Check your connection and try again.');}}}]);
