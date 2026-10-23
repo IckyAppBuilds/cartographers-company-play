@@ -69,7 +69,7 @@ button.on{border-color:var(--gold);color:var(--gold)}
 #mini{grid-area:mini;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 #ctrl{grid-area:ctrl;display:grid;gap:6px}
 #handw{grid-area:handw;display:flex;flex-direction:column;min-height:0}
-#nav{grid-area:nav;display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+#nav{grid-area:nav;display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 
 canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:manipulation}
 
@@ -224,6 +224,22 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 #loot .li:has(.shg){width:auto;height:auto;font-size:14px;margin:14px 0 10px;animation:none}
 #loot .li:has(.shw){font-size:14px}
 .shmix{display:inline-flex;align-items:center}
+.clin{width:100%;box-sizing:border-box;margin:5px 0;padding:11px;font-size:16px;border-radius:10px;border:1px solid var(--line);background:#150f0a;color:inherit;font-family:inherit}
+.clin:focus{outline:none;border-color:var(--gold)}
+.clrow{display:flex;gap:6px;align-items:center}.clrow .clin{flex:1;margin:5px 0}
+.cltabs{display:flex;gap:6px;margin:8px 0}#sheet .pane .cltabs button{flex:1 1 0;min-width:0;padding:0 2px;font-size:14px}
+#sheet .pane .cltabs button:not(.on){filter:saturate(.55) brightness(.8)}
+#sheet .pane .cltabs button.on{border-image-source:var(--ui-gold);color:#3a2205;text-shadow:none}
+.clbtn{margin:6px 0}
+.clhead{padding:8px 10px;border:1px solid #5a4430;border-radius:12px;background:rgba(0,0,0,.28)}.clhead b{font-size:18px;color:#ffe9a0}.clhead small,.clcard small,.clmem small{display:block;color:var(--dim)}
+.clcard,.clmem{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid #3a2c20}.clcard>div:first-child,.clmem>div:first-child{min-width:0;flex:1}
+.clmem{flex-wrap:wrap}.clmem>div:last-child{display:flex;flex-wrap:wrap;gap:2px 6px;justify-content:flex-end}
+.clmsgs{height:min(44vh,360px);overflow-y:auto;padding:6px;border:1px solid #4a3722;border-radius:12px;background:rgba(0,0,0,.3);margin:4px 0 6px;-webkit-overflow-scrolling:touch}
+.clmsg{padding:5px 8px;margin:3px 0;border-radius:10px;background:rgba(255,255,255,.04);cursor:pointer}.clmsg.self{background:rgba(255,210,74,.08)}.clmsg.sel{outline:1px solid #ffd24a}
+.clmsg small{color:var(--dim);margin-left:6px}.clmsg .t{word-break:break-word;color:#efe3c4}
+.cla{margin-top:2px}
+.clerr{color:#ff8a7a;min-height:18px;margin-top:4px;font-size:14px}
+.clchk{display:flex;align-items:center;gap:8px;margin:6px 0;color:var(--dim)}.clchk input{width:20px;height:20px}
 #modal.actdone .mp{border:3px solid #e2a92f;border-image:none;border-radius:20px;padding:20px 14px 16px;background:radial-gradient(ellipse at 50% 0,rgba(255,200,80,.16),rgba(255,200,80,0) 60%),linear-gradient(180deg,#3d2c1c,#1b120b);box-shadow:inset 0 0 0 3px #2a1a0c,inset 0 0 0 5px rgba(255,214,110,.45),0 0 44px rgba(255,200,70,.4),0 22px 50px rgba(0,0,0,.75);filter:none}
 #modal.actdone h2{font-size:clamp(36px,11vw,52px);line-height:1.02;letter-spacing:.07em;margin:2px 0 14px;
  background:linear-gradient(110deg,transparent 38%,rgba(255,255,255,.95) 50%,transparent 62%) 200% 0/250% 100% no-repeat,linear-gradient(180deg,#fffbe2 0%,#ffeb8a 30%,#ffc72e 58%,#ff8f1a 100%);
@@ -590,6 +606,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
    <button id="nav-deck" data-sheet="deck"><span class="nv"><img class="ico" src="assets/icons/deck.png" alt="" draggable="false"></span><small>Deck</small></button>
    <button id="nav-relics" data-sheet="relics"><span class="nv"><img class="ico" src="assets/icons/relics.png" alt="" draggable="false"></span><small>Relics</small></button>
    <button id="nav-shop" data-sheet="shop"><span class="nv"><img class="ico" src="assets/icons/coin.png" alt="" draggable="false"></span><small>Shop</small></button>
+   <button id="nav-clan" data-sheet="clan"><span class="nv" style="font-size:24px;line-height:1">🏰</span><small>Clan</small></button>
    <button id="nav-stats" data-sheet="stats"><span class="nv" style="font-size:24px;line-height:1">📊</span><small>Stats</small></button>
    <button id="nav-log" data-sheet="log"><span class="nv"><img class="ico" src="assets/icons/journal.png" alt="" draggable="false"></span><small>Journal</small></button>
   </nav>
@@ -616,6 +633,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
     <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
    </div>
    <div class="pane" data-pane="shop" hidden><div id="shopBody"></div></div>
+   <div class="pane" data-pane="clan" hidden><div id="clanBody"></div></div>
    <div class="pane" data-pane="stats" hidden><div id="statsBody"></div></div>
    <div class="pane" data-pane="log" hidden>
     <div id="objective"></div><h3 style="margin-top:14px">Journal</h3><div id="log"></div>
@@ -662,7 +680,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023162925';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023172056';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -848,7 +866,7 @@ const CC=(function(){
  document.addEventListener('DOMContentLoaded',init);
  async function purchases(){const {data,error}=await db.from('purchases').select('sku,qty').eq('user_id',user.id);if(error)throw error;return data||[];}
  async function buy(sku){const {error}=await db.rpc('claim_test_purchase',{p_sku:sku});if(error)throw error;}   // TEST MODE: free. Replaced by Stripe Checkout when payments go live
- return {queue,out,del,purchases,buy,testMode:true,get email(){return user?user.email:'';}};
+ return {queue,out,del,purchases,buy,testMode:true,get email(){return user?user.email:'';},get db(){return db;},get user(){return user;}};
 })();
 </script>
 <script type="text/plain" id="game">
@@ -1161,7 +1179,144 @@ const region=d=>Math.floor(d/10);
 const heroMax=i=>HEROES[i].hp*RARM[HEROES[i].q]*partyBonus().hp*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
 const heroAtk=i=>HEROES[i].atk*RARM[HEROES[i].q]*partyBonus().dmg*bardAura()*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
-const goldMul=()=>partyBonus().gold*(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+const goldMul=()=>partyBonus().gold*(1+CLAN.bonus())*(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+/* ---------- clans and chat (Supabase): one clan per player, up to 30 members, a chat with report, mute and delete ---------- */
+const cesc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CLAN=(()=>{
+ const st={profile:null,info:null,roster:[],msgs:[],tab:'chat',find:'',list:null,loaded:false,unread:0,ch:null,live:false,sel:null,err:'',busy:false,open:false};
+ const MAXM=30,db=()=>CC.db,uid=()=>CC.user&&CC.user.id;
+ let muted=[];try{muted=JSON.parse(localStorage.getItem('cc-mute')||'[]');}catch(e){}
+ const saveMute=()=>{try{localStorage.setItem('cc-mute',JSON.stringify(muted));}catch(e){}};
+ const bonus=()=>st.info?Math.min(.25,.01*(st.info.members||0)):0;   // +1% gold per clan member, up to +25%
+ const rpc=async(n,a)=>{const r=await db().rpc(n,a||{});if(r.error)throw r.error;return r.data;};
+ const say2=m=>{st.err=m;const e=$('clanErr');if(e){e.textContent=m;}};
+ const roleName=r=>({leader:'Leader',officer:'Officer',member:'Member'}[r]||r);
+ const roleCol=r=>r==='leader'?'#ffd24a':r==='officer'?'#7ec8ff':'#cdbf9f';
+ const hhmm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+ const ago=t=>{const s=(Date.now()-Date.parse(t))/1000;return s<300?'online':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago';};
+ async function loadMe(){
+  if(!db()||!uid())return;
+  const p=await db().from('profiles').select('name').eq('user_id',uid()).maybeSingle();st.profile=p.data?p.data.name:null;
+  const i=await rpc('my_clan_info');st.info=i&&i[0]?i[0]:null;
+  try{localStorage.setItem('cc-clan',JSON.stringify(st.info?{members:st.info.members}:null));}catch(e){}
+  st.loaded=true;
+  if(st.info)subscribe();else unsubscribe();
+ }
+ function unsubscribe(){if(st.ch){try{db().removeChannel(st.ch);}catch(e){}st.ch=null;}st.live=false;}
+ function subscribe(){
+  if(st.ch&&st.ch._cid===st.info.id)return;unsubscribe();
+  const cid=st.info.id;
+  st.ch=db().channel('clan-'+cid).on('postgres_changes',{event:'INSERT',schema:'public',table:'clan_messages',filter:'clan_id=eq.'+cid},p=>onMsg(p.new)).subscribe(s=>{st.live=s==='SUBSCRIBED';});
+  st.ch._cid=cid;
+ }
+ function onMsg(m){
+  if(!m||st.msgs.some(x=>x.id===m.id))return;
+  if(muted.includes(m.user_id))return;
+  st.msgs.push(m);if(st.msgs.length>80)st.msgs.shift();
+  if(st.open&&st.tab==='chat'&&st.info){drawMsgs(true);}else if(m.user_id!==uid()){st.unread++;SND.play('click');}
+ }
+ async function loadMsgs(){
+  if(!st.info)return;
+  const r=await db().from('clan_messages').select('id,user_id,author,body,created_at').eq('clan_id',st.info.id).order('id',{ascending:false}).limit(60);
+  if(r.error)throw r.error;
+  st.msgs=(r.data||[]).filter(m=>!muted.includes(m.user_id)).reverse();
+ }
+ async function refresh(){   // everything for the open clan screen
+  try{
+   await loadMe();
+   if(st.info){await Promise.all([loadMsgs(),rpc('clan_roster').then(r=>{st.roster=r||[];})]);rpc('sync_clan_stats',{p_act:Math.floor(Math.max(S.best,S.depth)/10)+1,p_legend:S.legend}).catch(()=>{});}
+  }catch(e){say2(e.message||'Could not reach the clan service.');}
+  if(st.open)render();
+ }
+ async function doBrowse(q){try{st.list=await rpc('browse_clans',{p_q:q||''});}catch(e){st.list=[];say2(e.message);}if(st.open&&!st.info)render();}
+ async function act(fn,done){if(st.busy)return;st.busy=true;say2('');try{await fn();if(done)await done();}catch(e){say2((e&&e.message)||'Something went wrong.');}st.busy=false;}
+ const body=()=>$('clanBody');
+ function render(){
+  const el=body();if(!el)return;
+  if(!CC.db||!CC.user){el.innerHTML='<div class="hint">Clans need an online account. Sign in to use them.</div>';return;}
+  if(!st.loaded){el.innerHTML='<div class="hint">Loading…</div>';return;}
+  if(!st.profile){
+   el.innerHTML='<h3>Choose your player name</h3><div class="hint" style="margin-bottom:8px">Other players see this name in clans and chat. 3 to 16 letters, numbers, spaces, - or _. Keep it friendly.</div><input id="clName" class="clin" maxlength="16" placeholder="Player name" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="clbtn gold" data-cl="setname">Save name</button><div class="clerr" id="clanErr">'+cesc(st.err)+'</div>';return;
+  }
+  if(!st.info){
+   const list=st.list;if(list==null&&!st.loadingList&&st.find!=='create'){st.loadingList=true;doBrowse(st.q).then(()=>{st.loadingList=false;});}
+   el.innerHTML='<div class="hint" style="margin-bottom:6px">Playing as <b>'+cesc(st.profile)+'</b>. Join a clan for a gold bonus (+1% per member, up to +25%) and a place to chat.</div>'
+   +'<div class="cltabs"><button class="'+(st.find!=='create'?'on':'')+'" data-cl="tabfind">Find a clan</button><button class="'+(st.find==='create'?'on':'')+'" data-cl="tabcreate">Create a clan</button></div>'
+   +(st.find==='create'
+    ?'<input id="clcName" class="clin" maxlength="20" placeholder="Clan name (3-20)" autocomplete="off"><input id="clcTag" class="clin" maxlength="4" placeholder="Tag (2-4 letters)" autocapitalize="characters" autocomplete="off"><input id="clcDesc" class="clin" maxlength="120" placeholder="Short description (optional)" autocomplete="off"><label class="clchk"><input type="checkbox" id="clcOpen" checked> Recruiting (anyone can join)</label><button class="clbtn gold" data-cl="create">Create clan</button>'
+    :'<div class="clrow"><input id="clq" class="clin" maxlength="20" placeholder="Search clan names" value="'+cesc(st.q||'')+'" autocomplete="off"><button class="clbtn" data-cl="search">Search</button></div>'
+     +(list==null?'<div class="hint">Loading…</div>':list.length?list.map(c=>'<div class="clcard"><div><b>['+cesc(c.tag)+'] '+cesc(c.name)+'</b><small>'+c.members+'/'+MAXM+' members · '+(c.open?'recruiting':'closed')+'</small>'+(c.description?'<small>'+cesc(c.description)+'</small>':'')+'</div><button class="clbtn gold" data-cl="join:'+c.id+'" '+(!c.open||c.members>=MAXM?'disabled':'')+'>'+(c.members>=MAXM?'Full':c.open?'Join':'Closed')+'</button></div>').join(''):'<div class="hint">No clans found. Create the first one!</div>'))
+   +'<div class="clerr" id="clanErr">'+cesc(st.err)+'</div>';
+   return;
+  }
+  const i=st.info,mine=i.role;
+  el.innerHTML='<div class="clhead"><b>['+cesc(i.tag)+'] '+cesc(i.name)+'</b><small>'+i.members+'/'+MAXM+' members · you are '+roleName(mine).toLowerCase()+' · gold bonus +'+Math.round(bonus()*100)+'%</small>'+(i.description?'<small>'+cesc(i.description)+'</small>':'')+'</div>'
+   +'<div class="cltabs"><button class="'+(st.tab==='chat'?'on':'')+'" data-cl="tab:chat">Chat</button><button class="'+(st.tab==='members'?'on':'')+'" data-cl="tab:members">Members</button><button class="'+(st.tab==='manage'?'on':'')+'" data-cl="tab:manage">Clan</button></div>'
+   +'<div id="clTab"></div><div class="clerr" id="clanErr">'+cesc(st.err)+'</div>';
+  const tb=$('clTab');
+  if(st.tab==='chat'){
+   tb.innerHTML='<div id="clMsgs" class="clmsgs"></div><div class="clrow"><input id="clIn" class="clin" maxlength="200" placeholder="Say something kind…" autocomplete="off"><button class="clbtn gold" data-cl="send">Send</button></div><div class="hint" style="margin-top:4px">Be kind. Tap a message to report it, mute that player or (for officers) delete it. Chat is kept for 14 days.</div>';
+   drawMsgs(true);
+   const inp=$('clIn');inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
+  }else if(st.tab==='members'){
+   tb.innerHTML=st.roster.map(m=>{
+    const self=m.user_id===uid();let acts='';
+    if(!self){
+     if(mine==='leader')acts+=(m.role==='member'?'<button class="mini" data-cl="role:'+m.user_id+':officer">Make officer</button>':m.role==='officer'?'<button class="mini" data-cl="role:'+m.user_id+':member">Demote</button><button class="mini" data-cl="role:'+m.user_id+':leader">Make leader</button>':'')+'<button class="mini" data-cl="kick:'+m.user_id+'">Remove</button>';
+     else if(mine==='officer'&&m.role==='member')acts+='<button class="mini" data-cl="kick:'+m.user_id+'">Remove</button>';
+    }
+    return '<div class="clmem"><div><b style="color:'+roleCol(m.role)+'">'+cesc(m.name)+(self?' (you)':'')+'</b> <small>'+roleName(m.role)+'</small><small>Act '+m.best_act+' · Legend '+m.legend+' · '+ago(m.seen_at)+'</small></div><div>'+acts+'</div></div>';
+   }).join('')||'<div class="hint">Loading members…</div>';
+  }else{
+   tb.innerHTML=(mine==='leader'?'<h3>Clan settings</h3><textarea id="clDesc" class="clin" maxlength="120" rows="2" placeholder="Description">'+cesc(i.description)+'</textarea><label class="clchk"><input type="checkbox" id="clOpen" '+(i.open?'checked':'')+'> Recruiting (anyone can join)</label><button class="clbtn gold" data-cl="save">Save</button>':'')
+    +'<h3 style="margin-top:14px">Clan perk</h3><div class="hint">Every member adds +1% gold for everyone in the clan, up to +25% with 25 members. Right now: +'+Math.round(bonus()*100)+'%.</div>'
+    +'<h3 style="margin-top:14px">Leave</h3><div class="hint" style="margin-bottom:6px">'+(mine==='leader'?'If you leave, the next officer (or longest-standing member) becomes leader. The last member out closes the clan.':'You can join another clan afterwards.')+'</div><button class="clbtn" data-cl="leave">Leave clan</button>';
+  }
+ }
+ function drawMsgs(scroll){
+  const el=$('clMsgs');if(!el)return;
+  const roleOf=id=>{const m=st.roster.find(x=>x.user_id===id);return m?m.role:'member';};
+  el.innerHTML=st.msgs.length?st.msgs.map(m=>{
+   const self=m.user_id===uid(),mine=st.info&&st.info.role,can=self||mine==='leader'||mine==='officer';
+   return '<div class="clmsg'+(self?' self':'')+(st.sel===m.id?' sel':'')+'" data-cl="sel:'+m.id+'"><div><b style="color:'+roleCol(roleOf(m.user_id))+'">'+cesc(m.author)+'</b><small>'+hhmm(m.created_at)+'</small></div><div class="t">'+cesc(m.body)+'</div>'
+    +(st.sel===m.id?'<div class="cla">'+(!self?'<button class="mini" data-cl="report:'+m.id+'">Report</button><button class="mini" data-cl="mute:'+m.user_id+'">Mute player</button>':'')+(can?'<button class="mini" data-cl="del:'+m.id+'">Delete</button>':'')+'</div>':'')+'</div>';
+  }).join(''):'<div class="hint" style="text-align:center;padding:14px 0">No messages yet. Say hello!</div>';
+  if(scroll)el.scrollTop=el.scrollHeight;
+ }
+ async function send(){
+  const inp=$('clIn');if(!inp||st.busy)return;const t=inp.value.trim();if(!t)return;
+  inp.value='';
+  let sent=null;await act(async()=>{sent=await rpc('send_clan_message',{p_body:t});},()=>{setTimeout(async()=>{if(!st.msgs.some(m=>m.id===sent)){try{await loadMsgs();}catch(e){}if(st.open&&st.tab==='chat')drawMsgs(true);}},700);});
+  if($('clanErr')&&st.err)inp.value=t;
+ }
+ const parse=a=>a.split(':');
+ async function click(a){
+  const [k,x,y]=parse(a);
+  if(k==='setname'){const n=$('clName').value;await act(async()=>{await rpc('set_profile_name',{p_name:n});},refresh);}
+  else if(k==='tabfind'){st.find='';render();doBrowse(st.q);}
+  else if(k==='tabcreate'){st.find='create';render();}
+  else if(k==='search'){st.q=$('clq').value;doBrowse(st.q);}
+  else if(k==='create'){const n=$('clcName').value,t=$('clcTag').value,d=$('clcDesc').value,o=$('clcOpen').checked;await act(async()=>{await rpc('create_clan',{p_name:n,p_tag:t,p_desc:d,p_open:o});},()=>{st.tab='chat';return refresh();});}
+  else if(k==='join'){await act(async()=>{await rpc('join_clan',{p_clan:x});},()=>{st.tab='chat';return refresh();});}
+  else if(k==='tab'){st.tab=x;st.sel=null;if(x==='chat')st.unread=0;render();if(x==='members'||x==='chat')refresh();}
+  else if(k==='sel'){st.sel=st.sel===+x?null:+x;drawMsgs(false);}
+  else if(k==='send'){send();}
+  else if(k==='report'){await act(async()=>{await rpc('report_clan_message',{p_id:+x,p_reason:'chat'});toast('Reported. Thank you.');st.sel=null;});drawMsgs(false);}
+  else if(k==='mute'){if(!muted.includes(x))muted.push(x);saveMute();st.msgs=st.msgs.filter(m=>m.user_id!==x);st.sel=null;drawMsgs(false);toast('Player muted on this device.');}
+  else if(k==='del'){await act(async()=>{await rpc('delete_clan_message',{p_id:+x});st.msgs=st.msgs.filter(m=>m.id!==+x);st.sel=null;});drawMsgs(false);}
+  else if(k==='role'){showModal('Change role?','<p>Make this player '+(y==='leader'?'the clan leader (you become an officer)':y)+'?</p>',[{t:'Yes',primary:true,fn:()=>act(async()=>{await rpc('set_member_role',{p_user:x,p_role:y});},refresh)},{t:'Cancel'}]);}
+  else if(k==='kick'){showModal('Remove this player?','<p>They will leave the clan and can join again if it is recruiting.</p>',[{t:'Remove',primary:true,fn:()=>act(async()=>{await rpc('kick_member',{p_user:x});},refresh)},{t:'Cancel'}]);}
+  else if(k==='save'){const d=$('clDesc').value,o=$('clOpen').checked;await act(async()=>{await rpc('update_clan',{p_desc:d,p_open:o});toast('Clan updated.');},refresh);}
+  else if(k==='leave'){showModal('Leave your clan?','<p>You will lose the clan gold bonus and chat.</p>',[{t:'Leave',primary:true,fn:()=>act(async()=>{await rpc('leave_clan');st.info=null;unsubscribe();st.msgs=[];st.roster=[];st.list=null;},()=>{st.find='';render();doBrowse('');})},{t:'Stay'}]);}
+ }
+ return{
+  st,bonus,
+  init(){loadMe().catch(()=>{});setInterval(()=>{if(st.info&&!document.hidden)loadMe().catch(()=>{});},120000);setInterval(()=>{if(st.open&&st.info&&!st.live&&st.tab==='chat'){loadMsgs().then(()=>drawMsgs(true)).catch(()=>{});}},8000);},
+  open(){st.open=true;st.unread=0;st.err='';render();refresh().then(()=>{if(!st.info&&st.profile&&st.list==null)doBrowse('');});},
+  close(){st.open=false;},
+  click
+ };
+})();
 
 /* ---------- hero shards (every hero has their own), act gating, team bonuses and foe traits ---------- */
 const hsh=i=>(S.hs&&S.hs[i])||0;
@@ -1715,6 +1870,7 @@ function build(){
  $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic rq${h.q}">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
  $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?((skr(i)<skMax(i)&&hsh(i)>=skCost(skr(i),i))||(skr(i)>=skMax(i)&&star(i)<STAR_MAX&&hsh(i)>=starCost(star(i),i))):(actOK(i)&&hsh(i)>=HCOST[i])));
  $('nav-deck').classList.toggle('dot',!!S.offer);syncSpoils();
+ $('nav-clan').classList.toggle('dot',CLAN.st.unread>0);
  $('nav-shop').classList.toggle('dot',ADS.ok()&&adLeft('chest')===0);   // the free chest is ready
  $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}" style="border-left:4px solid ${RARCOL[h.q]};padding-left:6px"><div class="ic rq${h.q}">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c} · ${h.r} · ${rarTag(i)}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(Math.max(0,skMax(i)-skr(i)))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
  $('shd').textContent=shardTot();$('synergy').innerHTML=synergyHTML();
@@ -1923,7 +2079,7 @@ function statsRender(){
  return h;
 }
 /* ---------- menus (bottom sheets) and toasts ---------- */
-const SHEETS={party:'Company',deck:'Tile Deck',relics:'Relics & Legacy',shop:'Shop',stats:'Statistics',log:'Journal'};
+const SHEETS={clan:'Clan',party:'Company',deck:'Tile Deck',relics:'Relics & Legacy',shop:'Shop',stats:'Statistics',log:'Journal'};
 const RACC=['111,207,111','95,208,176','255,138,61','122,208,255','176,107,255','255,92,77','215,123,255','64,224,208','240,196,64','120,170,255','170,140,255','255,170,80','170,230,120','220,150,90','150,170,255','120,230,150','255,110,120','150,190,255','255,140,60','190,120,255'];   // per-region accent colours
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
 let sheet=null,lastRsub,lastLog,toastT,lastRegion,lastPips,splT,lastSub,lastGold;
@@ -1938,6 +2094,7 @@ function showSheet(n){
  sheet=(!n||sheet===n)?null:n;
  $('sheet').hidden=!sheet;
  if(sheet){$('sheetTitle').textContent=SHEETS[sheet];document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==sheet);}
+ if(sheet==='clan')CLAN.open();else CLAN.close();
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.sheet===sheet));
 }
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
@@ -2494,6 +2651,8 @@ function dailyCheck(){
  showModal('Daily reward','<p style="margin:0">🔥 <b>'+streak+'-day streak</b>'+(week?' · +'+Math.round((bonus-1)*100)+'% weekly bonus':'')+'</p><div style="display:flex;gap:3px;margin:10px 0">'+strip+'</div><p style="font-size:17px;margin:6px 0"><b>'+DAILY_R[day][2]+'</b></p><p class="hint" style="margin:4px 0">Tomorrow: '+next[2]+'. Miss a day and the streak holds; miss two and it restarts. Each full week adds a permanent +25% to the rewards, up to +100%.</p>',
   [{t:'Claim',primary:true,fn:()=>claim(1)}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{claim(await ADS.show()?2:1);}}]:[]));
 }
+CLAN.init();
+document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('[data-cl]');if(c)CLAN.click(c.dataset.cl);});
 dailyCheck();setInterval(dailyCheck,60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')dailyCheck();});
 loadEnt();
 let hidAt=0;
