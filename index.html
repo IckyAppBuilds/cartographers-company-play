@@ -619,10 +619,12 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
    <p id="authMsg">Sign in to chart the realm. Your progress follows you to every device.</p>
    <input id="authEmail" type="email" placeholder="Email" autocomplete="email" autocapitalize="none" spellcheck="false" required>
    <div class="au-pw"><input id="authPass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" minlength="6" required><button type="button" id="authShow" aria-label="Show password">Show</button></div>
+   <div class="au-pw" id="authPass2Wrap" hidden><input id="authPass2" type="password" placeholder="Confirm password" autocomplete="new-password" minlength="6"></div>
    <div class="row au-one"><button type="submit" class="prim" id="authIn">Log in</button></div>
    <p class="legal au-forgot"><a href="#" id="authForgot">Forgot your password?</a></p>
    <div class="au-or"><span>New to the realm?</span></div>
    <div class="row au-one"><button type="button" id="authUp">Create account</button></div>
+   <p class="legal au-forgot" id="authBackP" hidden><a href="#" id="authBack">Already have an account? Log in</a></p>
    <p class="legal">By creating an account you agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
   </form>
  </div>
@@ -630,7 +632,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023131822';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023132209';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -743,6 +745,15 @@ const CC=(function(){
   try{await pull();}catch(e){msg('Could not reach your cloud save. Check your connection and reload.',1);$('auth').hidden=false;return;}
   start();
  }
+ let signup=false;
+ function mode(up){   // the card has two pages: log in, and create account (password entered twice)
+  signup=up;$('authPass2Wrap').hidden=!up;$('authPass2').required=up;$('authPass2').value='';
+  $('authUp').parentElement.hidden=up;document.querySelector('#auth .au-or').hidden=up;$('authForgot').parentElement.hidden=up;$('authBackP').hidden=!up;
+  $('authIn').textContent=up?'Create account':'Log in';$('authPass').autocomplete=up?'new-password':'current-password';
+  document.querySelector('#auth h2').textContent=up?'Create your account':"Cartographer's Company";
+  document.querySelector('#auth .au-sub').hidden=up;
+  msg(up?'Choose a password you will remember. You will type it twice.':'Sign in to chart the realm. Your progress follows you to every device.');
+ }
  function recoveryUI(on){   // reuse the sign-in card as a "choose a new password" screen
   $('authEmail').hidden=on;$('authUp').parentElement.hidden=on;document.querySelector('#auth .au-or').hidden=on;$('authForgot').parentElement.hidden=on;
   $('authIn').textContent=on?'Save new password':'Log in';$('authPass').placeholder=on?'New password (6+ characters)':'Password (6+ characters)';$('authPass').autocomplete=on?'new-password':'current-password';$('authPass').value='';
@@ -765,12 +776,13 @@ const CC=(function(){
  async function sign(up){
   const email=$('authEmail').value.trim(),password=$('authPass').value;
   if(!email||password.length<6)return msg('Enter an email and a password of at least 6 characters.',1);
+  if(up&&$('authPass2').value!==password)return msg('The two passwords do not match.',1);
   msg(up?'Creating your account...':'Signing in...');
   const r=up?await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}}):await db.auth.signInWithPassword({email,password});
   if(r.error)return msg(r.error.message,1);
   lset('cc-email',email);
   if(r.data.session)return enter(r.data.user);
-  msg('Account created. Check your email to confirm it, then log in.');
+  mode(false);msg('Account created. Check your email to confirm it, then log in.');
  }
  async function del(){   // permanently removes the account and its cloud data, then returns to the sign-in screen
   const {error}=await db.rpc('delete_my_account');if(error)throw error;
@@ -788,11 +800,12 @@ const CC=(function(){
   $('auth').hidden=false;
   if(!window.supabase||SB_URL.startsWith('__')){msg(SB_URL.startsWith('__')?'Cloud saves are not configured yet.':'Could not load the sign-in service. Check your connection and reload.',1);return;}
   db=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-  $('authForm').addEventListener('submit',e=>{e.preventDefault();if(recovering)setNewPass();else sign(false);});
+  $('authForm').addEventListener('submit',e=>{e.preventDefault();if(recovering)setNewPass();else sign(signup);});
   $('authForgot').addEventListener('click',forgot);
-  $('authShow').addEventListener('click',()=>{const p=$('authPass'),show=p.type==='password';p.type=show?'text':'password';$('authShow').textContent=show?'Hide':'Show';});
+  $('authShow').addEventListener('click',()=>{const p=$('authPass'),show=p.type==='password';p.type=$('authPass2').type=show?'text':'password';$('authShow').textContent=show?'Hide':'Show';});
   {const e=lget('cc-email');if(e&&!$('authEmail').value){$('authEmail').value=e;}}   // remember who last signed in on this device
-  $('authUp').addEventListener('click',()=>sign(true));
+  $('authUp').addEventListener('click',()=>{mode(true);$('authPass').value='';$('authPass').focus();});
+  $('authBack').addEventListener('click',e=>{e.preventDefault();mode(false);});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(dirty)push();}else checkOther();});
   window.addEventListener('pagehide',()=>{if(dirty)push();});
   db.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){recovering=true;recoveryUI(true);msg('Choose a new password for your account.');}});
