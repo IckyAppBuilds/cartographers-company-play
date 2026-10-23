@@ -585,7 +585,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022231131';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023000200';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -800,6 +800,7 @@ const goldMul=()=>(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
 const legGain=()=>S.depth>=30?Math.floor(S.depth/10)-1:0;
+const NORMAL_ACTS=10;   // acts with their own art before the cycle repeats and bosses double up
 const unlocked=k=>(UNLOCK[k]||1)<=region(S.best)+1;
 function synFor(p,k){return SYN[p+'>'+k]||null;}
 
@@ -927,14 +928,14 @@ function startTile(){
  const d=S.depth,r=region(d);
  const hpM=22*1.16**d,atk=3.2*1.13**d;
  const synF=curSyn&&curSyn.foe||1;
- const dual=t.boss&&r>=7;   // from Act VIII on, the Warden brings a second guardian
+ const dual=t.boss&&r>=NORMAL_ACTS;   // after the ten normal acts, the Warden brings a second guardian
  const n=t.boss?(dual?2:1):Math.max(1,Math.min(t.cnt,active()+1));   // small parties face smaller packs
  for(let j=0;j<n;j++){
   const boss=t.boss,k2=dual&&j===1;
   const hp=hpM*t.pow*synF*(boss?(dual?4.6:7):1)*(.85+.3*Math.random());
   foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],
    hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(dual?1.4:1.8):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
-   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(dual?.6:1)*rkM(curRank),art:boss?'boss'+(k2?(Math.max(0,BOSSFORM.indexOf(RG(r)[1]))+3+r%5)%9:Math.max(0,BOSSFORM.indexOf(RG(r)[1]))):(Math.random()<.6?'a'+(r%7)+'_'+(Math.random()*3|0):null)});
+   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(dual?.6:1)*rkM(curRank),art:boss?'boss'+(k2?(Math.max(0,BOSSFORM.indexOf(RG(r)[1]))+3+r%5)%9:Math.max(0,BOSSFORM.indexOf(RG(r)[1]))):(Math.random()<.6?'a'+(r%NORMAL_ACTS)+'_'+(Math.random()*3|0):null)});
  }
  H=HEROES.map((h,i)=>({cd:Math.random()*.4,n:0,flash:0,lunge:0}));
  phase='fight';
@@ -1406,8 +1407,8 @@ function statsRender(){
 }
 /* ---------- menus (bottom sheets) and toasts ---------- */
 const SHEETS={party:'Company',deck:'Tile Deck',relics:'Relics & Legacy',shop:'Shop',stats:'Statistics',log:'Journal'};
-const RACC=['111,207,111','95,208,176','255,138,61','122,208,255','176,107,255','255,92,77','215,123,255'];   // per-region accent colours
-const ROMAN=['I','II','III','IV','V','VI','VII'];
+const RACC=['111,207,111','95,208,176','255,138,61','122,208,255','176,107,255','255,92,77','215,123,255','64,224,208','240,196,64','120,170,255'];   // per-region accent colours
+const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X'];
 let sheet=null,lastRsub,lastLog,toastT,lastRegion,lastPips,splT,lastSub,lastGold;
 function showSplash(r){   // big act title over the battle when a new region begins
  const sp=$('splash');sp.querySelector('.sa').textContent='ACT '+roman(r+1);sp.querySelector('.sn').textContent=RG(r)[0];sp.querySelector('.sb').textContent='Warden: '+RG(r)[2];
@@ -1633,10 +1634,10 @@ function drawHeroImg(i,x,y){
 const FOEFILE={'🐗':'boar','🦊':'fox','🦇':'bat','🐺':'wolf','🕷️':'spider','🐻':'bear','💀':'skeleton','🧟':'zombie','👻':'ghost','🐸':'frog','🐊':'gator','🪱':'leech','🧛':'vampire','👺':'goblin','🧌':'troll','👹':'ogre','🦂':'scorpion','🐻‍❄️':'bear','🐉':'dragon'};
 const FOEH={boar:64,fox:54,bat:58,wolf:64,spider:58,bear:78,icebear:78,skeleton:88,zombie:88,ghost:88,frog:58,gator:52,leech:46,vampire:96,goblin:68,troll:104,ogre:110,void:112,scorpion:84,dragon:124};
 ['boar','fox','bat','wolf','spider','bear','skeleton','zombie','ghost','frog','gator','leech','vampire','goblin','troll','ogre','scorpion','dragon'].forEach(n=>loadImg('f_'+n,'assets/enemies/'+n+'.png'+V));
-const ACTFOE=[['beetle','treant','hornet'],['golem','hag','wisp'],['imp','lavahound','magma'],['frostwolf','wraith','yeti'],['drowned','mummy','gargoyle'],['wyvern','kobold','drakeknight'],['beholder','stalker','cultist']];
-const ACTH={a0_0:56,a0_1:84,a0_2:58,a1_0:100,a1_1:88,a1_2:60,a2_0:62,a2_1:64,a2_2:104,a3_0:66,a3_1:90,a3_2:100,a4_0:88,a4_1:88,a4_2:84,a5_0:72,a5_1:80,a5_2:100,a6_0:84,a6_1:96,a6_2:92,boss0:120,boss1:100,boss2:140,boss3:140,boss4:150,boss5:185,boss6:170,boss7:150,boss8:170};
+const ACTFOE=[['beetle','treant','hornet'],['golem','hag','wisp'],['imp','lavahound','magma'],['frostwolf','wraith','yeti'],['drowned','mummy','gargoyle'],['wyvern','kobold','drakeknight'],['beholder','stalker','cultist'],['hermitcrab','siren','serpent'],['scarab','jackal','sandelem'],['harpy','stormcloud','skyknight']];
+const ACTH={a0_0:56,a0_1:84,a0_2:58,a1_0:100,a1_1:88,a1_2:60,a2_0:62,a2_1:64,a2_2:104,a3_0:66,a3_1:90,a3_2:100,a4_0:88,a4_1:88,a4_2:84,a5_0:72,a5_1:80,a5_2:100,a6_0:84,a6_1:96,a6_2:92,a7_0:80,a7_1:96,a7_2:100,a8_0:72,a8_1:96,a8_2:92,a9_0:88,a9_1:92,a9_2:112,boss0:120,boss1:100,boss2:140,boss3:140,boss4:150,boss5:185,boss6:170,boss7:150,boss8:170};
 Object.assign(FOEH,ACTH);
-for(let a=0;a<7;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/enemies/a'+a+'_'+i+'.png'+V);if(a<2)loadImg('f_boss'+(a+7),'assets/enemies/boss'+(a+7)+'.png'+V);loadImg('f_boss'+a,'assets/enemies/boss'+a+'.png'+V);}
+for(let a=0;a<NORMAL_ACTS;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/enemies/a'+a+'_'+i+'.png'+V);if(a<2)loadImg('f_boss'+(a+7),'assets/enemies/boss'+(a+7)+'.png'+V);loadImg('f_boss'+a,'assets/enemies/boss'+a+'.png'+V);}
 const ICONS=['wilds','forest','village','ruins','swamp','crypt','shrine','springs','market','battlefield','leyline','treasury','vault','lair','coin','whet','oak','ink','fang','boots','company','deck','relics','journal','flame'];
 ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'+V));
 function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png'+V+'" alt="" draggable="false">';}
@@ -1674,12 +1675,12 @@ function tintImg(im,fn,key){
 }
 /* ---------- painted backdrops: 4 generated scenes, the other biomes are tinted variants made at load time ---------- */
 const BGB={},BGV={};
-const BGNAMES=['meadow','forest','ruins','lair','act0','act1','act2','act3','act4','act5','act6','battlefield','village','shrine','springs','market','leyline','treasury','vault','crypt','swamp','lair0','lair1','lair2','lair3','lair4','lair5','lair6'];
+const BGNAMES=['meadow','forest','ruins','lair','act0','act1','act2','act3','act4','act5','act6','battlefield','village','shrine','springs','market','leyline','treasury','vault','crypt','swamp','lair0','lair1','lair2','lair3','lair4','lair5','lair6','act7','act8','act9','lair7','lair8','lair9'];
 const BGSPEC={};BGNAMES.forEach(n=>BGSPEC[n]=[n]);
 // which painted backdrop a tile gets: acts own their fights and boss lairs, special tiles own their scene; later acts reuse the art in a new colour cast
 const BGCAST=[null,'rgba(255,110,190,.38)','rgba(70,190,255,.38)','rgba(255,200,60,.38)'];
 function bgKeyFor(k){
- const r=region(S.depth),a=r%7,cyc=Math.floor(r/7)%4;let n;
+ const r=region(S.depth),a=r%NORMAL_ACTS,cyc=Math.floor(r/NORMAL_ACTS)%4;let n;
  if(k==='lair')n='lair'+a;
  else if(TILES[k].ev||k==='battlefield'||k==='crypt'||k==='swamp')n=k;
  else n='act'+a;
@@ -1714,7 +1715,7 @@ function drawBG(k){
  return true;
 }
 function hash(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);}
-const AMBCOL={act0:'255,235,150',act1:'170,255,170',act2:'255,150,60',act3:'225,240,255',act4:'150,255,190',act5:'255,175,80',act6:'225,150,255',village:'255,210,130',shrine:'230,170,255',springs:'220,245,255',market:'255,220,140',leyline:'120,230,255',treasury:'255,225,110',vault:'210,150,255',crypt:'190,160,255',battlefield:'200,200,200',swamp:'170,255,160'};
+const AMBCOL={act0:'255,235,150',act1:'170,255,170',act2:'255,150,60',act3:'225,240,255',act4:'150,255,190',act5:'255,175,80',act6:'225,150,255',act7:'150,255,235',act8:'255,225,140',act9:'220,235,255',village:'255,210,130',shrine:'230,170,255',springs:'220,245,255',market:'255,220,140',leyline:'120,230,255',treasury:'255,225,110',vault:'210,150,255',crypt:'190,160,255',battlefield:'200,200,200',swamp:'170,255,160'};
 function ambient(k){   // drifting pollen / spores / wisps / embers, stateless
  const T=performance.now()/1000,base=k.replace(/#.*/,''),left=-OX,hh=320+EX;
  const col=AMBCOL[base]||(/^lair/.test(base)?'255,150,60':'255,250,225'),rise=/^lair/.test(base)||base==='act2'||base==='act5';
