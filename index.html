@@ -127,6 +127,27 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 #sheet .sb{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(112px + env(safe-area-inset-top));max-width:min(92vw,520px);background:rgba(20,14,9,.96);border:1px solid var(--gold);padding:7px 12px;border-radius:10px;z-index:22;pointer-events:none;font-size:13px;opacity:0;transition:opacity .25s}
 #toast.show{opacity:1}
+#loot{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,rgba(var(--lc),.28),rgba(6,4,2,.82) 70%);animation:lootbg .25s ease-out;cursor:pointer;overflow:hidden}
+#loot.out{animation:lootout .25s ease-in forwards}
+@keyframes lootbg{from{opacity:0}to{opacity:1}}@keyframes lootout{to{opacity:0}}
+#loot .rays{position:absolute;left:50%;top:46%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;background:repeating-conic-gradient(from 0deg,rgba(var(--lc),.34) 0 7deg,transparent 7deg 18deg);-webkit-mask:radial-gradient(circle,#000 0,transparent 42%);mask:radial-gradient(circle,#000 0,transparent 42%);animation:lootspin 14s linear infinite}
+@keyframes lootspin{to{transform:rotate(360deg)}}
+#loot .lc{position:relative;text-align:center;width:min(86vw,320px);padding:22px 18px 18px;border-radius:18px;background:linear-gradient(180deg,#3a2b1d,#1b130c);border:2px solid rgb(var(--lc));box-shadow:0 0 0 3px rgba(0,0,0,.5),0 0 46px rgba(var(--lc),.75),0 20px 50px rgba(0,0,0,.7);animation:lootpop .6s cubic-bezier(.2,1.5,.4,1)}
+@keyframes lootpop{0%{transform:scale(.2) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+#loot .lk{font:900 13px/1 Cinzel,Georgia,serif;letter-spacing:.28em;text-transform:uppercase;color:rgb(var(--lc));text-shadow:0 0 12px rgba(var(--lc),.9);animation:lootglint 1.4s ease-in-out infinite}
+@keyframes lootglint{50%{filter:brightness(1.7)}}
+#loot .li{position:relative;margin:14px auto 8px;width:104px;height:104px;display:flex;align-items:center;justify-content:center;font-size:76px;animation:lootbob 2.2s ease-in-out infinite .6s}
+#loot .li img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 14px rgba(var(--lc),.95))}
+@keyframes lootbob{50%{transform:translateY(-7px) scale(1.06)}}
+#loot .ln{font:900 clamp(20px,6vw,25px)/1.15 Cinzel,Georgia,serif;color:#fff3c4;text-shadow:0 2px 0 #000}
+#loot .lr{margin-top:4px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgb(var(--lc))}
+#loot .ld{margin-top:9px;line-height:1.35;color:var(--dim,#cdbb9a);font-size:14px}
+#loot .lh{margin-top:12px;font-size:11px;opacity:.55}
+#loot .pt{position:absolute;left:50%;top:46%;width:9px;height:9px;margin:-5px;border-radius:2px;background:var(--pc);opacity:0;animation:lootburst var(--t) cubic-bezier(.1,.7,.3,1) var(--dl) forwards;pointer-events:none}
+@keyframes lootburst{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--rt)) scale(.4)}}
+#loot.big .lc{animation:lootpop .6s cubic-bezier(.2,1.5,.4,1),lootshake .5s .1s}
+@keyframes lootshake{20%{transform:translate(-5px,3px)}40%{transform:translate(5px,-3px)}60%{transform:translate(-3px,-2px)}80%{transform:translate(3px,2px)}}
+@media (prefers-reduced-motion:reduce){#loot .rays,#loot .li,#loot .lk{animation:none}}
 #inscribe{position:fixed;left:8px;right:8px;bottom:calc(70px + env(safe-area-inset-bottom));max-width:620px;margin:0 auto;z-index:25;padding:10px;background:var(--panel);border:1px dashed #a56bff;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.65)}
 #inscribe h3{color:#d6b8ff}#inscribe .row button{text-align:left;flex:1 1 90px}#inscribe small{color:var(--dim)}
 
@@ -458,6 +479,7 @@ for(const p of ['deck','draw','disc','hand'])S[p]=(S[p]||[]).filter(k=>kindOf(k)
 if(!S.rmod||S.rmod.length!==S.road.length)S.rmod=S.road.map(()=>null);
 if(!S.boons)S.boons={};
 if(S.rd==null)S.rd=3;delete S.ink;
+{const sc=S.seen||(S.seen={});S.deck.forEach(k=>sc[k]=1);}
 for(const p of ['un','hp','lv'])while(S[p].length<8)S[p].push(p==='un'?false:p==='lv'?1:0);
 if(!Array.isArray(S.owned))S.owned=[0,1,2,3];if(!S.sk)S.sk={};if(S.shards==null)S.shards=0;
 if(!Array.isArray(S.order)||S.order.length!==4||new Set(S.order).size!==4||S.order.some(i=>!S.owned.includes(i)))S.order=[0,1,2,3];   // party formation, front to back
@@ -529,7 +551,7 @@ function drawCard(){
 }
 function fillHand(){while(S.hand.length<3){const c=drawCard();if(!c)break;S.hand.push(c);}}
 function addCard(k){S.deck.push(k);S.draw.splice(Math.random()*(S.draw.length+1)|0,0,k);}
-function buyTile(k){const c=cardCost(k);if(!buyable(k)||S.gold<c||S.deck.length>=MAX_DECK)return;S.gold-=c;addCard(k);say('Added '+TILES[k].n+' to your deck.');sig='';}
+function buyTile(k){const c=cardCost(k);if(!buyable(k)||S.gold<c||S.deck.length>=MAX_DECK)return;S.gold-=c;addCard(k);newCardPop(k);say('Added '+TILES[k].n+' to your deck.');sig='';}
 let burnArm=null,burnArmT=0;
 function burnCard(key){   // burn one specific card; two taps to confirm (no hover/confirm dialogs on mobile)
  const [c,w]=key.split('|'),pile={hand:S.hand,draw:S.draw,disc:S.disc}[w];
@@ -556,14 +578,14 @@ let pendingTake=null;   // spoils tile waiting for the player to pick which card
 function takeOffer(k){
  if(!S.offer||!S.offer.includes(k))return;
  if(S.deck.length>=MAX_DECK){pendingTake=k;sig='';return;}
- addCard(k);S.offer=null;pendingTake=null;say('Added '+TILES[k].n+' to your deck (boss spoils).');sig='';
+ addCard(k);S.offer=null;pendingTake=null;say('Added '+TILES[k].n+' to your deck (boss spoils).');newCardPop(k,true);sig='';
 }
 function replaceCard(kind){   // deck is full: swap one existing card for the chosen spoils tile
  if(!pendingTake||!S.offer||!countKind(kind))return;
  const nk=pendingTake;
  removeOne(S.deck,kind);for(const pile of [S.disc,S.draw,S.hand])if(removeOne(pile,kind))break;
  if(selCard>=S.hand.length)selCard=-1;
- addCard(nk);S.offer=null;pendingTake=null;fillHand();say('Swapped a '+TILES[kind].n+' card for '+TILES[nk].n+'.');sig='';
+ addCard(nk);newCardPop(nk,true);S.offer=null;pendingTake=null;fillHand();say('Swapped a '+TILES[kind].n+' card for '+TILES[nk].n+'.');sig='';
 }
 function skipOffer(){S.offer=null;pendingTake=null;say('You leave the spoils behind.');sig='';}
 function reshuffleAll(why){   // every card (hand, draw pile and spent pile) goes back into one shuffled deck
@@ -643,7 +665,7 @@ function win(){
  S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;
  {const sh=t.boss?3+region(S.depth):(Math.random()<(t.gold>=2.5?.15:.05)?1:0);if(sh){S.shards=(S.shards||0)+sh;say('Found '+sh+' hero shard'+(sh>1?'s':'')+'!');floatTxt('+'+sh+' ◆',330,150,'#8fd8ff');}}
  let rc=t.relic+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
- if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');}
+ if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r);}
  // revive fallen at 30%, small heal
  for(const i of S.order){if(!S.un[i])continue;if(S.hp[i]<=0)S.hp[i]=heroMax(i)*.3;if(t.heal)healHero(i,heroMax(i)*t.heal,true);}
  if(curSyn&&curSyn.heal)for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
@@ -678,7 +700,7 @@ function event(){
   S.bless=5;S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
   say('Leyline surge: +30% damage for 5 fights.');
  }else if(t.ev==='vault'){
-  for(let n=0;n<2;n++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Vault relic: '+RELICS[r].i+' '+RELICS[r].n+'!');}
+  for(let n=0;n<2;n++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Vault relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r,'Vault treasure!');}
  }
  modAfter();
  advance();
@@ -869,6 +891,25 @@ function showModal(title,html,btns){
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
  $('modal').hidden=false;
 }
+/* ---------- loot popups: a celebration whenever a relic or a new card lands ---------- */
+const lootQ=[];let lootEl=null,lootTm=0;
+function loot(o){lootQ.push(o);if(!lootEl)nextLoot();}
+function nextLoot(){
+ const o=lootQ.shift();if(!o){lootEl=null;return;}
+ const col=o.col||[255,208,74],big=o.rar>=3,n=big?64:o.rar>=1?42:28;
+ const el=document.createElement('div');el.id='loot';el.className=big?'big':'';el.style.setProperty('--lc',col.join(','));
+ let ps='';const pal=['#ffd24a','#fff3c4','rgb('+col.join(',')+')','#ffffff'];
+ for(let i=0;i<n;i++){const a=Math.random()*TAU,d=90+Math.random()*(big?300:210);ps+='<i class="pt" style="--dx:'+(Math.cos(a)*d|0)+'px;--dy:'+(Math.sin(a)*d-30|0)+'px;--rt:'+(Math.random()*720-360|0)+'deg;--t:'+(.9+Math.random()*.9).toFixed(2)+'s;--dl:'+(Math.random()*.15).toFixed(2)+'s;--pc:'+pal[i%4]+'"></i>';}
+ el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div><div class="lh">tap to continue</div></div>'+ps;
+ document.body.appendChild(el);lootEl=el;
+ try{navigator.vibrate&&navigator.vibrate(big?[40,40,90]:30);}catch(e){}
+ const done=()=>{clearTimeout(lootTm);if(lootEl!==el)return;el.classList.add('out');setTimeout(()=>{el.remove();lootEl=null;nextLoot();},240);};
+ el.onclick=done;lootTm=setTimeout(done,lootQ.length?2400:4200);
+}
+const RCOL=[[154,138,106],[95,191,106],[90,160,255],[176,107,255],[255,176,46]];
+function lootRelic(r,how){const n=S.relics[r];loot({head:how||'Relic found!',icon:RELICS[r].ico||RELICS[r].i,name:RELICS[r].n,sub:n>1?'Relic · now ×'+n:'Relic · new!',desc:RELICS[r].d,rar:2,col:[255,176,46]});}
+function lootCard(k,head){const t=TILES[k],q=t.r||0;loot({head:head,icon:t.i,name:t.n+' tile',sub:RAR[q].n+' card',desc:t.d,rar:q,col:RCOL[q]});}
+function newCardPop(k,force){const sc=S.seen||(S.seen={}),first=!sc[k];sc[k]=1;if(first||force||(TILES[k].r||0)>=2)lootCard(k,first?'New card!':'Card added!');}
 function closeModal(i){const b=modalBtns[i];$('modal').hidden=true;modalBtns=[];if(b&&b.fn)b.fn();}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(b)closeModal(+b.dataset.mb);});
 function showIntro(){
