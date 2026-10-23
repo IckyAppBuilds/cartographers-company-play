@@ -203,6 +203,8 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 .hero:last-child{border:0}
 .hero .ic{font-size:26px;text-align:center}
 .hero .nm{font-weight:700}.hero small{color:var(--dim)}
+.syn{padding:3px 0;border-bottom:1px solid #3a2c20}.syn.on b{color:#ffd24a}.syn:not(.on){opacity:.7}.syn small{color:var(--dim)}
+#sheet .pane button.mini{border:1px solid #8a6a3a!important;border-image:none!important;border-radius:999px!important;background:#2a1d10!important;color:#ffd24a!important;font:700 12px Georgia,serif!important;min-height:0!important;padding:5px 12px!important;margin:5px 6px 0 0;text-shadow:none!important}
 .relics{display:flex;flex-wrap:wrap;gap:5px}
 .rel{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:12px}
 #log div{margin:3px 0;font-size:13px;color:var(--dim)}#log div:first-child{color:var(--txt)}
@@ -572,8 +574,8 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  <div class="sp" role="dialog" aria-modal="true">
   <div class="sh"><h3 id="sheetTitle"></h3><button data-close aria-label="Close menu">✕ Close</button></div>
   <div class="sb">
-   <div class="pane" data-pane="party" hidden><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div>
-    <h3 style="margin-top:16px">Roster · Hero shards ◆ <span id="shd"></span></h3><div class="hint" style="margin-bottom:6px">Bosses drop hero shards (elite fights sometimes do). Spend them to rank up a hero's skill or unlock new heroes. Skills, unlocked heroes and your party all stay when you retire. Tap Swap in on a hero, then choose which party slot they replace.</div><div id="roster"></div></div>
+   <div class="pane" data-pane="party" hidden><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div><div id="synergy" style="margin-top:14px"></div>
+    <h3 style="margin-top:16px">Roster · Hero shards ◆ <span id="shd"></span></h3><div class="hint" style="margin-bottom:6px">Bosses drop hero shards (elite fights sometimes do). Every hero collects their own: most go to your party, some to the next hero you can unlock, and Focus sends extra to one hero. Spend a hero's shards on their skill, or to unlock them once you reach their act. Skills, unlocked heroes and your party all stay when you retire. Tap Swap in on a hero, then choose which party slot they replace.</div><div id="roster"></div></div>
    <div class="pane" data-pane="deck" hidden>
     <div id="offer" hidden></div><div id="deck"></div><div class="pile" id="insum" style="margin-top:8px"></div>
     <div class="hint" style="margin-top:6px">Your deck holds up to 10 cards and each card can be played once. Every card returns when you beat a boss or die. Buy common and uncommon tiles; rare, epic and legendary tiles drop only from bosses. Burn weak cards so better ones come up (deck keeps at least 5). Echo-glyph cards go back into the draw pile when played.</div>
@@ -632,7 +634,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023135253';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023140705';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1039,17 +1041,30 @@ const SYN={
  'battlefield>market':{n:'War Profiteers',d:'Market gold ×2',rew:2},
  'springs>shrine':{n:'Pilgrim Rest',d:'+1 redraw',rd:1}
 };
-const HEROES=[
- {n:'Ser Bram',c:'Knight',hp:150,atk:7,spd:.8,col:'#6b8cff',hat:'helm',w:'🗡️',sk:'Every 3rd strike: Shield Bash (2×).'},
- {n:'Wren',c:'Ranger',hp:80,atk:11,spd:1.1,col:'#4caf6a',hat:'hood',w:'🏹',sk:'Targets weakest foe. 25% crit (2.2×).'},
- {n:'Ysolde',c:'Mage',hp:65,atk:9,spd:.7,col:'#b06bff',hat:'wiz',w:'🔮',sk:'Every 3rd cast: Fireball hits all foes.'},
- {n:'Brother Ansel',c:'Cleric',hp:95,atk:5,spd:.65,col:'#f2e6b0',hat:'halo',w:'✨',sk:'Every 2nd action heals the weakest ally.'},
- {n:'Vesper',c:'Rogue',hp:75,atk:10,spd:1.15,col:'#8a5aa0',hat:'hood',w:'🗡️',sk:''},
- {n:'Brakka',c:'Berserker',hp:125,atk:9,spd:.85,col:'#c0463a',hat:'helm',w:'🪓',sk:''},
- {n:'Thistle',c:'Druid',hp:90,atk:6,spd:.75,col:'#5aa05a',hat:'hood',w:'🌿',sk:''},
- {n:'Seraph',c:'Paladin',hp:170,atk:5,spd:.6,col:'#9ec8ff',hat:'halo',w:'🛡️',sk:''}
+const HEROES=[   // r = role (team bonuses), k = damage kind (foe traits), q = rarity 0-4 (Common..Legendary)
+ {n:'Ser Bram',c:'Knight',r:'Guardian',k:'melee',q:0,hp:150,atk:7,spd:.8,col:'#6b8cff',hat:'helm',w:'🗡️',sk:''},
+ {n:'Wren',c:'Ranger',r:'Marksman',k:'ranged',q:0,hp:80,atk:11,spd:1.1,col:'#4caf6a',hat:'hood',w:'🏹',sk:''},
+ {n:'Ysolde',c:'Mage',r:'Caster',k:'arcane',q:0,hp:65,atk:9,spd:.7,col:'#b06bff',hat:'wiz',w:'🔮',sk:''},
+ {n:'Brother Ansel',c:'Cleric',r:'Healer',k:'holy',q:0,hp:95,atk:5,spd:.65,col:'#f2e6b0',hat:'halo',w:'✨',sk:''},
+ {n:'Vesper',c:'Rogue',r:'Striker',k:'melee',q:1,hp:75,atk:10,spd:1.15,col:'#8a5aa0',hat:'hood',w:'🗡️',sk:''},
+ {n:'Brakka',c:'Berserker',r:'Striker',k:'melee',q:1,hp:125,atk:9,spd:.85,col:'#c0463a',hat:'helm',w:'🪓',sk:''},
+ {n:'Thistle',c:'Druid',r:'Healer',k:'arcane',q:1,hp:90,atk:6,spd:.75,col:'#5aa05a',hat:'hood',w:'🌿',sk:''},
+ {n:'Seraph',c:'Paladin',r:'Guardian',k:'holy',q:2,hp:170,atk:5,spd:.6,col:'#9ec8ff',hat:'halo',w:'🛡️',sk:''},
+ {n:'Lark',c:'Bard',r:'Support',k:'arcane',q:1,hp:85,atk:6,spd:.9,col:'#e0a050',hat:'hood',w:'🎵',sk:''},
+ {n:'Tarn',c:'Monk',r:'Striker',k:'melee',q:1,hp:110,atk:8,spd:1,col:'#e0a030',hat:'hood',w:'👊',sk:''},
+ {n:'Morvane',c:'Necromancer',r:'Caster',k:'arcane',q:3,hp:70,atk:9,spd:.75,col:'#5aa05a',hat:'wiz',w:'💀',sk:''},
+ {n:'Pip',c:'Artificer',r:'Marksman',k:'ranged',q:1,hp:80,atk:9,spd:.95,col:'#c08040',hat:'helm',w:'⚙️',sk:''},
+ {n:'Corvin',c:'Duelist',r:'Striker',k:'melee',q:2,hp:95,atk:9,spd:1,col:'#c0463a',hat:'hood',w:'🤺',sk:''},
+ {n:'Cinder',c:'Pyromancer',r:'Caster',k:'arcane',q:3,hp:65,atk:10,spd:.75,col:'#ff8a3a',hat:'wiz',w:'🔥',sk:''},
+ {n:'Sable',c:'Huntress',r:'Marksman',k:'ranged',q:2,hp:85,atk:10,spd:1.05,col:'#8a7a5a',hat:'hood',w:'🏹',sk:''},
+ {n:'Hild',c:'Shieldmaiden',r:'Guardian',k:'melee',q:2,hp:180,atk:5,spd:.7,col:'#c8b080',hat:'helm',w:'🛡️',sk:''},
+ {n:'Quill',c:'Alchemist',r:'Support',k:'ranged',q:2,hp:80,atk:6,spd:.85,col:'#9be05a',hat:'hood',w:'⚗️',sk:''},
+ {n:'Zephra',c:'Stormcaller',r:'Caster',k:'arcane',q:3,hp:70,atk:9,spd:.8,col:'#7ac8ff',hat:'wiz',w:'⚡',sk:''},
+ {n:'Aurelian',c:'Templar',r:'Striker',k:'holy',q:4,hp:130,atk:8,spd:.8,col:'#ffd24a',hat:'helm',w:'⚔️',sk:''},
+ {n:'Mirelle',c:'Oracle',r:'Healer',k:'arcane',q:4,hp:85,atk:5,spd:.7,col:'#b070ff',hat:'halo',w:'🔮',sk:''}
 ];
-const LC=[1,1.15,1.3,1.45,1.15,1.1,1.3,1.4];   // per-hero level cost factor
+const RARCOL=RAR.map(r=>r.c),RARM=[1,1.05,1.12,1.2,1.3];   // rarer heroes are stronger but need more of their own shards
+const LC=[1,1.15,1.3,1.45,1.15,1.1,1.3,1.4,1.15,1.2,1.3,1.2,1.2,1.3,1.2,1.45,1.15,1.3,1.3,1.2];   // per-hero level cost factor
 const HSK=[   // one skill per hero; each shard rank (max 5) makes it stronger
  {n:'Shield Bash',d:r=>'Every 3rd strike hits for '+(2+.25*r).toFixed(2)+'×.'},
  {n:'Deadeye',d:r=>'Targets the weakest foe. '+(25+4*r)+'% crit chance (2.2×).'},
@@ -1058,11 +1073,25 @@ const HSK=[   // one skill per hero; each shard rank (max 5) makes it stronger
  {n:'Flurry',d:r=>'Strikes twice; the second hit deals '+(50+10*r)+'%.'},
  {n:'Bloodrage',d:r=>'Deals up to +'+(50+12*r)+'% damage as their HP drops.'},
  {n:'Verdant Bloom',d:r=>'Every 3rd action heals the whole company: 5% max HP + '+(1+.3*r).toFixed(1)+'× attack.'},
- {n:'Aegis',d:r=>'While standing, every ally takes '+(6+3*r)+'% less damage.'}
+ {n:'Aegis',d:r=>'While standing, every ally takes '+(6+3*r)+'% less damage.'},
+ {n:'Inspiring Song',d:r=>'While standing, every ally deals +'+(6+2*r)+'% damage.'},
+ {n:'Ten Thousand Fists',d:r=>'Every 4th strike lands three blows at '+(70+10*r)+'% each.'},
+ {n:'Soul Siphon',d:r=>'Each strike heals the weakest ally for '+(35+6*r)+'% of attack.'},
+ {n:'Clockwork Bomb',d:r=>'Every 4th shot blasts all foes for '+(1.1+.12*r).toFixed(2)+'×.'},
+ {n:'Riposte',d:r=>'When struck, counter-attacks for '+(1+.25*r).toFixed(2)+'× attack.'},
+ {n:'Scorch',d:r=>'Strikes the front foe, and the next one at '+(50+8*r)+'%.'},
+ {n:'Volley',d:r=>'Hits up to 3 foes at '+(60+7*r)+'% each (full damage against a lone foe).'},
+ {n:'Shield Wall',d:r=>'Draws '+(50+5*r)+'% of enemy attacks and takes '+(12+3*r)+'% less damage.'},
+ {n:'Volatile Flask',d:r=>'Every 3rd throw hits all foes for '+(.9+.1*r).toFixed(2)+'× and heals the company 3%.'},
+ {n:'Chain Lightning',d:r=>'Hits up to 3 foes; each next foe takes 75% of the last bolt. Starts at '+(1+.05*r).toFixed(2)+'×.'},
+ {n:'Judgement',d:r=>'Every 3rd strike deals '+(2+.2*r).toFixed(1)+'× and heals them 8% max HP.'},
+ {n:'Second Chance',d:r=>'Once per fight, revives a fallen ally at '+(30+5*r)+'% HP. Also mends every 4th action.'}
 ];
-const SK_PER_STAR=5,STAR_MAX=3,HCOST=[0,0,0,0,15,20,20,25];
-const skCost=r=>Math.round(3*(r+1)**1.4),starCost=s=>Math.round(40*(s+1)**1.4);   // shard prices: skill rank r→r+1, a champion star, and unlocking a hero for good
-const star=i=>(S.star&&S.star[i])||0,skMax=i=>SK_PER_STAR*(1+star(i)),SK_MAX=SK_PER_STAR;   // shard prices: skill rank r→r+1, and unlocking a hero for good
+const HACT=[1,1,1,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,18,20];   // the act you must reach before this hero can be unlocked
+const SK_PER_STAR=5,STAR_MAX=3,UNLOCK_BY_RAR=[0,15,25,40,60],HCOST=HEROES.map((h,i)=>i<4?0:UNLOCK_BY_RAR[h.q]);   // unlock price in that hero's own shards
+const rarF=i=>[1,1.2,1.5,1.9,2.4][HEROES[i].q];
+const skCost=(r,i)=>Math.round(3*(r+1)**1.4*rarF(i)),starCost=(s,i)=>Math.round(40*(s+1)**1.4*rarF(i));   // shard prices for this hero: skill rank r→r+1, and a champion star
+const star=i=>(S.star&&S.star[i])||0,skMax=i=>SK_PER_STAR*(1+star(i)),SK_MAX=SK_PER_STAR;
 const skr=i=>(S.sk&&S.sk[i])||0;
 const recruitCost=i=>RECRUIT[Math.max(0,S.order.indexOf(i))];   // recruit price follows the party slot
 const RELICS={
@@ -1074,7 +1103,7 @@ const RK=Object.keys(RELICS);
 /* ---------- state ---------- */
 function fresh(keep){
  const S={gold:20,rd:3,depth:keep?keep.regionStart:0,best:keep?keep.best:0,legend:keep?keep.legend:0,
-  lv:[1,1,1,1,1,1,1,1],un:[false,false,false,false,false,false,false,false],hp:[0,0,0,0,0,0,0,0],relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},shards:keep?keep.shards:0,streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
+  lv:HEROES.map(()=>1),un:HEROES.map(()=>false),hp:HEROES.map(()=>0),relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},hs:keep?Object.assign({},keep.hs):{},focus:keep?keep.focus:null,streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  S.un[S.order[0]]=true;
  return S;
@@ -1091,8 +1120,9 @@ if(!S.rrank||S.rrank.length!==S.road.length)S.rrank=S.road.map(()=>1);
 if(!S.boons)S.boons={};
 if(S.rd==null)S.rd=3;delete S.ink;
 {const sc=S.seen||(S.seen={});S.deck.forEach(k=>sc[k]=1);}
-for(const p of ['un','hp','lv'])while(S[p].length<8)S[p].push(p==='un'?false:p==='lv'?1:0);
-if(!Array.isArray(S.owned))S.owned=[0,1,2,3];if(!S.sk)S.sk={};if(!S.star)S.star={};if(S.shards==null)S.shards=0;
+for(const p of ['un','hp','lv'])while(S[p].length<HEROES.length)S[p].push(p==='un'?false:p==='lv'?1:0);
+if(!Array.isArray(S.owned))S.owned=[0,1,2,3];if(!S.sk)S.sk={};if(!S.star)S.star={};if(!S.hs)S.hs={};if(S.focus===undefined)S.focus=null;
+if(typeof S.shards==='number'){if(S.shards>0){const own=S.owned.length?S.owned:[0],each=Math.floor(S.shards/own.length);let rem=S.shards-each*own.length;own.forEach(i=>{S.hs[i]=(S.hs[i]||0)+each+(rem-->0?1:0);});}delete S.shards;}   // old saves: shards were shared, now each hero owns theirs
 if(!Array.isArray(S.order)||S.order.length!==4||new Set(S.order).size!==4||S.order.some(i=>!S.owned.includes(i)))S.order=[0,1,2,3];   // party formation, front to back
 while(S.deck.length>10){const c=S.deck.pop();for(const p of ['draw','disc','hand'])if(removeOne(S[p],c))break;}
 if(S.hand.length+S.draw.length+S.disc.length!==S.deck.length){S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}   // repair an inconsistent save
@@ -1100,10 +1130,63 @@ while(S.deck.length<5)S.deck.push('forest'),S.disc.push('forest');
 let log=[],selCard=-1,speed=1,sig='',phase='walk',pt=0,foes=[],H=[],fxT=[],scroll=0,gained=0,saveT=0,curSyn=null,curBoss=false,curMod=null,inscribing=false,inscribeOpts=[];
 function say(m){log.unshift(m);log=log.slice(0,6);}
 const region=d=>Math.floor(d/10);
-const heroMax=i=>HEROES[i].hp*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
-const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
+const heroMax=i=>HEROES[i].hp*RARM[HEROES[i].q]*partyBonus().hp*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
+const heroAtk=i=>HEROES[i].atk*RARM[HEROES[i].q]*partyBonus().dmg*bardAura()*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
-const goldMul=()=>(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+const goldMul=()=>partyBonus().gold*(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+
+/* ---------- hero shards (every hero has their own), act gating, team bonuses and foe traits ---------- */
+const hsh=i=>(S.hs&&S.hs[i])||0;
+const shardTot=()=>Object.values(S.hs||{}).reduce((a,b)=>a+b,0);
+const actReached=()=>Math.floor(Math.max(S.best||0,S.depth||0)/10)+1;
+const actOK=i=>actReached()>=HACT[i];
+function shardTarget(){   // who a loose shard belongs to: mostly your party, sometimes the next heroes you are working to unlock; the Focus hero gets extra
+ const w=[],act=actReached();
+ for(let i=0;i<HEROES.length;i++){if(S.order.includes(i))w.push([i,10]);else if(S.owned.includes(i))w.push([i,2]);}
+ HEROES.map((h,i)=>i).filter(i=>!S.owned.includes(i)&&HACT[i]<=act).slice(0,2).forEach(i=>w.push([i,[12,10,8,6,5][HEROES[i].q]]));
+ if(S.focus!=null&&S.focus>=0){const f=w.find(x=>x[0]===S.focus);if(f)f[1]+=18;else w.push([S.focus,18]);}
+ let t=Math.random()*w.reduce((a,x)=>a+x[1],0);for(const x of w){t-=x[1];if(t<=0)return x[0];}return w[0][0];
+}
+function addShards(n,hero){const hs=S.hs||(S.hs={}),per={};for(let k=0;k<n;k++){const i=hero!=null?hero:shardTarget();hs[i]=(hs[i]||0)+1;per[i]=(per[i]||0)+1;}return per;}
+const shardMsg=per=>Object.keys(per).map(i=>'+'+per[i]+' '+HEROES[i].n+' shard'+(per[i]>1?'s':'')).join(', ');
+function grantHero(i){if(S.owned.includes(i))return;S.owned.push(i);say(HEROES[i].n+' the '+HEROES[i].c+' can now join your party!');sig='';save();}   // also the hook for buying a hero in the store later
+const BONUSES=[
+ {n:'Shield Wall',need:'2 Guardians',d:'+20% max HP',test:c=>(c.Guardian||0)>=2,fx:b=>{b.hp*=1.2;}},
+ {n:'Arcane Circle',need:'2 Casters',d:'+18% damage',test:c=>(c.Caster||0)>=2,fx:b=>{b.dmg*=1.18;}},
+ {n:'Hunting Party',need:'2 Marksmen',d:'+12% damage, +10% gold',test:c=>(c.Marksman||0)>=2,fx:b=>{b.dmg*=1.12;b.gold*=1.1;}},
+ {n:'Vanguard',need:'2 Strikers',d:'+25% damage to bosses',test:c=>(c.Striker||0)>=2,fx:b=>{b.boss*=1.25;}},
+ {n:'Field Medic',need:'a Healer and a Guardian',d:'+40% healing',test:c=>(c.Healer||0)>=1&&(c.Guardian||0)>=1,fx:b=>{b.heal*=1.4;}},
+ {n:'Balanced Company',need:'4 different roles',d:'+10% max HP and damage',test:c=>Object.keys(c).length>=4,fx:b=>{b.hp*=1.1;b.dmg*=1.1;}}
+];
+function roleCounts(){const c={};for(const i of S.order)if(S.un[i]){const r=HEROES[i].r;c[r]=(c[r]||0)+1;}return c;}
+function partyBonus(){const c=roleCounts(),b={hp:1,dmg:1,gold:1,heal:1,boss:1,on:[]};for(const x of BONUSES)if(x.test(c)){x.fx(b);b.on.push(x.n);}return b;}
+const bardAura=()=>(S.un[8]&&S.hp[8]>0&&S.order.includes(8))?1+.06+.02*skr(8):1;
+const TRAIT={armored:{melee:.75,ranged:.9,arcane:1.3,holy:1},spectral:{melee:.7,ranged:.7,arcane:1.05,holy:1.45},airborne:{melee:.7,ranged:1.3,arcane:1.05,holy:1}};
+const TRAITN={armored:'Armored',spectral:'Spectral',airborne:'Airborne'},TRAITC={armored:'#aab6c8',spectral:'#9fe0ff',airborne:'#ffe08a'};
+const ACTTRAIT=[['',''],['spectral',''],['armored',''],['armored','airborne'],['spectral',''],['airborne','armored'],['spectral','airborne'],['armored',''],['armored','spectral'],['airborne',''],
+ ['armored',''],['armored',''],['','airborne'],['spectral','airborne'],['spectral',''],['airborne',''],['spectral','armored'],['spectral','airborne'],['armored',''],['spectral','armored']];   // what foes in each act are mostly made of
+function pickTrait(r,boss){const T=ACTTRAIT[r%20]||['',''];if(boss)return T[0];const x=Math.random();return x<.6?T[0]:x<.85?T[1]:'';}
+const KINDN={melee:'melee',ranged:'ranged',arcane:'arcane',holy:'holy'};
+const traitText=t=>TRAITN[t]+' foes: '+Object.keys(TRAIT[t]).filter(k=>TRAIT[t][k]!==1).map(k=>KINDN[k]+' '+(TRAIT[t][k]>1?'+':'−')+Math.round(Math.abs(TRAIT[t][k]-1)*100)+'%').join(', ');
+const rarTag=i=>'<span style="color:'+RARCOL[HEROES[i].q]+';font-weight:700">'+RAR[HEROES[i].q].n+'</span>';
+function synergyHTML(){
+ const c=roleCounts(),on=partyBonus().on;
+ let h='<h3>Company bonuses</h3><div class="hint" style="margin-bottom:4px">The roles in your party unlock bonuses. Now: '+(Object.keys(c).map(k=>c[k]+' '+k+(c[k]>1&&k!=='Support'?'s':'')).join(', ')||'nobody recruited')+'.</div>';
+ h+=BONUSES.map(x=>{const a=on.includes(x.n);return '<div class="syn'+(a?' on':'')+'"><b>'+(a?'✓ ':'')+x.n+'</b> <small>'+x.need+': '+x.d+'</small></div>';}).join('');
+ const T=(ACTTRAIT[region(S.depth)%20]||['','']).filter(Boolean);
+ h+='<h3 style="margin-top:12px">Foes in this act</h3>'+(T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join('')+'<div class="hint">Each hero attacks as melee, ranged, arcane or holy. Pick a team that suits the foes.</div>':'<div class="hint">Nothing here resists any kind of attack.</div>');
+ return h;
+}
+function rosterHTML(){
+ return HEROES.map((h,i)=>{
+  const own=S.owned.includes(i),inP=S.order.includes(i),r=skr(i),sm=skMax(i),stv=star(i),mx=r>=sm,fin=mx&&stv>=STAR_MAX,sc=mx?starCost(stv,i):skCost(r,i),have=hsh(i),ok=actOK(i);
+  const can=own?(fin?false:have>=sc):(ok&&have>=HCOST[i]);
+  const status=inP?' · in party':own?'':ok?' · locked':' · unlocks at Act '+roman(HACT[i]);
+  const need=own?(fin?'':' / '+sc):(ok?' / '+HCOST[i]+' to unlock':'');
+  const col=RARCOL[h.q];
+  return `<div class="hero ${own?'':'locked'}" style="border-left:4px solid ${col};padding-left:6px"><div class="ic" style="box-shadow:inset 0 0 0 2px ${col}">${heroIcon(i)}</div><div><div class="nm">${h.n}${stv?' <span class="gold">'+'★'.repeat(stv)+'</span>':''} <small>${h.c} · ${h.r} · ${rarTag(i)}${status}</small></div><small>${HSK[i].n} ${'●'.repeat(r)}${'○'.repeat(sm-r)}: ${HSK[i].d(r)}${own&&!mx?'<br>Next rank: '+HSK[i].d(r+1):''}${own&&mx&&!fin?'<br><b>Rank limit reached.</b> Star up for +12% stats and 5 more ranks.':''}<br>◆ ${have}${need}<br>${own&&!inP?`<button class="mini" data-pick="${i}">${swapId===i?'Cancel':'Swap in'}</button>`:''}${own||ok?`<button class="mini" data-focus="${i}">${S.focus===i?'★ Focused':'Focus shards'}</button>`:''}</small></div><button ${own?(mx&&!fin?'data-star':'data-sk'):'data-unlock'}="${i}" ${can?'':'disabled'}>${own?(fin?'Max ★':mx?'Star up ★<br>◆ '+sc:'Skill ↑<br>◆ '+sc):ok?'Unlock<br>◆ '+HCOST[i]:'Act '+roman(HACT[i])}</button></div>`;}).join('');
+}
+function drawTrait(f){const t=TRAITN[f.tr].toUpperCase();g.save();g.font='700 10px Cinzel,Georgia,serif';g.textAlign='center';g.textBaseline='middle';const w=g.measureText(t).width+10,x=f.x,y=f.y+12;g.fillStyle='rgba(15,10,6,.78)';g.beginPath();g.roundRect(x-w/2,y-7,w,14,7);g.fill();g.strokeStyle=TRAITC[f.tr];g.lineWidth=1;g.stroke();g.fillStyle=TRAITC[f.tr];g.fillText(t,x,y+.5);g.restore();}
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
 const legGain=()=>{if(S.depth<30)return 0;const a=Math.floor(S.depth/10)-1;return Math.floor(a*a/2);};   // retire from tile 30, but the payout grows with the square of how far you got (+2 at Act IV, +8 at Act VI, +32 at Act IX)
@@ -1234,7 +1317,7 @@ const WALL={from:6,hp:2.2,atk:1.25,step:1};   // from Act VIII each act is a ste
 function startTile(){
  const k=S.road[0],t=TILES[k];
  curSyn=synFor(S.prev,k);curBoss=!!t.boss;curMod=S.rmod[0]||null;curRank=S.rrank[0]||1;
- foes=[];pt=0;
+ foes=[];pt=0;revUsed=false;
  if(t.ev){phase='event';return;}
  const d=S.depth,r=region(d);
  const wl=Math.max(0,(WALL.step?Math.floor(d/10):d)-WALL.from),pm=PACE[r]||1;   // past WALL.from enemies outgrow a single run, so the company has to retire for Legend to get further
@@ -1246,7 +1329,7 @@ function startTile(){
  for(let j=0;j<n;j++){
   const boss=t.boss;
   const hp=hpM*t.pow*synF*(boss?(multi===3?3.4:dual?4.6:7):1)*(.85+.3*Math.random());
-  foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],
+  foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],tr:pickTrait(r,boss),
    hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.4:1.8):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
    boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(multi===3?.42:dual?.6:1)*rkM(curRank),art:boss?(j>0?'a'+(r%ART_ACTS)+'_'+j:'boss'+bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%ART_ACTS)+'_'+(Math.random()*3|0):null)});
  }
@@ -1259,18 +1342,21 @@ function floatTxt(t,x,y,c){fxT.push({t:0,txt:t,x,y,c});}
 const st=(k,v=1)=>{const l=S.life||(S.life={});l[k]=(l[k]||0)+v;};   // lifetime statistics, kept through Legend retire
 function dmgFoe(f,d,i){
  if(f.hp<=0)return;
+ let tm=1;if(i>=0&&f.tr){tm=(TRAIT[f.tr]||{})[HEROES[i].k]||1;d*=tm;}   // foe traits favour some kinds of hero
  {const l=S.life||(S.life={});const real=Math.min(d,Math.max(0,f.hp));l.dmg=(l.dmg||0)+real;if(d>(l.maxHit||0))l.maxHit=d;if(i>=0){const h=l.hd||(l.hd={});h[i]=(h[i]||0)+real;}if(d>=f.hp){l.kills=(l.kills||0)+1;if(f.boss)l.wardens=(l.wardens||0)+1;}}
- f.hp-=d;f.flash=1;floatTxt(fmt(d),f.x,f.y-50,'#fff');
+ f.hp-=d;f.flash=1;floatTxt(fmt(d),f.x,f.y-50,tm>1.05?'#ffd24a':tm<.95?'#9aa6b8':'#fff');
  if(f.hp<=0)SND.play(f.boss?'bosskill':'kill');else SND.hit(i);
  if(S.relics.fang&&i>=0)healHero(i,d*.03*S.relics.fang,true);
 }
 function healHero(i,a,quiet){
  if(S.hp[i]<=0)return;
- const m=heroMax(i);S.hp[i]=Math.min(m,S.hp[i]+a);
+ a*=partyBonus().heal;const m=heroMax(i);S.hp[i]=Math.min(m,S.hp[i]+a);
  if(!quiet){floatTxt('+'+fmt(a),heroPx(i),200,'#6fcf6f');SND.play('heal');}
 }
+let revUsed=false;
+function weakestAlly(){let w=-1,wr=2;for(const j of S.order)if(S.hp[j]>0){const q=S.hp[j]/heroMax(j);if(q<wr){wr=q;w=j;}}return w;}
 function heroAct(i){
- const h=H[i],r=skr(i),atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1);
+ const h=H[i],r=skr(i),atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1)*(curBoss?partyBonus().boss:1);
  const alive=foes.filter(f=>f.hp>0);if(!alive.length)return;
  h.n++;h.lunge=1;
  switch(i){
@@ -1284,17 +1370,29 @@ function heroAct(i){
  case 4:{dmgFoe(alive[0],atk,i);const f2=foes.find(f=>f.hp>0);if(f2)dmgFoe(f2,atk*(.5+.1*r),i);break;}
  case 5:dmgFoe(alive[0],atk*(1+(.5+.12*r)*(1-Math.max(0,S.hp[i])/heroMax(i))),i);break;
  case 6:if(h.n%3===0){for(const j of S.order)if(S.hp[j]>0)healHero(j,.05*heroMax(j)+(1+.3*r)*atk);}else dmgFoe(alive[0],atk,i);break;
+ case 9:if(h.n%4===0){for(let k=0;k<3;k++){const f=foes.find(x=>x.hp>0);if(f)dmgFoe(f,atk*(.7+.1*r),i);}}else dmgFoe(alive[0],atk,i);break;
+ case 10:dmgFoe(alive[0],atk,i);{const w=weakestAlly();if(w>=0)healHero(w,atk*(.35+.06*r),true);}break;
+ case 11:if(h.n%4===0){alive.forEach(f=>dmgFoe(f,atk*(1.1+.12*r),i));fxT.push({t:0,txt:'💥',x:620,y:210,c:'#fff',big:1});}else dmgFoe(alive[0],atk,i);break;
+ case 13:dmgFoe(alive[0],atk,i);if(alive[1])dmgFoe(alive[1],atk*(.5+.08*r),i);break;
+ case 14:{const t=alive.slice(0,3);t.forEach(f=>dmgFoe(f,atk*(t.length>1?.6+.07*r:1.05+.03*r),i));break;}
+ case 16:if(h.n%3===0){alive.forEach(f=>dmgFoe(f,atk*(.9+.1*r),i));for(const j of S.order)if(S.hp[j]>0)healHero(j,.03*heroMax(j),true);}else dmgFoe(alive[0],atk,i);break;
+ case 17:alive.slice(0,3).forEach((f,k)=>dmgFoe(f,atk*(1+.05*r)*Math.pow(.75,k),i));break;
+ case 18:if(h.n%3===0){dmgFoe(alive[0],atk*(2+.2*r),i);healHero(i,.08*heroMax(i),true);}else dmgFoe(alive[0],atk,i);break;
+ case 19:if(h.n%4===0){const w=weakestAlly();if(w>=0&&S.hp[w]/heroMax(w)<.98){healHero(w,.06*heroMax(w)+(1.2+.25*r)*atk);return;}}dmgFoe(alive[0],atk,i);break;
  default:dmgFoe(alive[0],atk,i);
  }
 }
 function foeAct(f){
  const living=S.order.filter(j=>S.hp[j]>0);   // formation order: first = front line
  if(!living.length)return;
- const t=Math.random()<.5?living[0]:living[Math.random()*living.length|0];   // the front hero soaks about half of all attacks
- const dm=f.atk*(1-((S.un[7]&&S.hp[7]>0&&S.order.includes(7))?.06+.03*skr(7):0));   // Aegis: the Paladin shields the company
+ let t=Math.random()<.5?living[0]:living[Math.random()*living.length|0];   // the front hero soaks about half of all attacks
+ if(S.un[15]&&S.hp[15]>0&&S.order.includes(15)&&Math.random()<.5+.05*skr(15))t=15;   // Shield Wall: the Shieldmaiden draws fire
+ let dm=f.atk*(1-((S.un[7]&&S.hp[7]>0&&S.order.includes(7))?.06+.03*skr(7):0));   // Aegis: the Paladin shields the company
+ if(t===15)dm*=1-(.12+.03*skr(15));
  f.lunge=1;S.hp[t]-=dm;H[t].flash=1;st('taken',dm);SND.play('foehit');
  floatTxt('-'+fmt(dm),heroPx(t),200,'#e0584a');
- if(S.hp[t]<=0){S.hp[t]=0;say(HEROES[t].n+' has fallen!');SND.play('herodown');}
+ if(t===12&&S.hp[12]>0&&f.hp>0)dmgFoe(f,heroAtk(12)*(1+.25*skr(12)),12);   // Riposte
+ if(S.hp[t]<=0){S.hp[t]=0;if(S.un[19]&&S.hp[19]>0&&t!==19&&!revUsed){revUsed=true;S.hp[t]=heroMax(t)*(.3+.05*skr(19));say(HEROES[19].n+' brings '+HEROES[t].n+' back!');}else{say(HEROES[t].n+' has fallen!');SND.play('herodown');}}
 }
 function win(){
  const k=S.road[0],t=TILES[k];
@@ -1302,7 +1400,7 @@ function win(){
  let rew=((curSyn&&curSyn.rew)||1)*modGold();
  let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
  S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;st('fights');{const l=S.life;if(S.streak>(l.bstreak||0))l.bstreak=S.streak;}
- {const sh=t.boss?3+region(S.depth):(Math.random()<(t.gold>=2.5?.15:.05)+.03*(curRank-1)?1:0);if(sh){S.shards=(S.shards||0)+sh;say('Found '+sh+' hero shard'+(sh>1?'s':'')+'!');floatTxt('+'+sh+' ◆',330,150,'#8fd8ff');}}
+ {const sh=t.boss?4+2*region(S.depth):(Math.random()<(t.gold>=2.5?.15:.05)+.03*(curRank-1)?1:0);if(sh){say('Found '+shardMsg(addShards(sh))+'!');floatTxt('+'+sh+' ◆',330,150,'#8fd8ff');}}
  let rc=t.relic+.05*(curRank-1)+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
  if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r);}
  // revive fallen at 30%, small heal
@@ -1467,13 +1565,13 @@ function recruit(i){if(S.un[i])return;if(S.gold<recruitCost(i)){SND.play('nope')
 function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c){SND.play('nope');return;}S.gold-=c;SND.play('level');const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
 let swapId=null;
 function starUp(i){   // after the last skill rank of the current star, a champion can ascend: +5 more ranks and +12% stats
- const s=star(i);if(!S.owned.includes(i)||skr(i)<skMax(i)||s>=STAR_MAX||S.shards<starCost(s))return;
- S.shards-=starCost(s);S.star[i]=s+1;sig='';save();
+ const s=star(i);if(!S.owned.includes(i)||skr(i)<skMax(i)||s>=STAR_MAX||hsh(i)<starCost(s,i))return;
+ S.hs[i]-=starCost(s,i);S.star[i]=s+1;sig='';save();
  loot({head:'Champion ascends!',icon:heroIcon(i),name:HEROES[i].n+' '+'★'.repeat(s+1),sub:'Star '+(s+1)+' · +12% stats',desc:'Skill ranks now go up to '+skMax(i)+'.',rar:3,col:[255,208,74]});
  say(HEROES[i].n+' ascends to '+'★'.repeat(s+1)+'!');
 }
-function upSkill(i){const r=skr(i);if(!S.owned.includes(i)||r>=skMax(i)||S.shards<skCost(r))return;S.shards-=skCost(r);S.sk[i]=r+1;say(HEROES[i].n+': '+HSK[i].n+' rank '+(r+1)+'.');sig='';save();}
-function unlockHero(i){if(S.owned.includes(i)||S.shards<HCOST[i])return;S.shards-=HCOST[i];S.owned.push(i);say(HEROES[i].n+' the '+HEROES[i].c+' can now join your party!');sig='';save();}
+function upSkill(i){const r=skr(i);if(!S.owned.includes(i)||r>=skMax(i)||hsh(i)<skCost(r,i))return;S.hs[i]-=skCost(r,i);S.sk[i]=r+1;say(HEROES[i].n+': '+HSK[i].n+' rank '+(r+1)+'.');sig='';save();}
+function unlockHero(i){if(S.owned.includes(i)||!actOK(i)||hsh(i)<HCOST[i])return;S.hs[i]-=HCOST[i];S.owned.push(i);say(HEROES[i].n+' the '+HEROES[i].c+' can now join your party!');sig='';save();}
 function swapHero(pos,nid){
  const old=S.order[pos];swapId=null;sig='';
  if(old===nid||!S.owned.includes(nid)||S.order.includes(nid))return;
@@ -1489,7 +1587,7 @@ function retire(){
 }
 function doRetire(){
  const g=legGain();if(!g)return;
- const keep={regionStart:0,best:S.best,legend:S.legend+g,boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),shards:S.shards||0,life:S.life||{}};
+ const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),focus:S.focus==null?null:S.focus,boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{}};
  S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
@@ -1500,7 +1598,7 @@ function fmt(n){
 }
 function build(){
  const g=Math.floor(S.gold);
- const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.map(c=>S.gold>=fuseCost(c)?1:0).join(""),S.rrank,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost(),S.rd,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):recruitCost(i))]),S.relics,legGain(),speed,S.owned,S.sk,S.shards,swapId,S.prev,S.depth,S.bless]);
+ const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.map(c=>S.gold>=fuseCost(c)?1:0).join(""),S.rrank,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost(),S.rd,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):recruitCost(i))]),S.relics,legGain(),speed,S.owned,S.sk,S.hs,S.focus,swapId,S.prev,S.depth,S.bless]);
  if(s===sig)return;sig=s;
  // road
  $('road').innerHTML=S.road.map((k,j)=>{
@@ -1541,12 +1639,11 @@ function build(){
    <div class="mstats"><div><b>${done}</b><small>map pieces</small></div><div><b>${Math.floor(Math.max(S.best,S.depth)/10)+1}</b><small>furthest act</small></div><div><b>${S.deaths||0}</b><small>falls</small></div><div><b>${S.legend}</b><small>Legend</small></div></div>
    <div class="hint" style="margin-bottom:6px">Next Cartographer's Boon after Warden ${nm} (${nm-done} to go).${bl?' Boons: '+bl+'.':''}</div>${rows}`;}
  $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
- $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?((skr(i)<skMax(i)&&S.shards>=skCost(skr(i)))||(skr(i)>=skMax(i)&&star(i)<STAR_MAX&&S.shards>=starCost(star(i)))):S.shards>=HCOST[i]));
+ $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?((skr(i)<skMax(i)&&hsh(i)>=skCost(skr(i),i))||(skr(i)>=skMax(i)&&star(i)<STAR_MAX&&hsh(i)>=starCost(star(i),i))):(actOK(i)&&hsh(i)>=HCOST[i])));
  $('nav-deck').classList.toggle('dot',!!S.offer);syncSpoils();
- $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(Math.max(0,skMax(i)-skr(i)))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
- $('shd').textContent=S.shards||0;
- $('roster').innerHTML=HEROES.map((h,i)=>{const own=S.owned.includes(i),inP=S.order.includes(i),r=skr(i),sm=skMax(i),stv=star(i),mx=r>=sm,fin=mx&&stv>=STAR_MAX,sc=mx?starCost(stv):skCost(r),can=own?(fin?false:S.shards>=sc):S.shards>=HCOST[i];
-  return `<div class="hero ${own?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n}${stv?' <span class="gold">'+'★'.repeat(stv)+'</span>':''} <small>${h.c}${inP?' · in party':own?'':' · locked'}</small></div><small>${HSK[i].n} ${'●'.repeat(r)}${'○'.repeat(sm-r)}: ${HSK[i].d(r)}${own&&!mx?'<br>Next rank: '+HSK[i].d(r+1):''}${own&&mx&&!fin?'<br><b>Rank limit reached.</b> Star up for +12% stats and 5 more ranks.':''}</small></div><div class="mv">${own&&!inP?`<button data-pick="${i}">${swapId===i?'Cancel':'Swap in'}</button>`:''}</div><button ${own?(mx&&!fin?'data-star':'data-sk'):'data-unlock'}="${i}" ${can?'':'disabled'}>${own?(fin?'Max ★':mx?'Star up ★<br>◆ '+sc:'Skill ↑<br>◆ '+sc):'Unlock<br>◆ '+HCOST[i]}</button></div>`;}).join('');
+ $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}" style="border-left:4px solid ${RARCOL[h.q]};padding-left:6px"><div class="ic" style="box-shadow:inset 0 0 0 2px ${RARCOL[h.q]}">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c} · ${h.r} · ${rarTag(i)}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(Math.max(0,skMax(i)-skr(i)))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
+ $('shd').textContent=shardTot();$('synergy').innerHTML=synergyHTML();
+ $('roster').innerHTML=rosterHTML();
  // relics list (see below)
  {const EFF={whet:n=>'+'+12*n+'% damage',oak:n=>'+'+12*n+'% max HP',coin:n=>'+'+15*n+'% gold',ink:n=>'+'+n+' redraw'+(n>1?'s':''),fang:n=>'heals '+3*n+'% of damage dealt',boots:n=>'+'+8*n+'% speed'};
   const keys=RK.slice().sort((a,b)=>(S.relics[b]||0)-(S.relics[a]||0));
@@ -1675,7 +1772,7 @@ function shopBuy(id){
  const st=shopState();let cost,ok=false;
  if(SUPPLIES[id]){cost=supPrice(id);if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;SUPPLIES[id].fn();st.n[id]=(st.n[id]||0)+1;toast(SUPPLIES[id].n+' used.');ok=true;}
  else if(id[0]==='r'&&id[1]==='_'){const x=st.rel[+id.slice(2)];if(!x||x.sold)return;cost=relPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;x.sold=true;S.relics[x.k]=(S.relics[x.k]||0)+1;lootRelic(x.k,'Relic bought!',true);ok=true;}
- else if(id==='shard'){if(st.sh>=2){toast('Sold out until the next act.');return;}cost=shardPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;st.sh++;S.shards=(S.shards||0)+1;toast('+1 hero shard ◆');ok=true;}
+ else if(id==='shard'){if(st.sh>=2){toast('Sold out until the next act.');return;}cost=shardPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;st.sh++;toast(shardMsg(addShards(1))+' ◆');ok=true;}
  if(ok){save();shopHTML.v='';}
 }
 const shopHTML={v:''};
@@ -1704,7 +1801,7 @@ async function premBuy(sku){
  if(!CASH_STORE)return;
  if(premBusy||!PREM[sku])return;premBusy=true;
  try{await CC.buy(sku);await loadEnt();const p=PREM[sku];
-  if(sku==='shard_bundle'){S.shards=(S.shards||0)+25;}
+  if(sku==='shard_bundle'){addShards(25);}
   if(p.eq){const [k,v]=p.eq.split(':');S[k]=v;applyEnt();}
   save();loot({head:'Purchase complete!',icon:p.ic,name:p.n,sub:'Premium · test mode',desc:p.d,rar:3,col:[176,107,255]});
  }catch(e){toast(/already owned/.test(e.message||'')?'You already own that.':'Could not complete the purchase. Try again.');}
@@ -1721,10 +1818,10 @@ function premCard(sku){
 function shopRender(){
  const st=shopState(),g=S.gold;
  const card=(id,ico,name,desc,price,extra,dis)=>'<div class="sc'+(dis?' off':'')+'"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-shop="'+id+'"'+(dis||g<price?' disabled':'')+'>'+(dis||(extra||'')+ic('coin','coin')+' '+fmt(price))+'</button></div>';
- let h='<div class="hint" style="margin-bottom:8px">Stock refreshes every act and prices climb as you buy. You have '+ic('coin','coin')+' <b>'+fmt(g)+'</b> and ◆ <b>'+(S.shards||0)+'</b> hero shards.</div>';
+ let h='<div class="hint" style="margin-bottom:8px">Stock refreshes every act and prices climb as you buy. You have '+ic('coin','coin')+' <b>'+fmt(g)+'</b> and ◆ <b>'+shardTot()+'</b> hero shards.</div>';
  h+='<h3>Supplies</h3>'+Object.keys(SUPPLIES).map(k=>card(k,SUPPLIES[k].ic,SUPPLIES[k].n,SUPPLIES[k].d,supPrice(k))).join('');
  h+='<h3 style="margin-top:14px">Relics</h3>'+st.rel.map((x,i)=>x.sold?card('',RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,0,'','Sold'):card('r_'+i,RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,relPrice())).join('');
- h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard','◆','Hero Shard','Spend shards on skills and new heroes. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
+ h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard','◆','Hero Shard','A shard for your party or the hero you are working toward. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
  if(ADS.ok()){const bl=adLeft('boost'),sl=adLeft('shard'),mm=x=>Math.ceil(x/60)+' min';
   const ac=(id,ico,name,desc,left)=>'<div class="sc"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-ad="'+id+'"'+(left>0?' disabled':'')+'>'+(left>0?mm(left):'▶ Watch')+'</button></div>';
   h+='<h3 style="margin-top:14px">Free rewards</h3>'+ac('boost','🪙','Gold x2','Double gold for 10 minutes.'+(S.boostT>0?' Active: '+mm(S.boostT)+' left.':''),bl)+ac('shard','◆','Hero Shard','One free shard.',sl);}
@@ -1744,7 +1841,7 @@ function statsRender(){
  const act=Math.floor(Math.max(S.best||0,S.depth)/10)+1;
  let h=sec('This run').replace('margin:14px','margin:2px')+'<div class="stg">'+tile('Act '+roman(region(S.depth)+1),'current act')+tile((S.depth%10+1)+' / 10','tile')+tile(fmt(S.gold),'gold')+tile('≈ '+fmt(S.rate)+'/s','income')+tile(fmtT(S.playSec||0),'time this run')+tile(S.deaths||0,'falls this run')+'</div>';
  h+=sec('Progress')+'<div class="stg">'+tile('Act '+roman(act),'furthest act')+tile(S.legend,'Legend')+tile(l.retires||0,'retirements')+tile(Object.values(S.boons||{}).reduce((a,b)=>a+b,0),'boons')+tile(Object.values(S.relics).reduce((a,b)=>a+b,0),'relics held')+tile(S.owned.length+' / '+HEROES.length,'heroes unlocked')+'</div>';
- h+=sec('Lifetime')+'<div class="stg">'+tile(fmt(l.gold||0),'gold earned')+tile(fmt(l.kills||0),'enemies slain')+tile(l.wardens||0,'wardens felled')+tile(fmt(l.fights||0),'fights won')+tile(l.falls||0,'falls')+tile(fmt(l.tiles||0),'tiles placed')+tile(fmt(l.dmg||0),'damage dealt')+tile(fmt(l.taken||0),'damage taken')+tile(fmt(l.maxHit||0),'biggest hit')+tile('×'+(l.bstreak||0),'best Fervor streak')+tile(S.shards||0,'◆ shards')+tile(fmtT(l.sec||0),'time played')+'</div>';
+ h+=sec('Lifetime')+'<div class="stg">'+tile(fmt(l.gold||0),'gold earned')+tile(fmt(l.kills||0),'enemies slain')+tile(l.wardens||0,'wardens felled')+tile(fmt(l.fights||0),'fights won')+tile(l.falls||0,'falls')+tile(fmt(l.tiles||0),'tiles placed')+tile(fmt(l.dmg||0),'damage dealt')+tile(fmt(l.taken||0),'damage taken')+tile(fmt(l.maxHit||0),'biggest hit')+tile('×'+(l.bstreak||0),'best Fervor streak')+tile(shardTot(),'◆ shards')+tile(fmtT(l.sec||0),'time played')+'</div>';
  const tot=Object.values(l.hd||{}).reduce((a,b)=>a+b,0)||1,heroes=[...new Set(S.order.concat(S.owned))];
  h+=sec('Heroes')+heroes.map(i=>{const d=(l.hd||{})[i]||0,pc=Math.round(100*d/tot);return '<div class="sc"><div class="si">'+heroIcon(i)+'</div><div class="sd"><b>'+HEROES[i].n+' <small style="font-weight:400;opacity:.7">· '+HEROES[i].c+' · Lv '+S.lv[i]+(S.order.includes(i)?'':' · reserve')+'</small></b><small>Max HP '+fmt(heroMax(i))+' · Attack '+fmt(heroAtk(i))+' · '+fmt(d)+' damage ('+pc+'%)</small><div class="bar" style="height:6px;margin-top:4px"><i style="width:'+pc+'%;background:'+HEROES[i].col+'"></i></div></div></div>';}).join('');
  h+=sec('Bonuses')+'<div class="stg">'+tile('×'+(goldMul()).toFixed(2),'gold')+tile('+'+Math.round(100*(S.legend*.12+.15*((S.boons||{}).dmg||0)+.12*(S.relics.whet||0)))+'%','damage')+tile('+'+Math.round(100*(S.legend*.12+.15*((S.boons||{}).hp||0)+.12*(S.relics.oak||0)))+'%','max HP')+tile(maxRd(),'redraws / deck')+tile(MAX_DECK,'deck slots')+tile(S.fort>0||S.bless>0?(S.bless>0?'✨'+S.bless:'')+(S.fort>0?' 🍀'+S.fort:''):'—','buffs (fights left)')+'</div>';
@@ -1802,6 +1899,7 @@ document.addEventListener('click',e=>{
   else if(b.dataset.star!==undefined)starUp(+b.dataset.star);
   else if(b.dataset.sk!==undefined)upSkill(+b.dataset.sk);
   else if(b.dataset.unlock!==undefined)unlockHero(+b.dataset.unlock);
+  else if(b.dataset.focus!==undefined){const i=+b.dataset.focus;S.focus=S.focus===i?null:i;sig='';save();}
   else if(b.dataset.pick!==undefined){const i=+b.dataset.pick;swapId=swapId===i?null:i;sig='';}
   else if(b.dataset.swap!==undefined)swapHero(+b.dataset.swap,swapId);
   else if(b.id==='insbtn')startInscribe();
@@ -1919,8 +2017,8 @@ function drawHero(i,x,y){
  if(!dead){const m=heroMax(i),w=36;g.fillStyle='#150f0a';g.fillRect(x-w/2,y+8,w,5);g.fillStyle='#4caf6a';g.fillRect(x-w/2,y+8,w*Math.max(0,S.hp[i])/m,5);}
 }
 /* ---------- painted sprite assets (generated art). If an image is missing the simple drawn version is used. ---------- */
-const HERO0={},IMG={},HID=['knight','ranger','mage','cleric','rogue','berserker','druid','paladin'],PORT={};
-function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;{const m=/^hero(\d)$/.exec(key);if(m){HERO0[+m[1]]=im;applySkin();}}
+const HERO0={},IMG={},HID=['knight','ranger','mage','cleric','rogue','berserker','druid','paladin','bard','monk','necromancer','artificer','duelist','pyromancer','huntress','shieldmaiden','alchemist','stormcaller','templar','oracle'],PORT={};
+function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;{const m=/^hero(\d+)$/.exec(key);if(m){HERO0[+m[1]]=im;applySkin();}}
  if(key==='f_bear')IMG.f_icebear=tintImg(im,L=>[Math.min(255,L*.75+55),Math.min(255,L*.9+90),Math.min(255,L*1.05+130)],'f_icebear');
  if(key==='f_ogre')IMG.f_void=tintImg(im,L=>[Math.min(255,L*.7+45),Math.min(255,L*.35+5),Math.min(255,L*1.0+95)],'f_void');};im.onerror=()=>{};im.src=src;}
 HID.forEach((id,i)=>loadImg('hero'+i,'assets/heroes/'+id+'.png'+V));
@@ -1967,7 +2065,7 @@ function hpBar(x,y,w,f,col){
  g.fillStyle=col;g.beginPath();g.roundRect(x-w/2,y,Math.max(0,w*f),5,2.5);g.fill();
  g.fillStyle='rgba(255,255,255,.28)';g.fillRect(x-w/2+1.5,y+.7,Math.max(0,w*f-3),1.4);
 }
-const HH=[104,96,116,108,96,110,104,116];   // on-screen hero heights in world units
+const HH=[104,96,116,108,96,110,104,116,106,108,112,92,106,106,108,112,100,114,112,112];   // on-screen hero heights in world units
 function drawHeroImg(i,x,y){
  const im=IMG['hero'+i],h=H[i]||{lunge:0,flash:0},dead=S.hp[i]<=0,T=performance.now()/1000;
  const hh=HH[i]*(CW===600?.78:active()>=4?.92:1),ww=hh*(im.naturalWidth||im.width)/(im.naturalHeight||im.height),walk=phase==='walk'&&!dead;
@@ -2119,6 +2217,7 @@ function draw(dt){
   if(f.hp<=0&&performance.now()-f.dieT>450)continue;
   const nm=foeKey(f),im=IMG['f_'+nm];
   if(im)drawFoeImg(f,nm,im);else if(f.hp>0)drawFoeEmoji(f);
+  if(f.hp>0&&f.tr)drawTrait(f);
  }
  vignette();
  const bossH=bossBars(TOPY);
@@ -2187,7 +2286,7 @@ async function adReward(k){
  if(k==='boost'||k==='shard'){if(adLeft(k)>0)return;}
  const ok=await ADS.show();if(!ok){toast('No reward: the ad was not finished.');return;}
  if(k==='boost'){S.boostT=BOOST_SECS;(S.adT||(S.adT={})).boost=Date.now()/1000;toast('Gold x2 for 10 minutes!');say('Ad bonus: gold x2 for 10 minutes.');}
- else if(k==='shard'){S.shards=(S.shards||0)+1;(S.adT||(S.adT={})).shard=Date.now()/1000;toast('+1 hero shard');say('Ad bonus: +1 hero shard.');loot({head:'Ad bonus',icon:'◆',name:'Hero Shard',sub:'+1',desc:'Spend shards on skills and heroes.',rar:2,col:[143,216,255]});}
+ else if(k==='shard'){addShards(1);(S.adT||(S.adT={})).shard=Date.now()/1000;toast('+1 hero shard');say('Ad bonus: +1 hero shard.');loot({head:'Ad bonus',icon:'◆',name:'Hero Shard',sub:'+1',desc:'Spend shards on skills and heroes.',rar:2,col:[143,216,255]});}
  sig='';save();
 }
 /* ---------- away gains: the company keeps marching while you are gone (8h cap, half your live income, a shard per 2h, and a full rest) ---------- */
@@ -2195,10 +2294,10 @@ const AFK_CAP=8*3600;
 function claimAway(raw){
  const secs=Math.min(AFK_CAP,raw);if(secs<60||!(S.rate>0)||!S.seenIntro)return;
  const gg=S.rate*secs*.5,sh=Math.min(4,Math.floor(secs/7200));
- S.gold+=gg;gained+=gg;if(sh)S.shards=(S.shards||0)+sh;
+ S.gold+=gg;gained+=gg;if(sh)addShards(sh);
  for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
  const t=secs>=3600?Math.floor(secs/3600)+'h '+Math.floor(secs%3600/60)+'m':Math.floor(secs/60)+' min';
- showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?' &nbsp; <b style="color:#8fd8ff">+'+sh+' ◆</b>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)S.shards=(S.shards||0)+sh;toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' ◆':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
+ showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?' &nbsp; <b style="color:#8fd8ff">+'+sh+' ◆</b>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)addShards(sh);toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' ◆':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
  say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
 }
 claimAway((Date.now()-S.saved)/1000);
@@ -2207,7 +2306,7 @@ const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+S
 const dayNum=k=>{const [y,m,d]=k.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/86400000);};
 const hrGold=(h,m)=>Math.max(S.rate*3600*h,6*1.15**S.depth*40*h)*m;   // hours of income, with a floor so early players still feel it
 const gGold=(h,m)=>{const g=hrGold(h,m);S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';};
-const gShard=(n,m)=>{n=Math.round(n*m);S.shards=(S.shards||0)+n;return '+'+n+' hero shard'+(n>1?'s':'');};
+const gShard=(n,m)=>{n=Math.round(n*m);addShards(n);return '+'+n+' hero shard'+(n>1?'s':'');};
 const gRelic=(n,m)=>{n=Math.max(1,Math.round(n*m));const names=[];for(let i=0;i<n;i++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;names.push(RELICS[r].n);lootRelic(r,'Daily relic!',true);}return names.join(' and ');};
 const gBoost=(min,m)=>{S.boostT=Math.max(S.boostT||0,min*60*m);return 'Gold x2 for '+Math.round(min*m)+' minutes';};
 const gRedraw=(n,m)=>{n=Math.round(n*m);S.rd=Math.min(maxRd()+n,S.rd+n);return '+'+n+' redraws';};
@@ -2250,7 +2349,7 @@ function holdAction(el){   // returns a function that buys one more level/skill 
  const hh=el.closest('[data-hero]'),lv=el.closest('button[data-lv]'),sk=el.closest('button[data-sk]');
  const hi=hh?+hh.dataset.hero:lv?+lv.dataset.lv:-1;
  if(hi>=0&&S.un[hi])return()=>{if(!S.un[hi]||S.gold<lvCost(hi))return false;levelUp(hi);return true;};
- if(sk){const i=+sk.dataset.sk;return()=>{const r=skr(i);if(!S.owned.includes(i)||r>=skMax(i)||S.shards<skCost(r))return false;upSkill(i);return true;};}
+ if(sk){const i=+sk.dataset.sk;return()=>{const r=skr(i);if(!S.owned.includes(i)||r>=skMax(i)||hsh(i)<skCost(r,i))return false;upSkill(i);return true;};}
  return null;
 }
 function holdStop(){clearTimeout(holdT);holdT=0;holdN=0;}
