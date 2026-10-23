@@ -506,6 +506,12 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 .tile .md::before{content:'✦';font-size:12px;color:#8a4fd0;text-shadow:0 1px 0 rgba(255,255,255,.6)}
 .tile.dragghost .chip,.tile.dragghost .md{display:none}
 #road .tile .n{height:13px;display:flex;align-items:center;justify-content:center;padding:0;line-height:1}
+
+#adtest{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}
+#adtest .at{display:flex;flex-direction:column;align-items:center;gap:10px;color:#fff3c4;text-align:center}
+#adtest small{letter-spacing:.3em;opacity:.7}#adtest b{font:900 64px/1 Cinzel,Georgia,serif}
+#adtest button{margin-top:8px;min-width:120px;min-height:44px;font-size:16px}
+.ldb{margin-top:12px;min-height:44px;padding:0 16px;font-size:15px;font-weight:700;background:var(--gold);color:#2a1d08;border:2px solid var(--gold);border-radius:10px;cursor:pointer;position:relative;z-index:2}
 </style>
 </head>
 <body>
@@ -585,7 +591,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023081439';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023083311';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -796,7 +802,7 @@ const region=d=>Math.floor(d/10);
 const heroMax=i=>HEROES[i].hp*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
 const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
-const goldMul=()=>(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+const goldMul=()=>(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
 const legGain=()=>{if(S.depth<30)return 0;const a=Math.floor(S.depth/10)-1;return Math.floor(a*a/2);};   // retire from tile 30, but the payout grows with the square of how far you got (+2 at Act IV, +8 at Act VI, +32 at Act IX)
@@ -1062,6 +1068,7 @@ function resolveEvent(ch,relicPick){
   if(t.ev==='market'&&ch===2){if(Math.random()<.5){g*=2.6;say('Your haggling pays off!');}else{g*=.3;say('The merchant will not budge.');}}
   if(t.ev==='treasury'&&ch===1){g*=.3;const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;lootRelic(r,'Treasury relic!');}
   S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
+  if(t.ev==='treasury'&&ch===0)loot({head:'Treasure!',icon:'💎',name:'+'+fmt(g)+' gold',sub:'Treasury',desc:'A dragon-sized stash.',rar:3,col:[255,226,122],dbl:()=>{S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');say('Ad bonus: treasure doubled, +'+fmt(g)+' gold.');}});
   say(t.ev==='market'?'The market pays '+fmt(g)+' gold.':'The treasury yields '+fmt(g)+' gold!');
   if(curSyn)say('Combo: '+curSyn.n+'!');
  }else if(t.ev==='leyline'){
@@ -1091,7 +1098,15 @@ function startDeath(){
  cv.classList.remove('shake');void cv.offsetWidth;cv.classList.add('shake');setTimeout(()=>cv.classList.remove('shake'),700);
 }
 function replay(el,cls,ms){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms);}
+let reviveAsked=false,reviveWait=false;
+function offerRevive(){
+ reviveAsked=true;reviveWait=true;
+ showModal('The company has fallen','<p>Watch a short ad to <b>revive everyone at full health</b> and retry this fight, or retreat and lose 10% of your gold.</p>',[
+  {t:'▶ Revive & retry',primary:true,fn:async()=>{const ok=await ADS.show();reviveWait=false;if(ok){resetHeroes(true);S.bless=0;startTile();say('Revived by the Cartographer! Retry the fight.');sig='';}else{toast('No reward: the ad was not finished.');wipe();}}},
+  {t:'Retreat',fn:()=>{reviveWait=false;wipe();}}]);
+}
 function wipe(){
+ reviveAsked=false;reviveWait=false;
  const rs=region(S.depth)*10,lost=S.gold*.1;S.gold-=lost;
  say('The company is routed! Retreating to '+RG(region(S.depth))[0]+"'s edge. Lost "+fmt(lost)+' gold.');
  S.streak=0;S.deaths=(S.deaths||0)+1;st('falls');S.depth=rs;S.prev='wilds';buildRoad();resetHeroes(true);S.bless=0;phase='walk';pt=0;foes=[];
@@ -1101,13 +1116,14 @@ function wipe(){
 
 /* ---------- sim ---------- */
 function step(dt){
+ if(S.boostT>0)S.boostT=Math.max(0,S.boostT-dt);
  S.playSec=(S.playSec||0)+dt;st('sec',dt);
  if(phase==='walk'){
   scroll+=dt*140;pt+=dt;
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
   if(pt>=1.0)startTile();
  }else if(phase==='event'){pt+=dt;if(pt>=1.3){if(evState)evTick(dt);else event();}}
- else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME)wipe();}
+ else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait){if(ADS.ok()&&!reviveAsked)offerRevive();else wipe();}}
  else if(phase==='fight'){
   H.forEach((h,i)=>{
    h.lunge=Math.max(0,h.lunge-dt*4);h.flash=Math.max(0,h.flash-dt*4);
@@ -1154,7 +1170,8 @@ function swapHero(pos,nid){
  S.un[nid]=S.un[old];S.un[old]=false;S.order[pos]=nid;S.hp[nid]=S.un[nid]?q*heroMax(nid):0;S.hp[old]=0;
  say(HEROES[nid].n+' takes '+HEROES[old].n+"'s place.");save();
 }
-function reroll(){if(S.rd<1)return;S.rd-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
+function reroll(){if(S.rd<1){if(ADS.ok())ADS.show().then(ok=>{if(ok){S.rd+=2;sig='';toast('+2 redraws');}});return;}   // out of redraws: an ad buys two more
+ S.rd-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
 function retire(){
  const g=legGain();if(!g)return;
  showModal('Retire the company?','<p>Your heroes become <b>Legends</b>: <b>+'+g+' Legend</b> now, <b>+12% to all stats and +10% gold</b> each, forever.</p><p><b style="color:#ff9a8a">Resets:</b> gold, hero levels, relics, deck, and your depth (back to Act I).</p><p><b style="color:#8fd8ff">Keeps:</b> Legend, Boons, unlocked heroes, party, skill ranks and shards.</p>',[{t:'Retire · +'+g+' Legend',primary:true,fn:doRetire},{t:'Keep going'}]);
@@ -1228,7 +1245,7 @@ function build(){
   if(lg&&!S.retHint&&$('modal').hidden){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>★ Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
  $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats, +${S.legend*10}% gold). Unlocks at tile 30. The further you get before retiring, the more Legend it pays.`;
  $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">▶ x${speed}</button>`;
- $('reroll').disabled=S.rd<1;
+ {const rb=$('reroll'),ad=S.rd<1&&ADS.ok();rb.disabled=S.rd<1&&!ad;const t=ad?'▶ +2 Redraws':'↻ Redraw';if(rb.textContent!==t)rb.textContent=t;}
 }
 /* ---------- story beats: opening card and victory ---------- */
 let modalBtns=[];
@@ -1309,20 +1326,22 @@ function nextLoot(){
  const el=document.createElement('div');el.id='loot';el.className=big?'big':'';el.style.setProperty('--lc',col.join(','));
  let ps='';const pal=['#ffd24a','#fff3c4','rgb('+col.join(',')+')','#ffffff'];
  for(let i=0;i<n;i++){const a=Math.random()*TAU,d=90+Math.random()*(big?300:210);ps+='<i class="pt" style="--dx:'+(Math.cos(a)*d|0)+'px;--dy:'+(Math.sin(a)*d-30|0)+'px;--rt:'+(Math.random()*720-360|0)+'deg;--t:'+(.9+Math.random()*.9).toFixed(2)+'s;--dl:'+(Math.random()*.15).toFixed(2)+'s;--pc:'+pal[i%4]+'"></i>';}
- el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div><div class="lh">tap to continue</div></div>'+ps;
+ const dbl=o.dbl&&ADS.ok();
+ el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div>'+(dbl?'<button class="ldb">▶ Watch ad: double it</button>':'')+'<div class="lh">tap to continue</div></div>'+ps;
  document.body.appendChild(el);lootEl=el;
  try{navigator.vibrate&&navigator.vibrate(big?[40,40,90]:30);}catch(e){}
  const done=()=>{clearTimeout(lootTm);if(lootEl!==el)return;el.classList.add('out');setTimeout(()=>{el.remove();lootEl=null;nextLoot();},240);};
- el.onclick=done;lootTm=setTimeout(done,lootQ.length?2400:4200);
+ el.onclick=done;lootTm=setTimeout(done,dbl?12000:lootQ.length?2400:4200);
+ if(dbl)el.querySelector('.ldb').onclick=async e=>{e.stopPropagation();clearTimeout(lootTm);const b=e.currentTarget;b.disabled=true;if(await ADS.show()){o.dbl();sig='';save();toast('Doubled!');}else{toast('No reward: the ad was not finished.');}done();};
 }
 const RCOL=[[154,138,106],[95,191,106],[90,160,255],[176,107,255],[255,176,46]];
-function lootRelic(r,how){const n=S.relics[r];loot({head:how||'Relic found!',icon:RELICS[r].ico||RELICS[r].i,name:RELICS[r].n,sub:n>1?'Relic · now ×'+n:'Relic · new!',desc:RELICS[r].d,rar:2,col:[255,176,46]});}
+function lootRelic(r,how,nodbl){const n=S.relics[r];loot({head:how||'Relic found!',icon:RELICS[r].ico||RELICS[r].i,name:RELICS[r].n,sub:n>1?'Relic · now ×'+n:'Relic · new!',desc:RELICS[r].d,rar:2,col:[255,176,46],dbl:nodbl?null:()=>{S.relics[r]=(S.relics[r]||0)+1;say('Ad bonus: a second '+RELICS[r].n+'!');}});}
 function lootCard(k,head){const t=TILES[k],q=t.r||0;loot({head:head,icon:t.i,name:t.n+' tile',sub:RAR[q].n+' card',desc:t.d,rar:q,col:RCOL[q]});}
 function newCardPop(k,force){const sc=S.seen||(S.seen={}),first=!sc[k];sc[k]=1;if(first||force||(TILES[k].r||0)>=2)lootCard(k,first?'New card!':'Card added!');}
 function closeModal(i){const b=modalBtns[i];$('modal').hidden=true;modalBtns=[];try{if(b&&b.fn)b.fn();}catch(e){console.error(e);}if($('modal').hidden&&modalQ.length)showModal(...modalQ.shift());}
 setInterval(()=>{   // safety net: clear any celebration popup that outlived its timer so nothing can sit on top of the game
  const now=Date.now();
- if(lootEl){if(!lootEl.dataset.t)lootEl.dataset.t=now;else if(now-lootEl.dataset.t>9000){lootEl.remove();lootEl=null;lootQ.length=0;}}
+ if(lootEl){if(!lootEl.dataset.t)lootEl.dataset.t=now;else if(now-lootEl.dataset.t>30000){lootEl.remove();lootEl=null;lootQ.length=0;}}
  document.querySelectorAll('#loot:not(.spoils)').forEach(x=>{if(x!==lootEl)x.remove();});
 },2000);
 document.addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(b)closeModal(+b.dataset.mb);});
@@ -1343,7 +1362,7 @@ const shardPrice=()=>Math.round(gpt()*60*1.6**shopState().sh);
 function shopBuy(id){
  const st=shopState();let cost,ok=false;
  if(SUPPLIES[id]){cost=supPrice(id);if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;SUPPLIES[id].fn();st.n[id]=(st.n[id]||0)+1;toast(SUPPLIES[id].n+' used.');ok=true;}
- else if(id[0]==='r'&&id[1]==='_'){const x=st.rel[+id.slice(2)];if(!x||x.sold)return;cost=relPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;x.sold=true;S.relics[x.k]=(S.relics[x.k]||0)+1;lootRelic(x.k,'Relic bought!');ok=true;}
+ else if(id[0]==='r'&&id[1]==='_'){const x=st.rel[+id.slice(2)];if(!x||x.sold)return;cost=relPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;x.sold=true;S.relics[x.k]=(S.relics[x.k]||0)+1;lootRelic(x.k,'Relic bought!',true);ok=true;}
  else if(id==='shard'){if(st.sh>=2){toast('Sold out until the next act.');return;}cost=shardPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;st.sh++;S.shards=(S.shards||0)+1;toast('+1 hero shard ◆');ok=true;}
  if(ok){save();shopHTML.v='';}
 }
@@ -1392,6 +1411,9 @@ function shopRender(){
  h+='<h3>Supplies</h3>'+Object.keys(SUPPLIES).map(k=>card(k,SUPPLIES[k].ic,SUPPLIES[k].n,SUPPLIES[k].d,supPrice(k))).join('');
  h+='<h3 style="margin-top:14px">Relics</h3>'+st.rel.map((x,i)=>x.sold?card('',RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,0,'','Sold'):card('r_'+i,RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,relPrice())).join('');
  h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard','◆','Hero Shard','Spend shards on skills and new heroes. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
+ if(ADS.ok()){const bl=adLeft('boost'),sl=adLeft('shard'),mm=x=>Math.ceil(x/60)+' min';
+  const ac=(id,ico,name,desc,left)=>'<div class="sc"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-ad="'+id+'"'+(left>0?' disabled':'')+'>'+(left>0?mm(left):'▶ Watch')+'</button></div>';
+  h+='<h3 style="margin-top:14px">Free rewards</h3>'+ac('boost','🪙','Gold x2','Double gold for 10 minutes.'+(S.boostT>0?' Active: '+mm(S.boostT)+' left.':''),bl)+ac('shard','◆','Hero Shard','One free shard.',sl);}
  h+='<h3 style="margin-top:14px">Premium <small style="opacity:.7;font-weight:400">· test mode: nothing is charged</small></h3>'+Object.keys(PREM).map(premCard).join('');
  return h;
 }
@@ -1475,6 +1497,7 @@ document.addEventListener('click',e=>{
   else if(b.dataset.fuse)fuseCards(b.dataset.fuse);
   else if(b.dataset.prem)premBuy(b.dataset.prem);
   else if(b.dataset.eq)premEquip(b.dataset.eq);
+  else if(b.dataset.ad)adReward(b.dataset.ad);
   else if(b.dataset.shop!==undefined){if(b.dataset.shop)shopBuy(b.dataset.shop);}
   else if(b.dataset.buy)buyTile(b.dataset.buy);
   else if(b.dataset.burn)burnCard(b.dataset.burn);
@@ -1811,6 +1834,39 @@ function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S
 if(!S.road||S.road.length!==7)buildRoad();
 fillHand();
 if(S.hp.every(h=>!h))resetHeroes(true);
+
+/* ---------- rewarded ads: AdMob inside the native app (Capacitor), a 5-second test ad on localhost or with ?adtest ---------- */
+const ADMOB={test:true,   // flip to false and swap in your own rewarded ad unit IDs before release
+ android:'ca-app-pub-3940256099942544/5224354917',ios:'ca-app-pub-3940256099942544/1712485313'};   // Google's public test units
+const ADS=(()=>{
+ const cap=window.Capacitor,A=cap&&cap.Plugins&&cap.Plugins.AdMob,native=!!(A&&cap.isNativePlatform&&cap.isNativePlatform());
+ const demo=/^(localhost|127.0.0.1)$/.test(location.hostname)||/[?&]adtest/.test(location.search);
+ let busy=false,rewarded=false;
+ if(native){try{A.initialize({initializeForTesting:ADMOB.test});A.addListener('onRewardedVideoAdReward',()=>{rewarded=true;});}catch(e){}}
+ const testAd=()=>new Promise(res=>{
+  const el=document.createElement('div');el.id='adtest';let n=5;
+  el.innerHTML='<div class="at"><small>TEST AD</small><b id="adn">'+n+'</b><span>Reward in a moment…</span><button id="adx">Close</button></div>';
+  document.body.appendChild(el);
+  const end=ok=>{clearInterval(iv);el.remove();res(ok);};
+  const iv=setInterval(()=>{n--;const d=el.querySelector('#adn');if(d)d.textContent=Math.max(0,n);if(n<=0){clearInterval(iv);el.querySelector('span').textContent='Reward earned!';el.querySelector('#adx').textContent='Claim';el.querySelector('#adx').onclick=()=>end(true);}},1000);
+  el.querySelector('#adx').onclick=()=>end(false);
+ });
+ const nativeAd=async()=>{rewarded=false;try{await A.prepareRewardVideoAd({adId:cap.getPlatform()==='ios'?ADMOB.ios:ADMOB.android,isTesting:ADMOB.test});await A.showRewardVideoAd();}catch(e){return false;}return rewarded;};
+ return{
+  ok:()=>native||demo,
+  show:async()=>{if(busy||!(native||demo))return false;busy=true;try{return native?await nativeAd():await testAd();}finally{busy=false;}}
+ };
+})();
+const AD_CD={boost:600,shard:1800};   // seconds between uses of the Shop rewards
+const adLeft=k=>Math.max(0,Math.ceil(((S.adT||{})[k]||0)+AD_CD[k]-Date.now()/1000));
+const BOOST_SECS=600;
+async function adReward(k){
+ if(k==='boost'||k==='shard'){if(adLeft(k)>0)return;}
+ const ok=await ADS.show();if(!ok){toast('No reward: the ad was not finished.');return;}
+ if(k==='boost'){S.boostT=BOOST_SECS;(S.adT||(S.adT={})).boost=Date.now()/1000;toast('Gold x2 for 10 minutes!');say('Ad bonus: gold x2 for 10 minutes.');}
+ else if(k==='shard'){S.shards=(S.shards||0)+1;(S.adT||(S.adT={})).shard=Date.now()/1000;toast('+1 hero shard');say('Ad bonus: +1 hero shard.');loot({head:'Ad bonus',icon:'◆',name:'Hero Shard',sub:'+1',desc:'Spend shards on skills and heroes.',rar:2,col:[143,216,255]});}
+ sig='';save();
+}
 /* ---------- away gains: the company keeps marching while you are gone (8h cap, half your live income, a shard per 2h, and a full rest) ---------- */
 const AFK_CAP=8*3600;
 function claimAway(raw){
@@ -1819,10 +1875,35 @@ function claimAway(raw){
  S.gold+=gg;gained+=gg;if(sh)S.shards=(S.shards||0)+sh;
  for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
  const t=secs>=3600?Math.floor(secs/3600)+'h '+Math.floor(secs%3600/60)+'m':Math.floor(secs/60)+' min';
- showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?' &nbsp; <b style="color:#8fd8ff">+'+sh+' ◆</b>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}]);
+ showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?' &nbsp; <b style="color:#8fd8ff">+'+sh+' ◆</b>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)S.shards=(S.shards||0)+sh;toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' ◆':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
  say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
 }
 claimAway((Date.now()-S.saved)/1000);
+/* ---------- daily login reward: a 7-day streak, then it starts over ---------- */
+const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const DAILY_R=[   // [label, icon, what it gives]
+ ['10 min of income','🪙',m=>{const g=Math.max(25,S.rate*600)*m;S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';}],
+ ['3 redraws','↻',m=>{S.rd=Math.min(maxRd()+3*m,S.rd+3*m);return '+'+3*m+' redraws';}],
+ ['20 min of income','🪙',m=>{const g=Math.max(50,S.rate*1200)*m;S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';}],
+ ['1 hero shard','◆',m=>{S.shards=(S.shards||0)+m;return '+'+m+' hero shard'+(m>1?'s':'');}],
+ ['30 min of income','🪙',m=>{const g=Math.max(75,S.rate*1800)*m;S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';}],
+ ['Gold x2 boost','⚡',m=>{S.boostT=Math.max(S.boostT||0,BOOST_SECS*m);return 'Gold x2 for '+10*m+' minutes';}],
+ ['Relic + 2 shards','🗝️',m=>{const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+m;S.shards=(S.shards||0)+2*m;lootRelic(r,'Daily relic!',true);return RELICS[r].n+(m>1?' x'+m:'')+' and '+2*m+' shards';}]
+];
+let dailyOpen=false;
+function dailyCheck(){
+ if(dailyOpen||!S.seenIntro||!S.order)return;
+ const now=new Date(),today=dayKey(now),d=S.daily||(S.daily={last:'',streak:0});
+ if(d.last===today)return;
+ const y=new Date(now);y.setDate(y.getDate()-1);
+ const streak=d.last===dayKey(y)?d.streak+1:1,day=(streak-1)%7;
+ dailyOpen=true;
+ const strip=DAILY_R.map((r,i)=>'<div style="flex:1;min-width:0;padding:6px 2px;border-radius:8px;border:1px solid '+(i===day?'var(--gold)':'rgba(255,255,255,.15)')+';background:'+(i===day?'rgba(255,210,74,.2)':i<day?'rgba(255,255,255,.08)':'none')+';opacity:'+(i<day?.55:1)+'"><small style="display:block;opacity:.7">Day '+(i+1)+'</small><span style="font-size:18px">'+(i<day?'✓':r[1])+'</span></div>').join('');
+ const claim=m=>{d.last=today;d.streak=streak;const txt=DAILY_R[day][2](m);dailyOpen=false;say('Daily reward (day '+(day+1)+'): '+txt+'.');toast('Daily reward: '+txt);sig='';save();};
+ showModal('Daily reward','<p>Day <b>'+(day+1)+'</b> of your login streak. Come back tomorrow to keep it going.</p><div style="display:flex;gap:4px;margin:10px 0">'+strip+'</div><p style="font-size:18px;margin:6px 0"><b>'+DAILY_R[day][0]+'</b></p>',
+  [{t:'Claim',primary:true,fn:()=>claim(1)}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{claim(await ADS.show()?2:1);}}]:[]));
+}
+dailyCheck();setInterval(dailyCheck,60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')dailyCheck();});
 loadEnt();
 let hidAt=0;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){hidAt=Date.now();save();}else if(hidAt){const d=(Date.now()-hidAt)/1000;hidAt=0;claimAway(d);}});
