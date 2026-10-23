@@ -327,7 +327,19 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
+const BUILD='20261022205249';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
+/* ---------- version check: if the server has a newer build than the one running, load it (GitHub Pages and browsers cache aggressively) ---------- */
+(function(){
+ if(BUILD==='dev')return;
+ async function latest(){try{const r=await fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'});const m=/const BUILD='([^']+)'/.exec(await r.text());return m&&m[1]!==BUILD?m[1]:null;}catch(e){return null;}}
+ function banner(){if(document.getElementById('updbar'))return;const b=document.createElement('button');b.id='updbar';b.textContent='A new version is ready · tap to update';b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:99;padding:10px 16px;border-radius:999px;border:2px solid #ffd24a;background:#4a2a96;color:#fff3c4;font:700 14px Georgia,serif;box-shadow:0 4px 20px rgba(0,0,0,.6)';b.onclick=()=>location.replace(location.pathname+'?b='+Date.now());document.body.appendChild(b);}
+ (async()=>{const n=await latest();if(!n)return;let tried=null;try{tried=sessionStorage.getItem('cc-upd');}catch(e){}
+  if(tried===n){banner();return;}   // already tried once this session: do not loop
+  try{sessionStorage.setItem('cc-upd',n);}catch(e){}location.replace(location.pathname+'?b='+n);})();
+ document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&await latest())banner();});
+ setInterval(async()=>{if(await latest())banner();},10*60*1000);
+})();
 const CC=(function(){
  const KEY='cartographer-v3',$=id=>document.getElementById(id);
  const dev=(()=>{try{let d=localStorage.getItem('cc-dev');if(!d){d=Math.random().toString(36).slice(2,10);localStorage.setItem('cc-dev',d);}return d;}catch(e){return 'x';}})();
@@ -411,6 +423,7 @@ const CC=(function(){
 </script>
 <script type="text/plain" id="game">
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
+const V=BUILD==='dev'?'':'?v='+BUILD;   // cache-busting suffix for art
 const KEY='cartographer-v3';
 const RECRUIT=[0,40,200,800];
 
@@ -1161,8 +1174,8 @@ const HERO0={},IMG={},HID=['knight','ranger','mage','cleric','rogue','berserker'
 function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;{const m=/^hero(\d)$/.exec(key);if(m){HERO0[+m[1]]=im;applySkin();}}
  if(key==='f_bear')IMG.f_icebear=tintImg(im,L=>[Math.min(255,L*.75+55),Math.min(255,L*.9+90),Math.min(255,L*1.05+130)],'f_icebear');
  if(key==='f_ogre')IMG.f_void=tintImg(im,L=>[Math.min(255,L*.7+45),Math.min(255,L*.35+5),Math.min(255,L*1.0+95)],'f_void');};im.onerror=()=>{};im.src=src;}
-HID.forEach((id,i)=>loadImg('hero'+i,'assets/heroes/'+id+'.png'));
-function heroIcon(i){const src='assets/heroes/'+HID[i]+'_p.png';return src?'<img class="pt" src="'+src+'" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">':HEROES[i].w;}
+HID.forEach((id,i)=>loadImg('hero'+i,'assets/heroes/'+id+'.png'+V));
+function heroIcon(i){const src='assets/heroes/'+HID[i]+'_p.png'+V;return src?'<img class="pt" src="'+src+'" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">':HEROES[i].w;}
 const _fc={};
 function flashed(im,f){   // the sprite washed toward white (hit flash)
  const key=im.src||im._k,w=im.naturalWidth||im.width,h=im.naturalHeight||im.height;let c=_fc[key];if(!c){c=document.createElement('canvas');c.width=w;c.height=h;_fc[key]=c;}
@@ -1192,14 +1205,14 @@ function drawHeroImg(i,x,y){
 /* ---------- painted enemies, icons and scenery ---------- */
 const FOEFILE={'🐗':'boar','🦊':'fox','🦇':'bat','🐺':'wolf','🕷️':'spider','🐻':'bear','💀':'skeleton','🧟':'zombie','👻':'ghost','🐸':'frog','🐊':'gator','🪱':'leech','🧛':'vampire','👺':'goblin','🧌':'troll','👹':'ogre','🦂':'scorpion','🐻‍❄️':'bear','🐉':'dragon'};
 const FOEH={boar:64,fox:54,bat:58,wolf:64,spider:58,bear:78,icebear:78,skeleton:88,zombie:88,ghost:88,frog:58,gator:52,leech:46,vampire:96,goblin:68,troll:104,ogre:110,void:112,scorpion:84,dragon:124};
-['boar','fox','bat','wolf','spider','bear','skeleton','zombie','ghost','frog','gator','leech','vampire','goblin','troll','ogre','scorpion','dragon'].forEach(n=>loadImg('f_'+n,'assets/enemies/'+n+'.png'));
+['boar','fox','bat','wolf','spider','bear','skeleton','zombie','ghost','frog','gator','leech','vampire','goblin','troll','ogre','scorpion','dragon'].forEach(n=>loadImg('f_'+n,'assets/enemies/'+n+'.png'+V));
 const ACTFOE=[['beetle','treant','hornet'],['golem','hag','wisp'],['imp','lavahound','magma'],['frostwolf','wraith','yeti'],['drowned','mummy','gargoyle'],['wyvern','kobold','drakeknight'],['beholder','stalker','cultist']];
 const ACTH={a0_0:56,a0_1:84,a0_2:58,a1_0:100,a1_1:88,a1_2:60,a2_0:62,a2_1:64,a2_2:104,a3_0:66,a3_1:90,a3_2:100,a4_0:88,a4_1:88,a4_2:84,a5_0:72,a5_1:80,a5_2:100,a6_0:84,a6_1:96,a6_2:92,boss0:120,boss1:100,boss2:140,boss3:140,boss4:150,boss5:185,boss6:170,boss7:150,boss8:170};
 Object.assign(FOEH,ACTH);
-for(let a=0;a<7;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/enemies/a'+a+'_'+i+'.png');if(a<2)loadImg('f_boss'+(a+7),'assets/enemies/boss'+(a+7)+'.png');loadImg('f_boss'+a,'assets/enemies/boss'+a+'.png');}
+for(let a=0;a<7;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/enemies/a'+a+'_'+i+'.png'+V);if(a<2)loadImg('f_boss'+(a+7),'assets/enemies/boss'+(a+7)+'.png'+V);loadImg('f_boss'+a,'assets/enemies/boss'+a+'.png'+V);}
 const ICONS=['wilds','forest','village','ruins','swamp','crypt','shrine','springs','market','battlefield','leyline','treasury','vault','lair','coin','whet','oak','ink','fang','boots','company','deck','relics','journal','flame'];
-ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'));
-function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png" alt="" draggable="false">';}
+ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'+V));
+function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png'+V+'" alt="" draggable="false">';}
 for(const k in TILES)TILES[k].i=ic(k);                // tile icons are now images (HTML), used in every card and tile
 for(const k in RELICS)RELICS[k].ico=ic(k);
 function glow(x,y,r,c0,c1){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,c0);gr.addColorStop(1,c1||'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
@@ -1256,7 +1269,7 @@ function buildBGV(){
   x.globalCompositeOperation='source-over';BGV[k]=c;
  }
 }
-['meadow','forest','ruins','lair'].forEach(n=>{const im=new Image();im.onload=()=>{BGB[n]=im;buildBGV();};im.onerror=()=>{};im.src='assets/bg/'+n+'.jpg';});
+['meadow','forest','ruins','lair'].forEach(n=>{const im=new Image();im.onload=()=>{BGB[n]=im;buildBGV();};im.onerror=()=>{};im.src='assets/bg/'+n+'.jpg'+V;});
 function drawBG(k){
  const im=BGV[k];if(!im)return false;
  const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,T=performance.now()/1000;
