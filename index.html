@@ -320,6 +320,23 @@ canvas.shake{animation:shake .6s}
  #toast{left:35%;top:calc(66px + env(safe-area-inset-top))}
  #inscribe{bottom:calc(10px + env(safe-area-inset-bottom));right:auto;max-width:min(540px,62vw)}
 }
+
+/* ---------- painted UI kit skin (assets/ui, generated with SpriteCook). Images come in through --ui-* variables so they share the build cache buster. ---------- */
+#sheet .sp{border:24px solid transparent;border-image:var(--ui-panel) 28 fill/24px stretch;border-radius:0;background:none;padding:0 4px calc(4px + env(safe-area-inset-bottom));filter:drop-shadow(0 -6px 24px rgba(0,0,0,.6))}
+#sheet .sh{padding:0 0 8px;gap:8px}
+#sheet .sh h3{flex:1;margin:0;text-align:center;font:900 15px/1 Cinzel,Georgia,serif;letter-spacing:.14em;text-transform:uppercase;color:#fff3c4;text-shadow:0 2px 0 rgba(0,0,0,.7);border:0 solid transparent;border-width:0 34px;border-image:var(--ui-ribbon) 0 70 fill/0 34px stretch;padding:11px 8px 13px}
+#sheet [data-close]{font-size:0;width:42px;min-height:38px;height:38px;padding:0;border:0;background:var(--ui-close) center/contain no-repeat;flex:none}
+#sheet [data-close]:hover:not(:disabled){filter:brightness(1.2)}
+#modal .mp,#auth .ap{border:26px solid transparent;border-image:var(--ui-panel) 28 fill/26px stretch;border-radius:0;background:none;box-shadow:none;padding:6px 6px;filter:drop-shadow(0 12px 28px rgba(0,0,0,.7))}
+#sheet .pane button:not([data-close]),#modal .row button,#auth .row button{border:12px solid transparent;border-image:var(--ui-blue) 24 fill/12px stretch;background:none;border-radius:0;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.6);font-weight:700;min-height:42px;padding:0 6px}
+#sheet .pane button:not([data-close]):disabled,#modal .row button:disabled{border-image-source:var(--ui-grey);opacity:.85;color:#bbb}
+#sheet .pane .sc button,#modal .row button.prim,#auth .row button.prim,#sheet .pane button.gold{border-image-source:var(--ui-gold);color:#3a2205;text-shadow:0 1px 0 rgba(255,240,180,.6)}
+#sheet .pane .sc button:disabled{border-image-source:var(--ui-grey);color:#bbb;text-shadow:none}
+#sheet .pane button:hover:not(:disabled),#modal .row button:hover:not(:disabled),#auth .row button:hover:not(:disabled){filter:brightness(1.12)}
+#sheet .pane button[data-burn]{border-image-source:var(--ui-red)}
+#nav button{border:10px solid transparent;border-image:var(--ui-tab) 24 fill/10px stretch;background:none;border-radius:0;min-height:54px}
+#nav button.on{border-image-source:var(--ui-tabon)}
+#nav button:hover:not(:disabled){filter:brightness(1.15)}
 </style>
 </head>
 <body>
@@ -399,8 +416,9 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022220700';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022221242';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
+try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
  const el=document.getElementById('icky');if(!el)return;
