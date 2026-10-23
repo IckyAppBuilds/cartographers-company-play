@@ -249,6 +249,29 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 .ob .st{text-align:center;font-size:18px}.ob.done .st{color:var(--green)}.ob.cur{background:rgba(255,210,74,.08);border-radius:8px}.ob.cur .st{color:var(--gold)}.ob.lock{opacity:.55}
 .ob .nm{font-weight:700}
 
+#icky{position:fixed;inset:0;z-index:200;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#04100a;cursor:pointer;transition:opacity .7s ease}
+#icky[hidden]{display:none}#icky.out{opacity:0;pointer-events:none}
+#icky .ik-bg{position:absolute;inset:-20%;background:radial-gradient(circle at 50% 42%,rgba(120,255,60,.38),rgba(20,90,50,.35) 35%,transparent 65%),conic-gradient(from 0deg at 50% 42%,rgba(150,255,80,.12) 0 10deg,transparent 10deg 30deg);animation:ikspin 22s linear infinite,ikfade 1.2s ease-out both}
+@keyframes ikspin{to{transform:rotate(360deg)}}@keyframes ikfade{from{opacity:0}to{opacity:1}}
+#icky .ik-bub{position:absolute;inset:0;pointer-events:none}
+#icky .ik-bub i{position:absolute;bottom:-30px;border-radius:50%;border:2px solid rgba(170,255,110,.55);background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.5),rgba(120,255,60,.12));animation:ikrise var(--d) ease-in var(--dl) infinite}
+@keyframes ikrise{0%{transform:translate(0,0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translate(var(--x),-110vh) scale(1.1);opacity:0}}
+#icky .ik-stage{position:relative;width:min(56vw,300px);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+#icky .ik-ring{position:absolute;inset:-14%;border-radius:50%;border:3px solid rgba(150,255,80,.65);box-shadow:0 0 40px rgba(130,255,60,.7),inset 0 0 40px rgba(130,255,60,.4);animation:ikring 2.4s ease-out .9s infinite;opacity:0}
+@keyframes ikring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.5);opacity:0}}
+#icky .ik-mascot{position:relative;width:100%;filter:drop-shadow(0 0 26px rgba(130,255,60,.8));transform-origin:50% 100%;animation:ikdrop 1.1s cubic-bezier(.3,1.6,.5,1) both,ikbounce 2.2s ease-in-out 1.2s infinite}
+@keyframes ikdrop{0%{transform:translateY(-120vh) scale(.8,1.3)}55%{transform:translateY(0) scale(1.25,.7)}75%{transform:translateY(-6%) scale(.92,1.1)}100%{transform:none}}
+@keyframes ikbounce{0%,100%{transform:scale(1,1)}50%{transform:scale(1.04,.96) translateY(1%)}}
+#icky .ik-shadow{position:absolute;bottom:-4%;width:60%;height:7%;border-radius:50%;background:radial-gradient(rgba(0,0,0,.6),transparent 70%);animation:ikfade .6s ease-out .5s both}
+#icky .ik-pre{margin-top:26px;font:700 clamp(11px,3.2vw,14px) Cinzel,Georgia,serif;letter-spacing:.38em;text-transform:uppercase;color:#a8e890;opacity:0;animation:ikfade .8s ease-out 1.5s forwards}
+#icky .ik-title{margin:10px 0 0;display:flex;flex-wrap:wrap;justify-content:center;gap:0 .02em;padding:0 12px;font:900 clamp(30px,10.5vw,64px)/1.05 Cinzel,Georgia,serif;letter-spacing:.06em;text-align:center}
+#icky .ik-title b{width:.5em}
+#icky .ik-title span{display:inline-block;opacity:0;background:linear-gradient(180deg,#f4ffc8,#9dff3a 50%,#2fa84a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 #0b3a1a) drop-shadow(0 0 14px rgba(130,255,60,.7));animation:ikletter .55s cubic-bezier(.2,1.6,.4,1) forwards;animation-delay:calc(1.7s + var(--i)*.07s)}
+@keyframes ikletter{0%{opacity:0;transform:translateY(40px) scale(.3) rotate(-14deg)}100%{opacity:1;transform:none}}
+#icky .ik-tag{margin-top:6px;font:italic clamp(12px,3.4vw,16px) Georgia,serif;color:#cfe8c0;opacity:0;animation:ikfade 1s ease-out 3s forwards}
+#icky .ik-skip{position:absolute;bottom:calc(18px + env(safe-area-inset-bottom));font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(200,255,170,.5);opacity:0;animation:ikfade 1s ease-out 3.4s forwards,ikblink 1.6s ease-in-out 4.4s infinite}
+@keyframes ikblink{50%{opacity:.2}}
+@media (prefers-reduced-motion:reduce){#icky *{animation-duration:.01s!important;animation-delay:0s!important}}
 #auth{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#3a2a1c,#120c07);display:flex;align-items:center;justify-content:center;padding:16px}
 #auth[hidden]{display:none}
 #auth .ap{width:100%;max-width:380px;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:22px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
@@ -334,6 +357,18 @@ canvas.shake{animation:shake .6s}
   </div>
  </div>
 </div>
+<div id="icky" hidden aria-label="Icky App Builds">
+ <div class="ik-bg"></div><div class="ik-bub"></div>
+ <div class="ik-stage">
+  <div class="ik-ring"></div>
+  <img class="ik-mascot" src="assets/brand/icky.png" alt="" draggable="false">
+  <div class="ik-shadow"></div>
+ </div>
+ <div class="ik-pre">Icky App Builds presents</div>
+ <h1 class="ik-title"><span>I</span><span>C</span><span>K</span><span>Y</span><b></b><span>A</span><span>P</span><span>P</span><b></b><span>B</span><span>U</span><span>I</span><span>L</span><span>D</span><span>S</span></h1>
+ <div class="ik-tag">Cartographer's Company</div>
+ <div class="ik-skip">tap to continue</div>
+</div>
 <div id="auth" hidden><form class="ap" id="authForm" autocomplete="on">
  <h2>Cartographer's Company</h2>
  <p id="authMsg">Sign in to chart the realm. Your progress follows you to every device.</p>
@@ -344,8 +379,20 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022212455';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022212813';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
+/* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
+(function(){
+ const el=document.getElementById('icky');if(!el)return;
+ let seen=false;try{seen=sessionStorage.getItem('cc-splash')==='1';}catch(e){}
+ const hold=location.hash==='#splash';   // preview helper: stay on the splash
+ if((seen||BUILD==='skip')&&!hold){el.remove();return;}
+ el.hidden=false;
+ [...el.querySelectorAll('.ik-title span')].forEach((s,i)=>s.style.setProperty('--i',i));
+ const bub=el.querySelector('.ik-bub');for(let i=0;i<26;i++){const b=document.createElement('i'),z=8+Math.random()*26;b.style.cssText='left:'+(Math.random()*100)+'%;width:'+z+'px;height:'+z+'px;--x:'+((Math.random()-.5)*160|0)+'px;--d:'+(4+Math.random()*5).toFixed(1)+'s;--dl:'+(Math.random()*5).toFixed(1)+'s';bub.appendChild(b);}
+ let done=false;const end=()=>{if(done)return;done=true;try{sessionStorage.setItem('cc-splash','1');}catch(e){}el.classList.add('out');setTimeout(()=>el.remove(),750);};
+ el.addEventListener('click',end);if(!hold)setTimeout(end,5200);
+})();
 /* ---------- version check: if the server has a newer build than the one running, load it (GitHub Pages and browsers cache aggressively) ---------- */
 (function(){
  if(BUILD==='dev')return;
