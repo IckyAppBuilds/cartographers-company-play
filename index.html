@@ -485,6 +485,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 .hc .n{color:#3b2a18}
 .hc.sel{filter:drop-shadow(0 0 8px rgba(255,210,74,.95)) brightness(1.06);transform:translateY(-4px)}
 @media (max-width:640px){.hc{border-width:13px;border-image-width:13px}.dgrid{grid-template-columns:repeat(2,1fr);gap:8px}.dc{border-width:16px;border-image-width:16px}.dc .d{font-size:10px}.dc .i{font-size:34px}}
+#ctrl .bar{display:none}
 </style>
 </head>
 <body>
@@ -564,7 +565,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022224126';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022224746';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1155,7 +1156,7 @@ function build(){
  const ip=$('inscribe');ip.hidden=!(inscribing&&S.hand[selCard]);
  if(!ip.hidden){const ik=kindOf(S.hand[selCard]);ip.innerHTML=`<h3>Etch a glyph onto ${TILES[ik].n} (${fmt(icost)} gold)</h3><div class="row">${inscribeOpts.map(m=>`<button data-mod="${m}"><b>${MODS[m].n}</b><br><small>${MODS[m].d}</small></button>`).join('')}<button data-cancel>Cancel</button></div>`;}
  {const g={};for(const c of S.deck)if(modOf(c)){const n=TILES[kindOf(c)].n+' ('+MODS[modOf(c)].n+')';g[n]=(g[n]||0)+1;}const ks=Object.keys(g);$('insum').textContent=ks.length?'Inscribed: '+ks.map(n=>n+(g[n]>1?' x'+g[n]:'')).join(', '):'Select a card in your hand and Inscribe it to etch a permanent glyph.';}
- $('piles').innerHTML='<span class="bd">Draw <b>'+S.draw.length+'</b></span><span class="bd">Spent <b>'+S.disc.length+'</b></span><span class="bd">Deck <b>'+S.deck.length+'/'+MAX_DECK+'</b></span><span class="bh">drag a card onto the road</span>';
+ $('piles').innerHTML='<span class="bd">Draw <b>'+S.draw.length+'</b></span><span class="bd">Spent <b>'+S.disc.length+'</b></span><span class="bd">Deck <b>'+S.deck.length+'/'+MAX_DECK+'</b></span><span class="bd">Redraws <b>'+S.rd+'/'+maxRd()+'</b></span><span class="bh">drag a card onto the road</span>';
  {const loc=[];S.hand.forEach(c=>loc.push([c,'hand']));S.draw.forEach(c=>loc.push([c,'draw']));S.disc.forEach(c=>loc.push([c,'disc']));
   loc.sort((a,b)=>KINDS.indexOf(kindOf(a[0]))-KINDS.indexOf(kindOf(b[0]))||(modOf(a[0])||'').localeCompare(modOf(b[0])||''));
   const LBL={hand:'In hand',draw:'Draw pile',disc:'Spent'},bc=burnCost(),canBurn=S.deck.length>MIN_DECK,full=S.deck.length>=MAX_DECK;
