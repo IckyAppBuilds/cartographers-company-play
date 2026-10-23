@@ -595,7 +595,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023092100';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023092249';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1891,28 +1891,37 @@ function claimAway(raw){
  say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
 }
 claimAway((Date.now()-S.saved)/1000);
-/* ---------- daily login reward: a 7-day streak, then it starts over ---------- */
+/* ---------- daily login reward: a 7-day streak that grows each week; one missed day is forgiven ---------- */
 const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-const DAILY_R=[   // [label, icon, what it gives]
- ['10 min of income','🪙',m=>{const g=Math.max(25,S.rate*600)*m;S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';}],
- ['3 redraws','↻',m=>{S.rd=Math.min(maxRd()+3*m,S.rd+3*m);return '+'+3*m+' redraws';}],
- ['20 min of income','🪙',m=>{const g=Math.max(50,S.rate*1200)*m;S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';}],
- ['1 hero shard','◆',m=>{S.shards=(S.shards||0)+m;return '+'+m+' hero shard'+(m>1?'s':'');}],
- ['30 min of income','🪙',m=>{const g=Math.max(75,S.rate*1800)*m;S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';}],
- ['Gold x2 boost','⚡',m=>{S.boostT=Math.max(S.boostT||0,BOOST_SECS*m);return 'Gold x2 for '+10*m+' minutes';}],
- ['Relic + 2 shards','🗝️',m=>{const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+m;S.shards=(S.shards||0)+2*m;lootRelic(r,'Daily relic!',true);return RELICS[r].n+(m>1?' x'+m:'')+' and '+2*m+' shards';}]
+const dayNum=k=>{const [y,m,d]=k.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/86400000);};
+const hrGold=(h,m)=>Math.max(S.rate*3600*h,6*1.15**S.depth*40*h)*m;   // hours of income, with a floor so early players still feel it
+const gGold=(h,m)=>{const g=hrGold(h,m);S.gold+=g;gained+=g;return '+'+fmt(g)+' gold';};
+const gShard=(n,m)=>{n=Math.round(n*m);S.shards=(S.shards||0)+n;return '+'+n+' hero shard'+(n>1?'s':'');};
+const gRelic=(n,m)=>{n=Math.max(1,Math.round(n*m));const names=[];for(let i=0;i<n;i++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;names.push(RELICS[r].n);lootRelic(r,'Daily relic!',true);}return names.join(' and ');};
+const gBoost=(min,m)=>{S.boostT=Math.max(S.boostT||0,min*60*m);return 'Gold x2 for '+Math.round(min*m)+' minutes';};
+const gRedraw=(n,m)=>{n=Math.round(n*m);S.rd=Math.min(maxRd()+n,S.rd+n);return '+'+n+' redraws';};
+const DAILY_R=[   // [short label, icon, long label, give(multiplier)]
+ ['1h gold','🪙','1 hour of income',m=>gGold(1,m)],
+ ['2 shards','◆','2 hero shards',m=>gShard(2,m)],
+ ['2h gold','🪙','2 hours of income and 3 redraws',m=>gGold(2,m)+' and '+gRedraw(3,m)],
+ ['x2 boost','⚡','A 30-minute gold x2 boost and 2 shards',m=>gBoost(30,m)+' and '+gShard(2,m)],
+ ['Relic','🗝️','A random relic and 3 shards',m=>gRelic(1,m)+' and '+gShard(3,m)],
+ ['4h gold','🪙','4 hours of income and a 20-minute boost',m=>gGold(4,m)+' and '+gBoost(20,m)],
+ ['Jackpot','🎁','JACKPOT: 2 relics, 5 shards and 6 hours of income',m=>gRelic(2,m)+', '+gShard(5,m)+' and '+gGold(6,m)]
 ];
 let dailyOpen=false;
 function dailyCheck(){
  if(dailyOpen||!S.seenIntro||!S.order)return;
  const now=new Date(),today=dayKey(now),d=S.daily||(S.daily={last:'',streak:0});
  if(d.last===today)return;
- const y=new Date(now);y.setDate(y.getDate()-1);
- const streak=d.last===dayKey(y)?d.streak+1:1,day=(streak-1)%7;
+ const gap=d.last?dayNum(today)-dayNum(d.last):99;
+ const streak=gap<=2?d.streak+1:1;   // missing a single day keeps the streak
+ const day=(streak-1)%7,week=Math.floor((streak-1)/7),bonus=1+.25*Math.min(4,week);   // +25% per completed week, up to +100%
  dailyOpen=true;
- const strip=DAILY_R.map((r,i)=>'<div style="flex:1;min-width:0;padding:6px 2px;border-radius:8px;border:1px solid '+(i===day?'var(--gold)':'rgba(255,255,255,.15)')+';background:'+(i===day?'rgba(255,210,74,.2)':i<day?'rgba(255,255,255,.08)':'none')+';opacity:'+(i<day?.55:1)+'"><small style="display:block;opacity:.7">Day '+(i+1)+'</small><span style="font-size:18px">'+(i<day?'✓':r[1])+'</span></div>').join('');
- const claim=m=>{d.last=today;d.streak=streak;const txt=DAILY_R[day][2](m);dailyOpen=false;say('Daily reward (day '+(day+1)+'): '+txt+'.');toast('Daily reward: '+txt);sig='';save();};
- showModal('Daily reward','<p>Day <b>'+(day+1)+'</b> of your login streak. Come back tomorrow to keep it going.</p><div style="display:flex;gap:4px;margin:10px 0">'+strip+'</div><p style="font-size:18px;margin:6px 0"><b>'+DAILY_R[day][0]+'</b></p>',
+ const strip=DAILY_R.map((r,i)=>'<div style="flex:1;min-width:0;padding:5px 1px;border-radius:8px;border:1px solid '+(i===day?'var(--gold)':'rgba(255,255,255,.15)')+';background:'+(i===day?'rgba(255,210,74,.2)':i<day?'rgba(255,255,255,.08)':'none')+';opacity:'+(i<day?.55:1)+'"><small style="display:block;opacity:.7;font-size:10px">Day '+(i+1)+'</small><span style="font-size:17px">'+(i<day?'✓':r[1])+'</span><small style="display:block;font-size:9px;line-height:1.1;opacity:.85">'+r[0]+'</small></div>').join('');
+ const claim=m=>{d.last=today;d.streak=streak;const txt=DAILY_R[day][3](m*bonus);dailyOpen=false;say('Daily reward (day '+(day+1)+', streak '+streak+'): '+txt+'.');toast('Daily reward: '+txt);sig='';save();};
+ const next=DAILY_R[(day+1)%7];
+ showModal('Daily reward','<p style="margin:0">🔥 <b>'+streak+'-day streak</b>'+(week?' · +'+Math.round((bonus-1)*100)+'% weekly bonus':'')+'</p><div style="display:flex;gap:3px;margin:10px 0">'+strip+'</div><p style="font-size:17px;margin:6px 0"><b>'+DAILY_R[day][2]+'</b></p><p class="hint" style="margin:4px 0">Tomorrow: '+next[2]+'. Miss a day and the streak holds; miss two and it restarts. Each full week adds a permanent +25% to the rewards, up to +100%.</p>',
   [{t:'Claim',primary:true,fn:()=>claim(1)}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{claim(await ADS.show()?2:1);}}]:[]));
 }
 dailyCheck();setInterval(dailyCheck,60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')dailyCheck();});
