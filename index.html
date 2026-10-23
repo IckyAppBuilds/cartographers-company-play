@@ -512,6 +512,8 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #adtest small{letter-spacing:.3em;opacity:.7}#adtest b{font:900 64px/1 Cinzel,Georgia,serif}
 #adtest button{margin-top:8px;min-width:120px;min-height:44px;font-size:16px}
 .ldb{margin-top:12px;min-height:44px;padding:0 16px;font-size:15px;font-weight:700;background:var(--gold);color:#2a1d08;border:2px solid var(--gold);border-radius:10px;cursor:pointer;position:relative;z-index:2}
+#auth .legal{margin:12px 0 0;font-size:12px;color:var(--dim);text-align:center}#auth .legal a,#acct~div a{color:var(--gold)}
+#delacct{color:#ff9a8a}
 </style>
 </head>
 <body>
@@ -555,7 +557,8 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
    </div>
    <div class="pane" data-pane="relics" hidden>
     <div class="hint" style="margin-bottom:8px">Relics drop from fights (Ruins and Battlefield most often), boss kills and Relic Vaults. Duplicates stack.</div><div id="relics"></div>
-    <h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button>
+    <h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button> <button id="delacct">Delete account</button>
+    <div class="hint" style="margin-top:8px"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a></div>
     <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
    </div>
    <div class="pane" data-pane="shop" hidden><div id="shopBody"></div></div>
@@ -587,11 +590,12 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  <input id="authEmail" type="email" placeholder="Email" autocomplete="email" required>
  <input id="authPass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" minlength="6" required>
  <div class="row"><button type="submit" class="prim" id="authIn">Log in</button><button type="button" id="authUp">Create account</button></div>
+ <p class="legal">By creating an account you agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
 </form></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023083558';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023091159';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -676,6 +680,12 @@ const CC=(function(){
   if(r.data.session)return enter(r.data.user);
   msg('Account created. Check your email to confirm it, then log in.');
  }
+ async function del(){   // permanently removes the account and its cloud data, then returns to the sign-in screen
+  const {error}=await db.rpc('delete_my_account');if(error)throw error;
+  try{await db.auth.signOut();}catch(e){}
+  try{localStorage.removeItem(KEY);localStorage.removeItem('cc-uid');}catch(e){}
+  location.reload();
+ }
  async function out(){
   await push(true);
   try{await db.auth.signOut();}catch(e){}
@@ -696,7 +706,7 @@ const CC=(function(){
  document.addEventListener('DOMContentLoaded',init);
  async function purchases(){const {data,error}=await db.from('purchases').select('sku,qty').eq('user_id',user.id);if(error)throw error;return data||[];}
  async function buy(sku){const {error}=await db.rpc('claim_test_purchase',{p_sku:sku});if(error)throw error;}   // TEST MODE: free. Replaced by Stripe Checkout when payments go live
- return {queue,out,purchases,buy,testMode:true,get email(){return user?user.email:'';}};
+ return {queue,out,del,purchases,buy,testMode:true,get email(){return user?user.email:'';}};
 })();
 </script>
 <script type="text/plain" id="game">
@@ -1924,6 +1934,7 @@ fit();requestAnimationFrame(frame);
 window.addEventListener('beforeunload',save);
 $('acct').textContent='Signed in as '+CC.email+'. Progress syncs to your account automatically.';
 $('signout').onclick=()=>{save();CC.out();};
+$('delacct').onclick=()=>showModal('Delete your account?','<p>This <b>permanently deletes</b> your account and your cloud save: progress, heroes, Legend, relics and purchases. It cannot be undone.</p><p class="hint">To start over without deleting your account, use Retire instead.</p>',[{t:'Keep my account',primary:true},{t:'Delete forever',fn:async()=>{try{await CC.del();}catch(e){toast('Could not delete the account. Check your connection and try again.');}}}]);
 window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase}};
 </script>
 </body>
