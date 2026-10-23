@@ -327,7 +327,7 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022205249';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022205612';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 /* ---------- version check: if the server has a newer build than the one running, load it (GitHub Pages and browsers cache aggressively) ---------- */
 (function(){
@@ -624,7 +624,7 @@ function reshuffleAll(why){   // every card (hand, draw pile and spent pile) goe
 const active=()=>S.un.filter(Boolean).length;
 const slot=i=>S.order.filter(h=>S.un[h]).indexOf(i);   // battlefield position among recruited heroes, front first
 const fervor=()=>1+Math.min(1,(S.streak||0)*.2);   // +20% gold per consecutive fight, up to +100%
-const heroPx=i=>152+(active()-1-slot(i))*56;   // the front line stands nearest the enemies (rightmost)
+const heroPx=i=>152+(active()-1-slot(i))*68;   // the front line stands nearest the enemies (rightmost)
 function resetHeroes(full){for(let i=0;i<HEROES.length;i++)S.hp[i]=S.order.includes(i)&&S.un[i]?(full?heroMax(i):S.hp[i]):0;}
 
 /* ---------- encounters ---------- */
@@ -1322,7 +1322,7 @@ function draw(dt){
  }
  else ambient(k);
  // heroes
- for(const i of S.order.slice().reverse())if(S.un[i])(IMG['hero'+i]?drawHeroImg:drawHero)(i,heroPx(i),244+(slot(i)%2?16:-4));
+ for(const i of S.order.slice().reverse())if(S.un[i])(IMG['hero'+i]?drawHeroImg:drawHero)(i,heroPx(i),256-slot(i)*5);
  // foes (painted sprites; emoji fallback)
  for(const f of foes){
   if(f.hp<=0&&!f.dieT)f.dieT=performance.now();
