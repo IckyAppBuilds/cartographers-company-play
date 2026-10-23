@@ -634,7 +634,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023141403';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023141558';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1052,18 +1052,18 @@ const HEROES=[   // r = role (team bonuses), k = damage kind (foe traits), q = r
  {n:'Seraph',c:'Paladin',r:'Guardian',k:'holy',q:2,hp:170,atk:5,spd:.6,col:'#9ec8ff',hat:'halo',w:'🛡️',sk:''},
  {n:'Lark',c:'Bard',r:'Support',k:'arcane',q:1,hp:85,atk:6,spd:.9,col:'#e0a050',hat:'hood',w:'🎵',sk:''},
  {n:'Tarn',c:'Monk',r:'Striker',k:'melee',q:1,hp:110,atk:8,spd:1,col:'#e0a030',hat:'hood',w:'👊',sk:''},
- {n:'Morvane',c:'Necromancer',r:'Caster',k:'arcane',q:3,hp:70,atk:9,spd:.75,col:'#5aa05a',hat:'wiz',w:'💀',sk:''},
+ {n:'Morvane',c:'Necromancer',r:'Caster',k:'arcane',q:3,hp:85,atk:10.5,spd:.8,col:'#5aa05a',hat:'wiz',w:'💀',sk:''},
  {n:'Pip',c:'Artificer',r:'Marksman',k:'ranged',q:1,hp:80,atk:9,spd:.95,col:'#c08040',hat:'helm',w:'⚙️',sk:''},
  {n:'Corvin',c:'Duelist',r:'Striker',k:'melee',q:2,hp:95,atk:9,spd:1,col:'#c0463a',hat:'hood',w:'🤺',sk:''},
- {n:'Cinder',c:'Pyromancer',r:'Caster',k:'arcane',q:3,hp:65,atk:10,spd:.75,col:'#ff8a3a',hat:'wiz',w:'🔥',sk:''},
+ {n:'Cinder',c:'Pyromancer',r:'Caster',k:'arcane',q:3,hp:80,atk:11.5,spd:.8,col:'#ff8a3a',hat:'wiz',w:'🔥',sk:''},
  {n:'Sable',c:'Huntress',r:'Marksman',k:'ranged',q:2,hp:85,atk:10,spd:1.05,col:'#8a7a5a',hat:'hood',w:'🏹',sk:''},
  {n:'Hild',c:'Shieldmaiden',r:'Guardian',k:'melee',q:2,hp:180,atk:5,spd:.7,col:'#c8b080',hat:'helm',w:'🛡️',sk:''},
  {n:'Quill',c:'Alchemist',r:'Support',k:'ranged',q:2,hp:80,atk:6,spd:.85,col:'#9be05a',hat:'hood',w:'⚗️',sk:''},
- {n:'Zephra',c:'Stormcaller',r:'Caster',k:'arcane',q:3,hp:70,atk:9,spd:.8,col:'#7ac8ff',hat:'wiz',w:'⚡',sk:''},
+ {n:'Zephra',c:'Stormcaller',r:'Caster',k:'arcane',q:3,hp:85,atk:11,spd:.85,col:'#7ac8ff',hat:'wiz',w:'⚡',sk:''},
  {n:'Aurelian',c:'Templar',r:'Striker',k:'holy',q:4,hp:130,atk:8,spd:.8,col:'#ffd24a',hat:'helm',w:'⚔️',sk:''},
- {n:'Mirelle',c:'Oracle',r:'Healer',k:'arcane',q:4,hp:85,atk:5,spd:.7,col:'#b070ff',hat:'halo',w:'🔮',sk:''}
+ {n:'Mirelle',c:'Oracle',r:'Healer',k:'arcane',q:4,hp:100,atk:6.5,spd:.7,col:'#b070ff',hat:'halo',w:'🔮',sk:''}
 ];
-const RARCOL=RAR.map(r=>r.c),RARM=[1,1.05,1.12,1.2,1.3];   // rarer heroes are stronger but need more of their own shards
+const RARCOL=RAR.map(r=>r.c),RARM=[1,1.15,1.35,1.6,1.9];   // rarer heroes are stronger but need more of their own shards
 const LC=[1,1.15,1.3,1.45,1.15,1.1,1.3,1.4,1.15,1.2,1.3,1.2,1.2,1.3,1.2,1.45,1.15,1.3,1.3,1.2];   // per-hero level cost factor
 const HSK=[   // one skill per hero; each shard rank (max 5) makes it stronger
  {n:'Shield Bash',d:r=>'Every 3rd strike hits for '+(2+.25*r).toFixed(2)+'×.'},
@@ -1166,7 +1166,7 @@ const ACTTRAIT=[['',''],['spectral',''],['armored',''],['armored','airborne'],['
 function pickTrait(r,boss){const T=ACTTRAIT[r%20]||['',''];if(boss)return T[0];const x=Math.random();return x<.6?T[0]:x<.85?T[1]:'';}
 const KINDN={melee:'melee',ranged:'ranged',arcane:'arcane',holy:'holy'};
 const traitText=t=>TRAITN[t]+' foes: '+Object.keys(TRAIT[t]).filter(k=>TRAIT[t][k]!==1).map(k=>KINDN[k]+' '+(TRAIT[t][k]>1?'+':'−')+Math.round(Math.abs(TRAIT[t][k]-1)*100)+'%').join(', ');
-const rarTag=i=>'<span style="color:'+RARCOL[HEROES[i].q]+';font-weight:700">'+RAR[HEROES[i].q].n+'</span>';
+const rarTag=i=>'<span style="color:'+RARCOL[HEROES[i].q]+';font-weight:700">'+RAR[HEROES[i].q].n+(HEROES[i].q?' +'+Math.round((RARM[HEROES[i].q]-1)*100)+'% stats':'')+'</span>';
 function synergyHTML(){
  const c=roleCounts(),on=partyBonus().on;
  let h='<h3>Company bonuses</h3><div class="hint" style="margin-bottom:4px">The roles in your party unlock bonuses. Now: '+(Object.keys(c).map(k=>c[k]+' '+k+(c[k]>1&&k!=='Support'?'s':'')).join(', ')||'nobody recruited')+'.</div>';
