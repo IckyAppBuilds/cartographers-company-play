@@ -337,6 +337,34 @@ canvas.shake{animation:shake .6s}
 #nav button{border:10px solid transparent;border-image:var(--ui-tab) 24 fill/10px stretch;background:none;border-radius:0;min-height:54px}
 #nav button.on{border-image-source:var(--ui-tabon)}
 #nav button:hover:not(:disabled){filter:brightness(1.15)}
+
+/* ---------- painted skin for the main game screen ---------- */
+#top{border:14px solid transparent;border-image:var(--ui-panel) 28 fill/14px stretch;border-radius:0;background:none;box-shadow:none;padding:0 4px}
+.card{border:10px solid transparent;border-image:var(--ui-panel) 28 fill/10px stretch;border-radius:0;background:none;padding:0 2px}
+#stage{border:10px solid transparent;border-image:var(--ui-panel) 28/10px stretch;border-radius:0}
+.row3 button,#reroll,#insbtn{border:12px solid transparent;border-image:var(--ui-blue) 24 fill/12px stretch;border-radius:0;background:none;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.6);font-weight:700;min-height:42px;padding:0 4px}
+#insbtn{border-image-source:var(--ui-gold);color:#3a2205;text-shadow:0 1px 0 rgba(255,240,180,.6)}
+.row3 button:disabled{border-image-source:var(--ui-grey);color:#bbb;text-shadow:none;opacity:.85}
+.row3 button:hover:not(:disabled){filter:brightness(1.12)}
+.mc{border:10px solid transparent;border-image:var(--ui-tab) 24 fill/10px stretch;border-radius:0;background:none}
+.mc.on,.mc.cur{border-image-source:var(--ui-tabon)}
+.bar{border:2px solid #8a6a3a;box-shadow:0 0 0 1px #2a1d0e,inset 0 2px 4px rgba(0,0,0,.6)}
+
+@media (max-width:640px){
+ #top{border-width:9px;border-image-width:9px;padding:0 2px}
+ #top .big{font-size:16px}
+ .card{border-width:7px;border-image-width:7px;padding:0}
+ #stage{border-width:6px;border-image-width:6px}
+ .mc{border-width:6px;border-image-width:6px;min-height:44px}
+ #nav{gap:3px}
+ #nav button{border-width:6px;border-image-width:6px;min-height:46px;padding:0}
+ #nav button small{font-size:10px}
+ .row3 button,#reroll,#insbtn{border-width:9px;border-image-width:9px;min-height:36px;font-size:13px}
+ #sheet .sp{border-width:16px;border-image-width:16px}
+ #modal .mp,#auth .ap{border-width:18px;border-image-width:18px}
+}
+@media (max-height:700px) and (max-width:640px){#top{border-width:7px;border-image-width:7px}.mc{min-height:38px}}
+@media (max-width:640px) and (max-height:860px){.hc .d{display:none}.hc{max-height:120px}#handw .pile{margin-bottom:2px}}
 </style>
 </head>
 <body>
@@ -416,7 +444,7 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022221242';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022221636';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
