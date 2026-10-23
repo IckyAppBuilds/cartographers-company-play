@@ -585,7 +585,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023000200';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023000344';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1651,6 +1651,7 @@ function drawFoeEmoji(f){
  g.font=(f.boss?96:56)+'px serif';g.textAlign='center';g.globalAlpha=f.flash>0?.55:1;g.fillText(f.e,0,f.boss?-6:-4);g.globalAlpha=1;
  g.restore();if(!f.boss)hpBar(f.x,f.y-72,44,f.hp/f.max,'#e0584a');
 }
+const FACES_RIGHT=new Set(['boss1','a7_2','a8_0','a8_1','a9_0','a9_2']);
 function drawFoeImg(f,nm,im){
  const now=performance.now(),T=now/1000,dying=f.hp<=0,dt=dying?Math.min(1,(now-f.dieT)/450):0;
  const bs=(f.boss?(/^boss\d/.test(nm)?1.15:nm==='dragon'?1.45:nm==='scorpion'?1.55:1.75):1)*(f.boss&&foes.filter(x=>x.boss).length>1?.8:1),hh=(FOEH[nm]||70)*bs;
@@ -1663,6 +1664,7 @@ function drawFoeImg(f,nm,im){
  g.rotate(-f.lunge*.07+(dying?dt*.35:0));
  g.scale((1/breathe)*(1+dt*.1),breathe*(1-dt*.25));
  g.globalAlpha=1-dt;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+ if(FACES_RIGHT.has(nm))g.scale(-1,1);   // heroes stand on the left, so art drawn facing right is mirrored
  g.drawImage(f.flash>0?flashed(im,f.flash*.8):im,-ww/2,-hh,ww,hh);
  g.restore();
  if(!dying&&!f.boss)hpBar(f.x,f.y-hh-fly-8,48,f.hp/f.max,'#e0584a');
