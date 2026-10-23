@@ -591,7 +591,7 @@ function startTile(){
   const hp=hpM*t.pow*synF*(boss?7:1)*(.85+.3*Math.random());
   foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],
    hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?1.8:1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?548:446+j*88,y:230+(j%2?18:-6),
-   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold});
+   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold,art:boss?'boss'+Math.max(0,BOSSFORM.indexOf(RG(r)[1])):(Math.random()<.6?'a'+(r%7)+'_'+(Math.random()*3|0):null)});
  }
  H=HEROES.map((h,i)=>({cd:Math.random()*.4,n:0,flash:0,lunge:0}));
  phase='fight';
@@ -1021,20 +1021,12 @@ function drawHero(i,x,y){
  if(!dead){const m=heroMax(i),w=36;g.fillStyle='#150f0a';g.fillRect(x-w/2,y+8,w,5);g.fillStyle='#4caf6a';g.fillRect(x-w/2,y+8,w*Math.max(0,S.hp[i])/m,5);}
 }
 /* ---------- painted sprite assets (generated art). If an image is missing the simple drawn version is used. ---------- */
-const IMG={},HID=['knight','ranger','mage','cleric'],PORT={};
-const HTINT={   // new hero id -> [base hero id, colour mapping]
- 4:[1,L=>[L*.7+20,L*.45+8,L*.95+40]],
- 5:[0,L=>[L*1.0+40,L*.35,L*.3]],
- 6:[2,L=>[L*.5+20,L*.95+25,L*.45+10]],
- 7:[3,L=>[L*.85+30,L*.95+30,L*1.05+55]]
-};
+const IMG={},HID=['knight','ranger','mage','cleric','rogue','berserker','druid','paladin'],PORT={};
 function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;
- {const m=/^hero(\d)$/.exec(key);if(m)for(const k in HTINT)if(HTINT[k][0]===+m[1])IMG['hero'+k]=tintImg(im,HTINT[k][1],'hero'+k);}
  if(key==='f_bear')IMG.f_icebear=tintImg(im,L=>[Math.min(255,L*.75+55),Math.min(255,L*.9+90),Math.min(255,L*1.05+130)],'f_icebear');
  if(key==='f_ogre')IMG.f_void=tintImg(im,L=>[Math.min(255,L*.7+45),Math.min(255,L*.35+5),Math.min(255,L*1.0+95)],'f_void');};im.onerror=()=>{};im.src=src;}
 HID.forEach((id,i)=>loadImg('hero'+i,'assets/heroes/'+id+'.png'));
-for(const k in HTINT){const im=new Image();im.onload=()=>{PORT[k]=tintImg(im,HTINT[k][1],'p'+k).toDataURL();sig='';};im.onerror=()=>{};im.src='assets/heroes/'+HID[HTINT[k][0]]+'_p.png';}
-function heroIcon(i){const src=PORT[i]||(i<4?'assets/heroes/'+HID[i]+'_p.png':'');return src?'<img class="pt" src="'+src+'" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">':HEROES[i].w;}
+function heroIcon(i){const src='assets/heroes/'+HID[i]+'_p.png';return src?'<img class="pt" src="'+src+'" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">':HEROES[i].w;}
 const _fc={};
 function flashed(im,f){   // the sprite washed toward white (hit flash)
  const key=im.src||im._k,w=im.naturalWidth||im.width,h=im.naturalHeight||im.height;let c=_fc[key];if(!c){c=document.createElement('canvas');c.width=w;c.height=h;_fc[key]=c;}
@@ -1065,13 +1057,17 @@ function drawHeroImg(i,x,y){
 const FOEFILE={'🐗':'boar','🦊':'fox','🦇':'bat','🐺':'wolf','🕷️':'spider','🐻':'bear','💀':'skeleton','🧟':'zombie','👻':'ghost','🐸':'frog','🐊':'gator','🪱':'leech','🧛':'vampire','👺':'goblin','🧌':'troll','👹':'ogre','🦂':'scorpion','🐻‍❄️':'bear','🐉':'dragon'};
 const FOEH={boar:64,fox:54,bat:58,wolf:64,spider:58,bear:78,icebear:78,skeleton:88,zombie:88,ghost:88,frog:58,gator:52,leech:46,vampire:96,goblin:68,troll:104,ogre:110,void:112,scorpion:84,dragon:124};
 ['boar','fox','bat','wolf','spider','bear','skeleton','zombie','ghost','frog','gator','leech','vampire','goblin','troll','ogre','scorpion','dragon'].forEach(n=>loadImg('f_'+n,'assets/enemies/'+n+'.png'));
+const ACTFOE=[['beetle','treant','hornet'],['golem','hag','wisp'],['imp','lavahound','magma'],['frostwolf','wraith','yeti'],['drowned','mummy','gargoyle'],['wyvern','kobold','drakeknight'],['beholder','stalker','cultist']];
+const ACTH={a0_0:56,a0_1:84,a0_2:58,a1_0:100,a1_1:88,a1_2:60,a2_0:62,a2_1:64,a2_2:104,a3_0:66,a3_1:90,a3_2:100,a4_0:88,a4_1:88,a4_2:84,a5_0:72,a5_1:80,a5_2:100,a6_0:84,a6_1:96,a6_2:92,boss0:120,boss1:100,boss2:140,boss3:140,boss4:150,boss5:185,boss6:170};
+Object.assign(FOEH,ACTH);
+for(let a=0;a<7;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/enemies/a'+a+'_'+i+'.png');loadImg('f_boss'+a,'assets/enemies/boss'+a+'.png');}
 const ICONS=['wilds','forest','village','ruins','swamp','crypt','shrine','springs','market','battlefield','leyline','treasury','vault','lair','coin','whet','oak','ink','fang','boots','company','deck','relics','journal','flame'];
 ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'));
 function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png" alt="" draggable="false">';}
 for(const k in TILES)TILES[k].i=ic(k);                // tile icons are now images (HTML), used in every card and tile
 for(const k in RELICS)RELICS[k].ico=ic(k);
 function glow(x,y,r,c0,c1){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,c0);gr.addColorStop(1,c1||'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
-function foeKey(f){let n=FOEFILE[f.e]||'boar';if(f.boss){if(f.e==='🐻‍❄️')n='icebear';if(f.e==='👹')n='void';}return n;}
+function foeKey(f){if(f.art)return f.art;let n=FOEFILE[f.e]||'boar';if(f.boss){if(f.e==='🐻‍❄️')n='icebear';if(f.e==='👹')n='void';}return n;}
 function drawFoeEmoji(f){
  g.save();g.translate(f.x-f.lunge*26,f.y);
  g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.ellipse(0,0,24,6,0,0,TAU);g.fill();
@@ -1080,9 +1076,9 @@ function drawFoeEmoji(f){
 }
 function drawFoeImg(f,nm,im){
  const now=performance.now(),T=now/1000,dying=f.hp<=0,dt=dying?Math.min(1,(now-f.dieT)/450):0;
- const bs=f.boss?(nm==='dragon'?1.45:nm==='scorpion'?1.55:1.75):1,hh=(FOEH[nm]||70)*bs;
+ const bs=f.boss?(/^bossd/.test(nm)?1:nm==='dragon'?1.45:nm==='scorpion'?1.55:1.75):1,hh=(FOEH[nm]||70)*bs;
  const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,ww=hh*iw/ih;
- const fly=(nm==='bat'||nm==='ghost')?18+Math.sin(T*2.3+f.x)*6:0,breathe=1+Math.sin(T*3.1+f.x*.05)*.015;
+ const fly=(nm==='bat'||nm==='ghost'||nm==='a0_2'||nm==='a1_2'||nm==='a3_1'||nm==='a6_0')?18+Math.sin(T*2.3+f.x)*6:0,breathe=1+Math.sin(T*3.1+f.x*.05)*.015;
  if(f.boss&&!dying)glow(f.x,f.y-hh*.5,hh*.95,'rgba(255,70,40,.30)','rgba(255,70,40,0)');
  g.save();
  g.fillStyle='rgba(0,0,0,'+(.36*(1-dt))+')';g.beginPath();g.ellipse(f.x,f.y+1,ww*.36,6*Math.min(1.6,bs),0,0,TAU);g.fill();
