@@ -127,6 +127,10 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 #sheet .sb{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(112px + env(safe-area-inset-top));max-width:min(92vw,520px);background:rgba(20,14,9,.96);border:1px solid var(--gold);padding:7px 12px;border-radius:10px;z-index:22;pointer-events:none;font-size:13px;opacity:0;transition:opacity .25s}
 #toast.show{opacity:1}
+#retbtn{position:absolute;right:8px;top:8px;z-index:6;padding:8px 12px;border-radius:999px;border:2px solid #ffd24a;background:linear-gradient(180deg,#7a4fd0,#4a2a96);color:#fff3c4;font:800 13px Cinzel,Georgia,serif;letter-spacing:.04em;cursor:pointer;box-shadow:0 0 16px rgba(176,107,255,.8);animation:retpulse 1.8s ease-in-out infinite}
+#retbtn[hidden]{display:none}
+@keyframes retpulse{50%{transform:scale(1.07);box-shadow:0 0 28px rgba(200,140,255,1)}}
+@media (prefers-reduced-motion:reduce){#retbtn{animation:none}}
 #loot{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,rgba(var(--lc),.28),rgba(6,4,2,.82) 70%);animation:lootbg .25s ease-out;cursor:pointer;overflow:hidden}
 #loot.out{animation:lootout .25s ease-in forwards}
 @keyframes lootbg{from{opacity:0}to{opacity:1}}@keyframes lootout{to{opacity:0}}
@@ -260,7 +264,7 @@ canvas.shake{animation:shake .6s}
  </header>
  <button id="spoils" data-sheet="deck" hidden><img class="ico" src="assets/icons/treasury.png" alt="" draggable="false"> Boss spoils! Tap to choose a tile</button>
  <section id="roadw" class="card"><div id="road"></div></section>
- <section id="stage"><canvas id="c" width="800" height="320"></canvas><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
+ <section id="stage"><canvas id="c" width="800" height="320"></canvas><button id="retbtn" hidden></button><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
  <section id="ctrl" class="card">
   <div class="bar"><i id="inkF" style="background:#6aa8ff"></i><b id="inkT"></b></div>
   <div class="row3"><button id="reroll">↻ Redraw</button><button id="insbtn"></button><span id="spd"></span></div>
@@ -779,13 +783,14 @@ function swapHero(pos,nid){
  say(HEROES[nid].n+' takes '+HEROES[old].n+"'s place.");save();
 }
 function reroll(){if(S.rd<1)return;S.rd-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
-let retireArmed=0;   // two-tap confirm (window.confirm is unavailable in embedded viewers)
 function retire(){
  const g=legGain();if(!g)return;
- if(Date.now()>retireArmed){retireArmed=Date.now()+4000;say('Tap Retire again within 4s to confirm: gold, levels, relics and recruits reset. Each Legend gives +12% to all heroes permanently.');$('leg').textContent='Tap again to confirm';return;}
- retireArmed=0;
+ showModal('Retire the company?','<p>Your heroes become <b>Legends</b>: <b>+'+g+' Legend</b> now, <b>+12% to all stats</b> each, forever.</p><p><b style="color:#ff9a8a">Resets:</b> gold, hero levels, relics, deck, and your depth (back to Act I).</p><p><b style="color:#8fd8ff">Keeps:</b> Legend, Boons, unlocked heroes, party, skill ranks and shards.</p>',[{t:'Retire · +'+g+' Legend',primary:true,fn:doRetire},{t:'Keep going'}]);
+}
+function doRetire(){
+ const g=legGain();if(!g)return;
  const keep={regionStart:0,best:S.best,legend:S.legend+g,boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),shards:S.shards||0};
- S=fresh(keep);buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';
+ S=fresh(keep);buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
 /* ---------- UI ---------- */
@@ -845,7 +850,9 @@ function build(){
  {const EFF={whet:n=>'+'+12*n+'% damage',oak:n=>'+'+12*n+'% max HP',coin:n=>'+'+15*n+'% gold',ink:n=>'+'+n+' redraw'+(n>1?'s':''),fang:n=>'heals '+3*n+'% of damage dealt',boots:n=>'+'+8*n+'% speed'};
   const keys=RK.slice().sort((a,b)=>(S.relics[b]||0)-(S.relics[a]||0));
   $('relics').innerHTML=keys.map(k=>{const n=S.relics[k]||0,r=RELICS[k];return `<div class="rl ${n?'':'unk'}"><div class="ic">${r.ico}</div><div><div class="nm">${r.n}${n?' <small>×'+n+'</small>':''}</div><div class="hint">${r.d} each, stacks</div></div><div class="eff">${n?EFF[k](n):'Not found yet'}</div></div>`;}).join('');}
- const lg=legGain();$('leg').disabled=!lg;$('leg').textContent=lg?(Date.now()<retireArmed?'Tap again to confirm':`Retire the company: +${lg} Legend`):'Retire the company';
+ const lg=legGain();$('leg').disabled=!lg;$('leg').textContent=lg?`Retire the company: +${lg} Legend`:'Retire the company';
+ {const rb=$('retbtn');rb.hidden=!lg;if(lg){rb.textContent='★ Retire · +'+lg+' Legend';}
+  if(lg&&!S.retHint&&$('modal').hidden){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero each, permanently). Retire any time with the glowing <b>★ Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
  $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats). Unlocks at tile 30.`;
  $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">▶ x${speed}</button>`;
  $('reroll').disabled=S.rd<1;
@@ -974,7 +981,7 @@ document.addEventListener('click',e=>{
   else if('cancelTake' in b.dataset){pendingTake=null;sig='';}
   else if(b.dataset.s)speed=+b.dataset.s,sig='';
   else if(b.id==='reroll')reroll();
-  else if(b.id==='leg')retire();
+  else if(b.id==='leg'||b.id==='retbtn')retire();
   return;
  }
  if(h){if(Date.now()<noClickUntil)return;const i=+h.dataset.h;selCard=selCard===i?-1:i;inscribing=false;sig='';}
