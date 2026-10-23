@@ -600,7 +600,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023121431';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023122255';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1915,7 +1915,7 @@ function drawFoeEmoji(f){
  g.font=(f.boss?96:56)+'px serif';g.textAlign='center';g.globalAlpha=f.flash>0?.55:1;g.fillText(f.e,0,f.boss?-6:-4);g.globalAlpha=1;
  g.restore();if(!f.boss)hpBar(f.x,f.y-72,44,f.hp/f.max,'#e0584a');
 }
-const FACES_RIGHT=new Set(['a10_2','a11_0','a13_1','a13_2','a15_0','a16_0','a18_0','a18_2','boss17','boss20','boss1','a7_2','a8_0','a8_1','a8_2','a9_0','a9_1','a9_2']);
+const FACES_RIGHT=new Set(['a11_0','a13_1','a13_2','a15_0','a16_0','a18_0','a18_2','boss17','boss20','a7_2','a8_0','a8_1','a8_2','a9_0','a9_1','a9_2','a10_1','a11_1','a11_2','a12_0','a12_1','a12_2','a14_0','a14_1','a15_1','a15_2','a16_1','a16_2','a17_0','a17_1','a17_2','a18_1','a19_0','a19_1','a19_2','boss15']);
 function drawFoeImg(f,nm,im){
  const now=performance.now(),T=now/1000,dying=f.hp<=0,dt=dying?Math.min(1,(now-f.dieT)/450):0;
  const bs=(f.boss?(/^boss\d/.test(nm)?1.15:nm==='dragon'?1.45:nm==='scorpion'?1.55:1.75):1)*(f.boss?(()=>{const nb=foes.filter(x=>x.boss).length;return nb>2?.62:nb>1?.8:1;})():1),hh=(FOEH[nm]||70)*bs;
