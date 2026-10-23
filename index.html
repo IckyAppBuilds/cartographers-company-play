@@ -565,7 +565,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022224746';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022225743';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -733,7 +733,9 @@ const HSK=[   // one skill per hero; each shard rank (max 5) makes it stronger
  {n:'Verdant Bloom',d:r=>'Every 3rd action heals the whole company: 5% max HP + '+(1+.3*r).toFixed(1)+'× attack.'},
  {n:'Aegis',d:r=>'While standing, every ally takes '+(6+3*r)+'% less damage.'}
 ];
-const SK_MAX=5,skCost=r=>2*(r+1),HCOST=[0,0,0,0,15,20,20,25];   // shard prices: skill rank r→r+1, and unlocking a hero for good
+const SK_PER_STAR=5,STAR_MAX=3,HCOST=[0,0,0,0,15,20,20,25];
+const skCost=r=>Math.round(3*(r+1)**1.4),starCost=s=>Math.round(40*(s+1)**1.4);   // shard prices: skill rank r→r+1, a champion star, and unlocking a hero for good
+const star=i=>(S.star&&S.star[i])||0,skMax=i=>SK_PER_STAR*(1+star(i)),SK_MAX=SK_PER_STAR;   // shard prices: skill rank r→r+1, and unlocking a hero for good
 const skr=i=>(S.sk&&S.sk[i])||0;
 const recruitCost=i=>RECRUIT[Math.max(0,S.order.indexOf(i))];   // recruit price follows the party slot
 const RELICS={
@@ -745,7 +747,7 @@ const RK=Object.keys(RELICS);
 /* ---------- state ---------- */
 function fresh(keep){
  const S={gold:20,rd:3,depth:keep?keep.regionStart:0,best:keep?keep.best:0,legend:keep?keep.legend:0,
-  lv:[1,1,1,1,1,1,1,1],un:[false,false,false,false,false,false,false,false],hp:[0,0,0,0,0,0,0,0],relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},shards:keep?keep.shards:0,streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
+  lv:[1,1,1,1,1,1,1,1],un:[false,false,false,false,false,false,false,false],hp:[0,0,0,0,0,0,0,0],relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},shards:keep?keep.shards:0,streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  S.un[S.order[0]]=true;
  return S;
@@ -763,7 +765,7 @@ if(!S.boons)S.boons={};
 if(S.rd==null)S.rd=3;delete S.ink;
 {const sc=S.seen||(S.seen={});S.deck.forEach(k=>sc[k]=1);}
 for(const p of ['un','hp','lv'])while(S[p].length<8)S[p].push(p==='un'?false:p==='lv'?1:0);
-if(!Array.isArray(S.owned))S.owned=[0,1,2,3];if(!S.sk)S.sk={};if(S.shards==null)S.shards=0;
+if(!Array.isArray(S.owned))S.owned=[0,1,2,3];if(!S.sk)S.sk={};if(!S.star)S.star={};if(S.shards==null)S.shards=0;
 if(!Array.isArray(S.order)||S.order.length!==4||new Set(S.order).size!==4||S.order.some(i=>!S.owned.includes(i)))S.order=[0,1,2,3];   // party formation, front to back
 while(S.deck.length>10){const c=S.deck.pop();for(const p of ['draw','disc','hand'])if(removeOne(S[p],c))break;}
 if(S.hand.length+S.draw.length+S.disc.length!==S.deck.length){S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}   // repair an inconsistent save
@@ -771,8 +773,8 @@ while(S.deck.length<5)S.deck.push('forest'),S.disc.push('forest');
 let log=[],selCard=-1,speed=1,sig='',phase='walk',pt=0,foes=[],H=[],fxT=[],scroll=0,gained=0,saveT=0,curSyn=null,curBoss=false,curMod=null,inscribing=false,inscribeOpts=[];
 function say(m){log.unshift(m);log=log.slice(0,6);}
 const region=d=>Math.floor(d/10);
-const heroMax=i=>HEROES[i].hp*1.16**(S.lv[i]-1)*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
-const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
+const heroMax=i=>HEROES[i].hp*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
+const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
 const goldMul=()=>(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
@@ -1116,7 +1118,13 @@ function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[
 function recruit(i){if(S.un[i]||S.gold<recruitCost(i))return;S.gold-=recruitCost(i);S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
 function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c)return;S.gold-=c;const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
 let swapId=null;
-function upSkill(i){const r=skr(i);if(!S.owned.includes(i)||r>=SK_MAX||S.shards<skCost(r))return;S.shards-=skCost(r);S.sk[i]=r+1;say(HEROES[i].n+': '+HSK[i].n+' rank '+(r+1)+'.');sig='';save();}
+function starUp(i){   // after the last skill rank of the current star, a champion can ascend: +5 more ranks and +12% stats
+ const s=star(i);if(!S.owned.includes(i)||skr(i)<skMax(i)||s>=STAR_MAX||S.shards<starCost(s))return;
+ S.shards-=starCost(s);S.star[i]=s+1;sig='';save();
+ loot({head:'Champion ascends!',icon:heroIcon(i),name:HEROES[i].n+' '+'★'.repeat(s+1),sub:'Star '+(s+1)+' · +12% stats',desc:'Skill ranks now go up to '+skMax(i)+'.',rar:3,col:[255,208,74]});
+ say(HEROES[i].n+' ascends to '+'★'.repeat(s+1)+'!');
+}
+function upSkill(i){const r=skr(i);if(!S.owned.includes(i)||r>=skMax(i)||S.shards<skCost(r))return;S.shards-=skCost(r);S.sk[i]=r+1;say(HEROES[i].n+': '+HSK[i].n+' rank '+(r+1)+'.');sig='';save();}
 function unlockHero(i){if(S.owned.includes(i)||S.shards<HCOST[i])return;S.shards-=HCOST[i];S.owned.push(i);say(HEROES[i].n+' the '+HEROES[i].c+' can now join your party!');sig='';save();}
 function swapHero(pos,nid){
  const old=S.order[pos];swapId=null;sig='';
@@ -1132,7 +1140,7 @@ function retire(){
 }
 function doRetire(){
  const g=legGain();if(!g)return;
- const keep={regionStart:0,best:S.best,legend:S.legend+g,boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),shards:S.shards||0,life:S.life||{}};
+ const keep={regionStart:0,best:S.best,legend:S.legend+g,boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),shards:S.shards||0,life:S.life||{}};
  S=fresh(keep);st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
@@ -1183,12 +1191,12 @@ function build(){
    <div class="mstats"><div><b>${done}</b><small>map pieces</small></div><div><b>${Math.floor(Math.max(S.best,S.depth)/10)+1}</b><small>furthest act</small></div><div><b>${S.deaths||0}</b><small>falls</small></div><div><b>${S.legend}</b><small>Legend</small></div></div>
    <div class="hint" style="margin-bottom:6px">Next Cartographer's Boon after Warden ${nm} (${nm-done} to go).${bl?' Boons: '+bl+'.':''}</div>${rows}`;}
  $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
- $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?(skr(i)<SK_MAX&&S.shards>=skCost(skr(i))):S.shards>=HCOST[i]));
+ $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?((skr(i)<skMax(i)&&S.shards>=skCost(skr(i)))||(skr(i)>=skMax(i)&&star(i)<STAR_MAX&&S.shards>=starCost(star(i)))):S.shards>=HCOST[i]));
  $('nav-deck').classList.toggle('dot',!!S.offer);syncSpoils();
- $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(SK_MAX-skr(i))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
+ $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(Math.max(0,skMax(i)-skr(i)))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
  $('shd').textContent=S.shards||0;
- $('roster').innerHTML=HEROES.map((h,i)=>{const own=S.owned.includes(i),inP=S.order.includes(i),r=skr(i),mx=r>=SK_MAX,sc=skCost(r),can=own?(!mx&&S.shards>=sc):S.shards>=HCOST[i];
-  return `<div class="hero ${own?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${inP?' · in party':own?'':' · locked'}</small></div><small>${HSK[i].n} ${'●'.repeat(r)}${'○'.repeat(SK_MAX-r)}: ${HSK[i].d(r)}${own&&!mx?'<br>Next rank: '+HSK[i].d(r+1):''}</small></div><div class="mv">${own&&!inP?`<button data-pick="${i}">${swapId===i?'Cancel':'Swap in'}</button>`:''}</div><button ${own?'data-sk':'data-unlock'}="${i}" ${can?'':'disabled'}>${own?(mx?'Max':'Skill ↑<br>◆ '+sc):'Unlock<br>◆ '+HCOST[i]}</button></div>`;}).join('');
+ $('roster').innerHTML=HEROES.map((h,i)=>{const own=S.owned.includes(i),inP=S.order.includes(i),r=skr(i),sm=skMax(i),stv=star(i),mx=r>=sm,fin=mx&&stv>=STAR_MAX,sc=mx?starCost(stv):skCost(r),can=own?(fin?false:S.shards>=sc):S.shards>=HCOST[i];
+  return `<div class="hero ${own?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n}${stv?' <span class="gold">'+'★'.repeat(stv)+'</span>':''} <small>${h.c}${inP?' · in party':own?'':' · locked'}</small></div><small>${HSK[i].n} ${'●'.repeat(r)}${'○'.repeat(sm-r)}: ${HSK[i].d(r)}${own&&!mx?'<br>Next rank: '+HSK[i].d(r+1):''}${own&&mx&&!fin?'<br><b>Rank limit reached.</b> Star up for +12% stats and 5 more ranks.':''}</small></div><div class="mv">${own&&!inP?`<button data-pick="${i}">${swapId===i?'Cancel':'Swap in'}</button>`:''}</div><button ${own?(mx&&!fin?'data-star':'data-sk'):'data-unlock'}="${i}" ${can?'':'disabled'}>${own?(fin?'Max ★':mx?'Star up ★<br>◆ '+sc:'Skill ↑<br>◆ '+sc):'Unlock<br>◆ '+HCOST[i]}</button></div>`;}).join('');
  // relics list (see below)
  {const EFF={whet:n=>'+'+12*n+'% damage',oak:n=>'+'+12*n+'% max HP',coin:n=>'+'+15*n+'% gold',ink:n=>'+'+n+' redraw'+(n>1?'s':''),fang:n=>'heals '+3*n+'% of damage dealt',boots:n=>'+'+8*n+'% speed'};
   const keys=RK.slice().sort((a,b)=>(S.relics[b]||0)-(S.relics[a]||0));
@@ -1422,6 +1430,7 @@ document.addEventListener('click',e=>{
  const mv=e.target.closest('[data-move]');if(mv){const [p,d]=mv.dataset.move.split(':').map(Number);moveHero(p,d);return;}
  if(b){
   if(b.dataset.lv!==undefined){const i=+b.dataset.lv;S.un[i]?levelUp(i):recruit(i);}
+  else if(b.dataset.star!==undefined)starUp(+b.dataset.star);
   else if(b.dataset.sk!==undefined)upSkill(+b.dataset.sk);
   else if(b.dataset.unlock!==undefined)unlockHero(+b.dataset.unlock);
   else if(b.dataset.pick!==undefined){const i=+b.dataset.pick;swapId=swapId===i?null:i;sig='';}
