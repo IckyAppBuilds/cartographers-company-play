@@ -600,8 +600,29 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023123521';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023124048';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
+if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
+/* ---------- crash and usage reporting: uncaught errors go to a write-only table, plus one anonymous ping per device per day (no account, no personal data) ---------- */
+const TELE=(()=>{
+ const off=BUILD==='dev'||/^(localhost|127\.|\[::1\])/.test(location.hostname)||/[?&]notele/.test(location.search),plat=window.__ICKY_NATIVE!==undefined?'app':'web',seen={};let sent=0;
+ const post=(table,row)=>{try{fetch(SB_URL+'/rest/v1/'+table,{method:'POST',keepalive:true,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(row)}).catch(()=>{});}catch(e){}};
+ const cut=(s,n)=>String(s==null?'':s).slice(0,n);
+ function err(kind,msg,stack,src){
+  if(off||sent>=5)return;const key=cut(msg,80)+cut(src,60);if(seen[key])return;seen[key]=1;sent++;
+  let depth=null;try{depth=S.depth;}catch(e){}
+  post('client_errors',{build:BUILD,platform:plat,kind,msg:cut(msg,500)||'(no message)',stack:stack?cut(stack,2000):null,src:src?cut(src,200):null,ua:cut(navigator.userAgent,200),depth});
+ }
+ window.addEventListener('error',e=>err('error',e.message,e.error&&e.error.stack,(e.filename||'')+':'+e.lineno+':'+e.colno));
+ window.addEventListener('unhandledrejection',e=>{const r=e.reason;err('promise',r&&r.message||r,r&&r.stack);});
+ try{   // one anonymous ping per device per day, so you can see how many people play
+  const day=new Date().toISOString().slice(0,10);let p=null;try{p=JSON.parse(localStorage.getItem('cc-ping')||'null');}catch(e){}
+  if(!off&&(!p||p.day!==day)){const cid=(p&&p.cid)||(crypto.randomUUID?crypto.randomUUID():'10000000-1000-4000-8000-100000000000'.replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)));
+   try{localStorage.setItem('cc-ping',JSON.stringify({day,cid}));}catch(e){}
+   post('daily_pings',{day,cid,build:BUILD,platform:plat});}
+ }catch(e){}
+ return{err};
+})();
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
