@@ -600,9 +600,25 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023124048';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023130832';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
+/* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
+(function(){
+ let box=null;
+ const close=()=>{if(box){box.remove();box=null;}};
+ function open(url){
+  if(box)return;
+  box=document.createElement('div');box.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#17100a;display:flex;flex-direction:column';
+  const bar=document.createElement('div');bar.style.cssText='display:flex;justify-content:flex-end;padding:8px 10px;background:#2a1d10;border-bottom:2px solid #ffd24a';
+  const b=document.createElement('button');b.textContent='✕ Close';b.style.cssText='padding:10px 18px;border-radius:999px;border:2px solid #ffd24a;background:#4a2a96;color:#fff3c4;font:700 16px Georgia,serif;cursor:pointer';b.onclick=close;
+  const f=document.createElement('iframe');f.src=url;f.style.cssText='flex:1;border:0;width:100%;background:#17100a';
+  bar.appendChild(b);box.append(bar,f);document.body.appendChild(box);
+ }
+ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(!a)return;const h=a.getAttribute('href')||'';if(!/^(terms|privacy)\.html$/.test(h))return;if(a.closest('#legalbox'))return;e.preventDefault();open(h);},true);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+ window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data==='cc-close')close();});
+})();
 /* ---------- crash and usage reporting: uncaught errors go to a write-only table, plus one anonymous ping per device per day (no account, no personal data) ---------- */
 const TELE=(()=>{
  const off=BUILD==='dev'||/^(localhost|127\.|\[::1\])/.test(location.hostname)||/[?&]notele/.test(location.search),plat=window.__ICKY_NATIVE!==undefined?'app':'web',seen={};let sent=0;

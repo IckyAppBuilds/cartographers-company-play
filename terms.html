@@ -8,7 +8,8 @@ body{margin:0;background:#17100a;color:#e8d9b5;font:16px/1.6 Georgia,'Times New 
 main{max-width:720px;margin:0 auto;padding:28px 18px 60px}
 h1{font-size:28px;color:#ffe9a8;margin:0 0 4px}h2{font-size:19px;color:#ffd24a;margin:28px 0 6px}
 a{color:#ffd24a}.d{color:#a8977a}ul{padding-left:20px}li{margin:4px 0}
-</style></head><body><main>
+#closebar{position:sticky;top:0;z-index:5;display:flex;justify-content:flex-end;padding:8px 12px;background:#2a1d10;border-bottom:2px solid #ffd24a}#closebar button{padding:9px 18px;border-radius:999px;border:2px solid #ffd24a;background:#4a2a96;color:#fff3c4;font:700 16px Georgia,serif;cursor:pointer}
+</style></head><body><div id="closebar"><button type="button" id="closebtn">✕ Close</button></div><main>
 <h1>Terms of Service</h1>
 <p class="d">Cartographer's Company, by IckyAppBuilds ("we", "us"). Effective date: 23 October 2026.</p>
 
@@ -49,4 +50,4 @@ a{color:#ffd24a}.d{color:#a8977a}ul{padding-left:20px}li{margin:4px 0}
 
 <h2>12. Contact</h2>
 <p>IckyAppBuilds, Illinois, United States<br>contact@ickyappbuilds.com</p>
-</main></body></html>
+</main><script>if(window.parent!==window)document.getElementById("closebar").style.display="none";document.getElementById("closebtn").onclick=function(){if(window.parent!==window){window.parent.postMessage("cc-close",location.origin);return;}if(window.opener){window.close();}if(history.length>1){history.back();return;}location.href="index.html";};</script></body></html>
