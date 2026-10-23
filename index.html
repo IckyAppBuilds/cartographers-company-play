@@ -475,7 +475,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022222104';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022222449';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1634,8 +1634,8 @@ function draw(dt){
  // event / banner
  g.textAlign='center';
  if(phase==='event'){g.fillStyle='rgba(0,0,0,.35)';g.fillRect(250,90,300,60);g.fillStyle='#fff';g.font='bold 22px Georgia';g.fillText(t.n,400,128);}
- if(phase==='fight'&&curSyn){g.fillStyle='rgba(0,0,0,.4)';g.fillRect(300,10+TOPY+bossH,200,26);g.fillStyle='#ffd24a';g.font='bold 14px Georgia';g.fillText('★ '+curSyn.n,400,28+TOPY+bossH);}
- if(S.bless>0){g.fillStyle='rgba(255,230,120,.8)';g.font='14px serif';g.textAlign='left';g.fillText('✨ Blessed',10,22+TOPY);}
+ // (the in-battle combo banner was removed: combos show on the road tiles instead)
+ // (blessing shows in the header counter, not over the battle)
  if(phase==='dead'){
   const p=Math.min(1,pt/DEATH_TIME);
   g.fillStyle='rgba(110,0,12,'+(.5*Math.min(1,p*2.5))+')';g.fillRect(0,-EX,800,320+EX);
