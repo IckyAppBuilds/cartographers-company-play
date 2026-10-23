@@ -634,7 +634,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023140705';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023141124';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1641,6 +1641,7 @@ function build(){
  $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
  $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?((skr(i)<skMax(i)&&hsh(i)>=skCost(skr(i),i))||(skr(i)>=skMax(i)&&star(i)<STAR_MAX&&hsh(i)>=starCost(star(i),i))):(actOK(i)&&hsh(i)>=HCOST[i])));
  $('nav-deck').classList.toggle('dot',!!S.offer);syncSpoils();
+ $('nav-shop').classList.toggle('dot',ADS.ok()&&adLeft('chest')===0);   // the free chest is ready
  $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}" style="border-left:4px solid ${RARCOL[h.q]};padding-left:6px"><div class="ic" style="box-shadow:inset 0 0 0 2px ${RARCOL[h.q]}">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c} · ${h.r} · ${rarTag(i)}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(Math.max(0,skMax(i)-skr(i)))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
  $('shd').textContent=shardTot();$('synergy').innerHTML=synergyHTML();
  $('roster').innerHTML=rosterHTML();
@@ -1822,9 +1823,9 @@ function shopRender(){
  h+='<h3>Supplies</h3>'+Object.keys(SUPPLIES).map(k=>card(k,SUPPLIES[k].ic,SUPPLIES[k].n,SUPPLIES[k].d,supPrice(k))).join('');
  h+='<h3 style="margin-top:14px">Relics</h3>'+st.rel.map((x,i)=>x.sold?card('',RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,0,'','Sold'):card('r_'+i,RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,relPrice())).join('');
  h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard','◆','Hero Shard','A shard for your party or the hero you are working toward. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
- if(ADS.ok()){const bl=adLeft('boost'),sl=adLeft('shard'),mm=x=>Math.ceil(x/60)+' min';
-  const ac=(id,ico,name,desc,left)=>'<div class="sc"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-ad="'+id+'"'+(left>0?' disabled':'')+'>'+(left>0?mm(left):'▶ Watch')+'</button></div>';
-  h+='<h3 style="margin-top:14px">Free rewards</h3>'+ac('boost','🪙','Gold x2','Double gold for 10 minutes.'+(S.boostT>0?' Active: '+mm(S.boostT)+' left.':''),bl)+ac('shard','◆','Hero Shard','One free shard.',sl);}
+ if(ADS.ok()){const full=(S.boostT||0)>=BOOST_CAP-60,bl=full?1:adLeft('boost'),sl=adLeft('shard'),cl=adLeft('chest'),mm=longTxt;
+  const ac=(id,ico,name,desc,left,lbl)=>'<div class="sc"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-ad="'+id+'"'+(left>0?' disabled':'')+'>'+(left>0?(lbl||mm(left)):'▶ Watch')+'</button></div>';
+  h+='<h3 style="margin-top:14px">Free rewards</h3>'+ac('chest','🎁','Free Chest','A random reward: gold, a relic or hero shards. Ready every 4 hours.',cl)+ac('boost',ic('coin','coin'),'Gold x2','Each ad adds 30 minutes of double gold, stacking up to 4 hours.'+(S.boostT>0?' Stored: '+boostTxt(S.boostT)+'.':''),bl,full?'Full':null)+ac('shard','◆','Hero Shard','One free shard.',sl);}
  if(CASH_STORE)h+='<h3 style="margin-top:14px">Premium <small style="opacity:.7;font-weight:400">· test mode: nothing is charged</small></h3>'+Object.keys(PREM).map(premCard).join('');
  return h;
 }
@@ -1874,7 +1875,7 @@ function hud(){
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
  {const sh=((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
- $('rate').textContent='≈ '+fmt(S.rate)+' gold/s';
+ $('rate').textContent='≈ '+fmt(S.rate)+' gold/s'+(S.boostT>0?' · ⚡x2 '+boostTxt(S.boostT):'');
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
  for(const i of S.order){const f=$('hb'+i),t=$('ht'+i);if(!f)continue;const m=heroMax(i);f.style.width=100*Math.max(0,S.hp[i])/m+'%';t.textContent=S.hp[i]<=0?'Fallen':Math.ceil(S.hp[i])+' / '+Math.ceil(m);}
  if(sheet==='stats'){const h=statsRender();if(h!==shopHTML.s){shopHTML.s=h;$('statsBody').innerHTML=h;}}
@@ -2279,13 +2280,17 @@ const ADS=(()=>{
   show:async()=>{if(busy||!(native||bridge||demo))return false;busy=true;SND.hold(true);try{return bridge?await bridgeAd():native?await nativeAd():await testAd();}finally{busy=false;SND.hold(false);}}
  };
 })();
-const AD_CD={boost:600,shard:1800};   // seconds between uses of the Shop rewards
+const AD_CD={boost:60,shard:1800,chest:4*3600};   // seconds between uses of the Shop rewards
 const adLeft=k=>Math.max(0,Math.ceil(((S.adT||{})[k]||0)+AD_CD[k]-Date.now()/1000));
-const BOOST_SECS=600;
+const BOOST_ADD=1800,BOOST_CAP=4*3600;   // each ad adds 30 minutes of gold x2, stacking up to 4 hours
+const boostTxt=s=>s>=3600?Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m':Math.ceil(s/60)+' min';
+const longTxt=s=>s>=3600?Math.floor(s/3600)+'h '+Math.ceil(s%3600/60)+'m':Math.ceil(s/60)+' min';
 async function adReward(k){
- if(k==='boost'||k==='shard'){if(adLeft(k)>0)return;}
+ if(k==='boost'&&(S.boostT||0)>=BOOST_CAP-60){toast('Your boost is already full (4 hours).');return;}
+ if(k==='boost'||k==='shard'||k==='chest'){if(adLeft(k)>0)return;}
  const ok=await ADS.show();if(!ok){toast('No reward: the ad was not finished.');return;}
- if(k==='boost'){S.boostT=BOOST_SECS;(S.adT||(S.adT={})).boost=Date.now()/1000;toast('Gold x2 for 10 minutes!');say('Ad bonus: gold x2 for 10 minutes.');}
+ if(k==='boost'){S.boostT=Math.min(BOOST_CAP,(S.boostT||0)+BOOST_ADD);(S.adT||(S.adT={})).boost=Date.now()/1000;toast('+30 min gold x2 ('+boostTxt(S.boostT)+' stored)');say('Ad bonus: +30 minutes of gold x2, '+boostTxt(S.boostT)+' stored.');}
+ else if(k==='chest'){(S.adT||(S.adT={})).chest=Date.now()/1000;const q=Math.random();const txt=q<.5?gGold(1.5,1):q<.7?gRelic(1,1):q<.9?gShard(3,1):gRelic(1,1)+', '+gShard(3,1)+' and '+gGold(2,1);toast('Chest: '+txt);say('Free chest: '+txt+'.');}
  else if(k==='shard'){addShards(1);(S.adT||(S.adT={})).shard=Date.now()/1000;toast('+1 hero shard');say('Ad bonus: +1 hero shard.');loot({head:'Ad bonus',icon:'◆',name:'Hero Shard',sub:'+1',desc:'Spend shards on skills and heroes.',rar:2,col:[143,216,255]});}
  sig='';save();
 }
