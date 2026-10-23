@@ -337,7 +337,7 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022211304';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022211732';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 /* ---------- version check: if the server has a newer build than the one running, load it (GitHub Pages and browsers cache aggressively) ---------- */
 (function(){
@@ -531,7 +531,7 @@ const region=d=>Math.floor(d/10);
 const heroMax=i=>HEROES[i].hp*1.16**(S.lv[i]-1)*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
 const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
-const goldMul=()=>(S.fort>0?1.5:1)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+const goldMul=()=>(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
 const legGain=()=>S.depth>=30?Math.floor(S.depth/10)-1:0;
@@ -821,7 +821,7 @@ function swapHero(pos,nid){
 function reroll(){if(S.rd<1)return;S.rd-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
 function retire(){
  const g=legGain();if(!g)return;
- showModal('Retire the company?','<p>Your heroes become <b>Legends</b>: <b>+'+g+' Legend</b> now, <b>+12% to all stats</b> each, forever.</p><p><b style="color:#ff9a8a">Resets:</b> gold, hero levels, relics, deck, and your depth (back to Act I).</p><p><b style="color:#8fd8ff">Keeps:</b> Legend, Boons, unlocked heroes, party, skill ranks and shards.</p>',[{t:'Retire · +'+g+' Legend',primary:true,fn:doRetire},{t:'Keep going'}]);
+ showModal('Retire the company?','<p>Your heroes become <b>Legends</b>: <b>+'+g+' Legend</b> now, <b>+12% to all stats and +10% gold</b> each, forever.</p><p><b style="color:#ff9a8a">Resets:</b> gold, hero levels, relics, deck, and your depth (back to Act I).</p><p><b style="color:#8fd8ff">Keeps:</b> Legend, Boons, unlocked heroes, party, skill ranks and shards.</p>',[{t:'Retire · +'+g+' Legend',primary:true,fn:doRetire},{t:'Keep going'}]);
 }
 function doRetire(){
  const g=legGain();if(!g)return;
@@ -888,8 +888,8 @@ function build(){
   $('relics').innerHTML=keys.map(k=>{const n=S.relics[k]||0,r=RELICS[k];return `<div class="rl ${n?'':'unk'}"><div class="ic">${r.ico}</div><div><div class="nm">${r.n}${n?' <small>×'+n+'</small>':''}</div><div class="hint">${r.d} each, stacks</div></div><div class="eff">${n?EFF[k](n):'Not found yet'}</div></div>`;}).join('');}
  const lg=legGain();$('leg').disabled=!lg;$('leg').textContent=lg?`Retire the company: +${lg} Legend`:'Retire the company';
  {const rb=$('retbtn');rb.hidden=!lg;if(lg){rb.textContent='★ Retire +'+lg;}
-  if(lg&&!S.retHint&&$('modal').hidden){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero each, permanently). Retire any time with the glowing <b>★ Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
- $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats). Unlocks at tile 30.`;
+  if(lg&&!S.retHint&&$('modal').hidden){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>★ Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
+ $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats, +${S.legend*10}% gold). Unlocks at tile 30.`;
  $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">▶ x${speed}</button>`;
  $('reroll').disabled=S.rd<1;
 }
