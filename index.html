@@ -262,7 +262,8 @@ canvas.shake{animation:shake .6s}
  <div class="sp" role="dialog" aria-modal="true">
   <div class="sh"><h3 id="sheetTitle"></h3><button data-close aria-label="Close menu">✕ Close</button></div>
   <div class="sb">
-   <div class="pane" data-pane="party" hidden><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div></div>
+   <div class="pane" data-pane="party" hidden><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div>
+    <h3 style="margin-top:16px">Roster · Hero shards ◆ <span id="shd"></span></h3><div class="hint" style="margin-bottom:6px">Bosses drop hero shards (elite fights sometimes do). Spend them to rank up a hero's skill or unlock new heroes. Skills, unlocked heroes and your party all stay when you retire. Tap Swap in on a hero, then choose which party slot they replace.</div><div id="roster"></div></div>
    <div class="pane" data-pane="deck" hidden>
     <div id="offer" hidden></div><div id="deck"></div><div class="pile" id="insum" style="margin-top:8px"></div>
     <div class="hint" style="margin-top:6px">Your deck holds up to 10 cards and each card can be played once. Every card returns when you beat a boss or die. Buy common and uncommon tiles; rare, epic and legendary tiles drop only from bosses. Burn weak cards so better ones come up (deck keeps at least 5). Echo-glyph cards go back into the draw pile when played.</div>
@@ -413,8 +414,26 @@ const HEROES=[
  {n:'Ser Bram',c:'Knight',hp:150,atk:7,spd:.8,col:'#6b8cff',hat:'helm',w:'🗡️',sk:'Every 3rd strike: Shield Bash (2×).'},
  {n:'Wren',c:'Ranger',hp:80,atk:11,spd:1.1,col:'#4caf6a',hat:'hood',w:'🏹',sk:'Targets weakest foe. 25% crit (2.2×).'},
  {n:'Ysolde',c:'Mage',hp:65,atk:9,spd:.7,col:'#b06bff',hat:'wiz',w:'🔮',sk:'Every 3rd cast: Fireball hits all foes.'},
- {n:'Brother Ansel',c:'Cleric',hp:95,atk:5,spd:.65,col:'#f2e6b0',hat:'halo',w:'✨',sk:'Every 2nd action heals the weakest ally.'}
+ {n:'Brother Ansel',c:'Cleric',hp:95,atk:5,spd:.65,col:'#f2e6b0',hat:'halo',w:'✨',sk:'Every 2nd action heals the weakest ally.'},
+ {n:'Vesper',c:'Rogue',hp:75,atk:10,spd:1.15,col:'#8a5aa0',hat:'hood',w:'🗡️',sk:''},
+ {n:'Brakka',c:'Berserker',hp:125,atk:9,spd:.85,col:'#c0463a',hat:'helm',w:'🪓',sk:''},
+ {n:'Thistle',c:'Druid',hp:90,atk:6,spd:.75,col:'#5aa05a',hat:'hood',w:'🌿',sk:''},
+ {n:'Seraph',c:'Paladin',hp:170,atk:5,spd:.6,col:'#9ec8ff',hat:'halo',w:'🛡️',sk:''}
 ];
+const LC=[1,1.15,1.3,1.45,1.15,1.1,1.3,1.4];   // per-hero level cost factor
+const HSK=[   // one skill per hero; each shard rank (max 5) makes it stronger
+ {n:'Shield Bash',d:r=>'Every 3rd strike hits for '+(2+.25*r).toFixed(2)+'×.'},
+ {n:'Deadeye',d:r=>'Targets the weakest foe. '+(25+4*r)+'% crit chance (2.2×).'},
+ {n:'Fireball',d:r=>'Every 3rd cast hits all foes for '+(1.3+.15*r).toFixed(2)+'×.'},
+ {n:'Mending',d:r=>'Every 2nd action heals the weakest ally: 10% max HP + '+(2.2+.4*r).toFixed(1)+'× attack.'},
+ {n:'Flurry',d:r=>'Strikes twice; the second hit deals '+(50+10*r)+'%.'},
+ {n:'Bloodrage',d:r=>'Deals up to +'+(50+12*r)+'% damage as their HP drops.'},
+ {n:'Verdant Bloom',d:r=>'Every 3rd action heals the whole company: 5% max HP + '+(1+.3*r).toFixed(1)+'× attack.'},
+ {n:'Aegis',d:r=>'While standing, every ally takes '+(6+3*r)+'% less damage.'}
+];
+const SK_MAX=5,skCost=r=>2*(r+1),HCOST=[0,0,0,0,15,20,20,25];   // shard prices: skill rank r→r+1, and unlocking a hero for good
+const skr=i=>(S.sk&&S.sk[i])||0;
+const recruitCost=i=>RECRUIT[Math.max(0,S.order.indexOf(i))];   // recruit price follows the party slot
 const RELICS={
  whet:{n:'Whetstone',i:'⚔️',d:'+12% damage'},oak:{n:'Oak Charm',i:'🌰',d:'+12% max HP'},coin:{n:'Lucky Coin',i:'💰',d:'+15% gold'},
  ink:{n:'Spare Page',i:'🧪',d:'+1 redraw per deck'},fang:{n:'Vampire Fang',i:'🦷',d:'Heal 3% of damage dealt'},boots:{n:'Swift Boots',i:'🥾',d:'+8% speed'}
@@ -424,8 +443,9 @@ const RK=Object.keys(RELICS);
 /* ---------- state ---------- */
 function fresh(keep){
  const S={gold:20,rd:3,depth:keep?keep.regionStart:0,best:keep?keep.best:0,legend:keep?keep.legend:0,
-  lv:[1,1,1,1],un:[true,false,false,false],hp:[0,0,0,0],relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:[0,1,2,3],streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,saved:Date.now()};
+  lv:[1,1,1,1,1,1,1,1],un:[false,false,false,false,false,false,false,false],hp:[0,0,0,0,0,0,0,0],relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},shards:keep?keep.shards:0,streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
+ S.un[S.order[0]]=true;
  return S;
 }
 function starterDeck(){return ['forest','forest','forest','forest','forest','village','village','village'];}   // Wilds is the free default road tile, never a card
@@ -438,7 +458,9 @@ for(const p of ['deck','draw','disc','hand'])S[p]=(S[p]||[]).filter(k=>kindOf(k)
 if(!S.rmod||S.rmod.length!==S.road.length)S.rmod=S.road.map(()=>null);
 if(!S.boons)S.boons={};
 if(S.rd==null)S.rd=3;delete S.ink;
-if(!Array.isArray(S.order)||S.order.length!==4||[0,1,2,3].some(i=>!S.order.includes(i)))S.order=[0,1,2,3];   // party formation, front to back
+for(const p of ['un','hp','lv'])while(S[p].length<8)S[p].push(p==='un'?false:p==='lv'?1:0);
+if(!Array.isArray(S.owned))S.owned=[0,1,2,3];if(!S.sk)S.sk={};if(S.shards==null)S.shards=0;
+if(!Array.isArray(S.order)||S.order.length!==4||new Set(S.order).size!==4||S.order.some(i=>!S.owned.includes(i)))S.order=[0,1,2,3];   // party formation, front to back
 while(S.deck.length>10){const c=S.deck.pop();for(const p of ['draw','disc','hand'])if(removeOne(S[p],c))break;}
 if(S.hand.length+S.draw.length+S.disc.length!==S.deck.length){S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}   // repair an inconsistent save
 while(S.deck.length<5)S.deck.push('forest'),S.disc.push('forest');
@@ -447,7 +469,7 @@ function say(m){log.unshift(m);log=log.slice(0,6);}
 const region=d=>Math.floor(d/10);
 const heroMax=i=>HEROES[i].hp*1.16**(S.lv[i]-1)*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
 const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
-const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*(1+i*.15));
+const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
 const goldMul=()=>(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
@@ -482,7 +504,7 @@ const MODS={
 };
 const modGold=()=>curMod==='gilded'?1.6:1;
 function modAfter(){
- if(curMod==='restorative')for(let i=0;i<4;i++)if(S.un[i]&&S.hp[i]>0)healHero(i,heroMax(i)*.3,true);
+ if(curMod==='restorative')for(const i of S.order)if(S.un[i]&&S.hp[i]>0)healHero(i,heroMax(i)*.3,true);
  if(curMod==='inkwell')S.rd=Math.min(maxRd()+3,S.rd+1);
 }
 const inscribeCost=()=>Math.round(gpt()*3);
@@ -552,7 +574,7 @@ const active=()=>S.un.filter(Boolean).length;
 const slot=i=>S.order.filter(h=>S.un[h]).indexOf(i);   // battlefield position among recruited heroes, front first
 const fervor=()=>1+Math.min(1,(S.streak||0)*.2);   // +20% gold per consecutive fight, up to +100%
 const heroPx=i=>152+(active()-1-slot(i))*56;   // the front line stands nearest the enemies (rightmost)
-function resetHeroes(full){for(let i=0;i<4;i++)S.hp[i]=S.un[i]?(full?heroMax(i):S.hp[i]):0;}
+function resetHeroes(full){for(let i=0;i<HEROES.length;i++)S.hp[i]=S.order.includes(i)&&S.un[i]?(full?heroMax(i):S.hp[i]):0;}
 
 /* ---------- encounters ---------- */
 function startTile(){
@@ -587,24 +609,30 @@ function healHero(i,a,quiet){
  if(!quiet)floatTxt('+'+fmt(a),heroPx(i),200,'#6fcf6f');
 }
 function heroAct(i){
- const h=H[i],d=HEROES[i],atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1);
+ const h=H[i],r=skr(i),atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1);
  const alive=foes.filter(f=>f.hp>0);if(!alive.length)return;
  h.n++;h.lunge=1;
- if(i===0){const f=alive[0];dmgFoe(f,h.n%3===0?atk*2:atk,i);}
- else if(i===1){const f=alive.reduce((a,b)=>a.hp<b.hp?a:b);dmgFoe(f,Math.random()<.25?atk*2.2:atk,i);}
- else if(i===2){if(h.n%3===0){alive.forEach(f=>dmgFoe(f,atk*1.3,i));fxT.push({t:0,txt:'🔥',x:620,y:210,c:'#fff',big:1});}else dmgFoe(alive[0],atk,i);}
- else{
-  if(h.n%2===0){let w=-1,wr=2;for(let j=0;j<4;j++)if(S.hp[j]>0){const r=S.hp[j]/heroMax(j);if(r<wr){wr=r;w=j;}}
-   if(w>=0&&wr<.98){healHero(w,.1*heroMax(w)+2.2*atk);return;}}
-  dmgFoe(alive[0],atk,i);
+ switch(i){
+ case 0:dmgFoe(alive[0],h.n%3===0?atk*(2+.25*r):atk,i);break;
+ case 1:{const f=alive.reduce((a,b)=>a.hp<b.hp?a:b);dmgFoe(f,Math.random()<.25+.04*r?atk*2.2:atk,i);break;}
+ case 2:if(h.n%3===0){alive.forEach(f=>dmgFoe(f,atk*(1.3+.15*r),i));fxT.push({t:0,txt:'🔥',x:620,y:210,c:'#fff',big:1});}else dmgFoe(alive[0],atk,i);break;
+ case 3:{
+  if(h.n%2===0){let w=-1,wr=2;for(const j of S.order)if(S.hp[j]>0){const q=S.hp[j]/heroMax(j);if(q<wr){wr=q;w=j;}}
+   if(w>=0&&wr<.98){healHero(w,.1*heroMax(w)+(2.2+.4*r)*atk);return;}}
+  dmgFoe(alive[0],atk,i);break;}
+ case 4:{dmgFoe(alive[0],atk,i);const f2=foes.find(f=>f.hp>0);if(f2)dmgFoe(f2,atk*(.5+.1*r),i);break;}
+ case 5:dmgFoe(alive[0],atk*(1+(.5+.12*r)*(1-Math.max(0,S.hp[i])/heroMax(i))),i);break;
+ case 6:if(h.n%3===0){for(const j of S.order)if(S.hp[j]>0)healHero(j,.05*heroMax(j)+(1+.3*r)*atk);}else dmgFoe(alive[0],atk,i);break;
+ default:dmgFoe(alive[0],atk,i);
  }
 }
 function foeAct(f){
  const living=S.order.filter(j=>S.hp[j]>0);   // formation order: first = front line
  if(!living.length)return;
  const t=Math.random()<.5?living[0]:living[Math.random()*living.length|0];   // the front hero soaks about half of all attacks
- f.lunge=1;S.hp[t]-=f.atk;H[t].flash=1;
- floatTxt('-'+fmt(f.atk),heroPx(t),200,'#e0584a');
+ const dm=f.atk*(1-((S.un[7]&&S.hp[7]>0&&S.order.includes(7))?.06+.03*skr(7):0));   // Aegis: the Paladin shields the company
+ f.lunge=1;S.hp[t]-=dm;H[t].flash=1;
+ floatTxt('-'+fmt(dm),heroPx(t),200,'#e0584a');
  if(S.hp[t]<=0){S.hp[t]=0;say(HEROES[t].n+' has fallen!');}
 }
 function win(){
@@ -612,11 +640,12 @@ function win(){
  let rew=((curSyn&&curSyn.rew)||1)*modGold();
  let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
  S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;
+ {const sh=t.boss?3+region(S.depth):(Math.random()<(t.gold>=2.5?.15:.05)?1:0);if(sh){S.shards=(S.shards||0)+sh;say('Found '+sh+' hero shard'+(sh>1?'s':'')+'!');floatTxt('+'+sh+' ◆',330,150,'#8fd8ff');}}
  let rc=t.relic+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
  if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');}
  // revive fallen at 30%, small heal
- for(let i=0;i<4;i++){if(!S.un[i])continue;if(S.hp[i]<=0)S.hp[i]=heroMax(i)*.3;if(t.heal)healHero(i,heroMax(i)*t.heal,true);}
- if(curSyn&&curSyn.heal)for(let i=0;i<4;i++)if(S.un[i])S.hp[i]=heroMax(i);
+ for(const i of S.order){if(!S.un[i])continue;if(S.hp[i]<=0)S.hp[i]=heroMax(i)*.3;if(t.heal)healHero(i,heroMax(i)*t.heal,true);}
+ if(curSyn&&curSyn.heal)for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
  if(S.bless>0)S.bless--;
  modAfter();
  if(t.boss)say('Victory! '+RG(region(S.depth))[2]+' is slain. Map piece '+(region(S.depth)+1)+' restored. +'+fmt(g)+' gold.');
@@ -629,15 +658,15 @@ function event(){
  if(t.ev==='village'){
   const g=6*1.15**S.depth*1*((curSyn&&curSyn.rew)||1)*modGold()*goldMul();
   S.gold+=g;gained+=g;
-  for(let i=0;i<4;i++){if(!S.un[i])continue;S.hp[i]=Math.min(heroMax(i),Math.max(S.hp[i],0)+heroMax(i)*.6);S.hp[i]=Math.max(S.hp[i],heroMax(i)*.3);}
-  if(curSyn&&curSyn.heal)for(let i=0;i<4;i++)if(S.un[i])S.hp[i]=heroMax(i);
+  for(const i of S.order){if(!S.un[i])continue;S.hp[i]=Math.min(heroMax(i),Math.max(S.hp[i],0)+heroMax(i)*.6);S.hp[i]=Math.max(S.hp[i],heroMax(i)*.3);}
+  if(curSyn&&curSyn.heal)for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
   floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
   if(curSyn)say('Combo: '+curSyn.n+'!');
  }else if(t.ev==='shrine'){
   S.bless=3;S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
   say('The shrine blesses you: +30% damage for 3 fights.');
  }else if(t.ev==='springs'){
-  for(let i=0;i<4;i++)if(S.un[i])S.hp[i]=heroMax(i);
+  for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
   say('The hot springs restore the whole company.');
  }else if(t.ev==='market'||t.ev==='treasury'){
   const g=6*1.15**S.depth*(t.ev==='market'?2:15)*((curSyn&&curSyn.rew)||1)*modGold()*goldMul();
@@ -714,15 +743,25 @@ function placeTile(j){
  S.hand.splice(selCard,1);selCard=-1;inscribing=false;fillHand();sig='';
 }
 function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[j]]=[S.order[j],S.order[pos]];sig='';}
-function recruit(i){if(S.un[i]||S.gold<RECRUIT[i])return;S.gold-=RECRUIT[i];S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
+function recruit(i){if(S.un[i]||S.gold<recruitCost(i))return;S.gold-=recruitCost(i);S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
 function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c)return;S.gold-=c;const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
+let swapId=null;
+function upSkill(i){const r=skr(i);if(!S.owned.includes(i)||r>=SK_MAX||S.shards<skCost(r))return;S.shards-=skCost(r);S.sk[i]=r+1;say(HEROES[i].n+': '+HSK[i].n+' rank '+(r+1)+'.');sig='';save();}
+function unlockHero(i){if(S.owned.includes(i)||S.shards<HCOST[i])return;S.shards-=HCOST[i];S.owned.push(i);say(HEROES[i].n+' the '+HEROES[i].c+' can now join your party!');sig='';save();}
+function swapHero(pos,nid){
+ const old=S.order[pos];swapId=null;sig='';
+ if(old===nid||!S.owned.includes(nid)||S.order.includes(nid))return;
+ const q=S.un[old]&&S.hp[old]>0?S.hp[old]/heroMax(old):0;   // the newcomer arrives with the same share of health
+ S.un[nid]=S.un[old];S.un[old]=false;S.order[pos]=nid;S.hp[nid]=S.un[nid]?q*heroMax(nid):0;S.hp[old]=0;
+ say(HEROES[nid].n+' takes '+HEROES[old].n+"'s place.");save();
+}
 function reroll(){if(S.rd<1)return;S.rd-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
 let retireArmed=0;   // two-tap confirm (window.confirm is unavailable in embedded viewers)
 function retire(){
  const g=legGain();if(!g)return;
  if(Date.now()>retireArmed){retireArmed=Date.now()+4000;say('Tap Retire again within 4s to confirm: gold, levels, relics and recruits reset. Each Legend gives +12% to all heroes permanently.');$('leg').textContent='Tap again to confirm';return;}
  retireArmed=0;
- const keep={regionStart:0,best:S.best,legend:S.legend+g,boons:S.boons||{}};
+ const keep={regionStart:0,best:S.best,legend:S.legend+g,boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),shards:S.shards||0};
  S=fresh(keep);buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';
 }
 
@@ -733,7 +772,7 @@ function fmt(n){
 }
 function build(){
  const g=Math.floor(S.gold);
- const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost(),S.rd,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):RECRUIT[i])]),S.relics,legGain(),speed,S.ink>=1,S.prev,S.depth,S.bless]);
+ const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost(),S.rd,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):recruitCost(i))]),S.relics,legGain(),speed,S.owned,S.sk,S.shards,swapId,S.prev,S.depth,S.bless]);
  if(s===sig)return;sig=s;
  // road
  $('road').innerHTML=S.road.map((k,j)=>{
@@ -772,10 +811,13 @@ function build(){
   $('objective').innerHTML=`<h3>Objective</h3><div class="obj"><b>Chart the endless realm.</b> The Unmapped keeps spreading and the map has no edge. Every Warden you defeat restores a piece of it and reveals another region beyond. How far can you chart?</div>
    <div class="mstats"><div><b>${done}</b><small>map pieces</small></div><div><b>${Math.floor(Math.max(S.best,S.depth)/10)+1}</b><small>furthest act</small></div><div><b>${S.deaths||0}</b><small>falls</small></div><div><b>${S.legend}</b><small>Legend</small></div></div>
    <div class="hint" style="margin-bottom:6px">Next Cartographer's Boon after Warden ${nm} (${nm-done} to go).${bl?' Boons: '+bl+'.':''}</div>${rows}`;}
- $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):RECRUIT[i];return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
- $('nav-party').classList.toggle('dot',HEROES.some((h,i)=>S.gold>=(S.un[i]?lvCost(i):RECRUIT[i])));
+ $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
+ $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?(skr(i)<SK_MAX&&S.shards>=skCost(skr(i))):S.shards>=HCOST[i]));
  $('nav-deck').classList.toggle('dot',!!S.offer);$('spoils').hidden=!S.offer;
- $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):RECRUIT[i],first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${h.sk}</small></div><div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div><button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
+ $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(SK_MAX-skr(i))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
+ $('shd').textContent=S.shards||0;
+ $('roster').innerHTML=HEROES.map((h,i)=>{const own=S.owned.includes(i),inP=S.order.includes(i),r=skr(i),mx=r>=SK_MAX,sc=skCost(r),can=own?(!mx&&S.shards>=sc):S.shards>=HCOST[i];
+  return `<div class="hero ${own?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${inP?' · in party':own?'':' · locked'}</small></div><small>${HSK[i].n} ${'●'.repeat(r)}${'○'.repeat(SK_MAX-r)}: ${HSK[i].d(r)}${own&&!mx?'<br>Next rank: '+HSK[i].d(r+1):''}</small></div><div class="mv">${own&&!inP?`<button data-pick="${i}">${swapId===i?'Cancel':'Swap in'}</button>`:''}</div><button ${own?'data-sk':'data-unlock'}="${i}" ${can?'':'disabled'}>${own?(mx?'Max':'Skill ↑<br>◆ '+sc):'Unlock<br>◆ '+HCOST[i]}</button></div>`;}).join('');
  // relics list (see below)
  {const EFF={whet:n=>'+'+12*n+'% damage',oak:n=>'+'+12*n+'% max HP',coin:n=>'+'+15*n+'% gold',ink:n=>'+'+n+' redraw'+(n>1?'s':''),fang:n=>'heals '+3*n+'% of damage dealt',boots:n=>'+'+8*n+'% speed'};
   const keys=RK.slice().sort((a,b)=>(S.relics[b]||0)-(S.relics[a]||0));
@@ -858,9 +900,9 @@ function hud(){
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
  $('rate').textContent='≈ '+fmt(S.rate)+' gold/s';
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
- for(let i=0;i<4;i++){const f=$('hb'+i),t=$('ht'+i);if(!f)continue;const m=heroMax(i);f.style.width=100*Math.max(0,S.hp[i])/m+'%';t.textContent=S.hp[i]<=0?'Fallen':Math.ceil(S.hp[i])+' / '+Math.ceil(m);}
+ for(const i of S.order){const f=$('hb'+i),t=$('ht'+i);if(!f)continue;const m=heroMax(i);f.style.width=100*Math.max(0,S.hp[i])/m+'%';t.textContent=S.hp[i]<=0?'Fallen':Math.ceil(S.hp[i])+' / '+Math.ceil(m);}
  $('log').innerHTML=log.map(l=>'<div>'+l+'</div>').join('');
- for(let i=0;i<4;i++){const m=$('mb'+i);if(m){m.style.width=100*Math.max(0,S.hp[i])/heroMax(i)+'%';m.parentElement.parentElement.classList.toggle('down',S.hp[i]<=0);}}
+ for(const i of S.order){const m=$('mb'+i);if(m){m.style.width=100*Math.max(0,S.hp[i])/heroMax(i)+'%';m.parentElement.parentElement.classList.toggle('down',S.hp[i]<=0);}}
  if(log[0]!==lastLog){lastLog=log[0];if(lastLog)toast(lastLog);}
 }
 document.addEventListener('click',e=>{
@@ -870,11 +912,15 @@ document.addEventListener('click',e=>{
  const hh=e.target.closest('[data-hero]');   // tap a hero icon under the battle: level up / recruit
  if(hh){const i=+hh.dataset.hero;
   if(S.un[i]){if(S.gold>=lvCost(i))levelUp(i);else toast('Need '+fmt(lvCost(i))+' gold to level up '+HEROES[i].n+'.');}
-  else{if(S.gold>=RECRUIT[i])recruit(i);else toast('Need '+fmt(RECRUIT[i])+' gold to recruit '+HEROES[i].n+'.');}
+  else{if(S.gold>=recruitCost(i))recruit(i);else toast('Need '+fmt(recruitCost(i))+' gold to recruit '+HEROES[i].n+'.');}
   return;}
  const mv=e.target.closest('[data-move]');if(mv){const [p,d]=mv.dataset.move.split(':').map(Number);moveHero(p,d);return;}
  if(b){
   if(b.dataset.lv!==undefined){const i=+b.dataset.lv;S.un[i]?levelUp(i):recruit(i);}
+  else if(b.dataset.sk!==undefined)upSkill(+b.dataset.sk);
+  else if(b.dataset.unlock!==undefined)unlockHero(+b.dataset.unlock);
+  else if(b.dataset.pick!==undefined){const i=+b.dataset.pick;swapId=swapId===i?null:i;sig='';}
+  else if(b.dataset.swap!==undefined)swapHero(+b.dataset.swap,swapId);
   else if(b.id==='insbtn')startInscribe();
   else if(b.dataset.mod)applyInscribe(b.dataset.mod);
   else if('cancel' in b.dataset){inscribing=false;sig='';}
@@ -975,12 +1021,20 @@ function drawHero(i,x,y){
  if(!dead){const m=heroMax(i),w=36;g.fillStyle='#150f0a';g.fillRect(x-w/2,y+8,w,5);g.fillStyle='#4caf6a';g.fillRect(x-w/2,y+8,w*Math.max(0,S.hp[i])/m,5);}
 }
 /* ---------- painted sprite assets (generated art). If an image is missing the simple drawn version is used. ---------- */
-const IMG={},HID=['knight','ranger','mage','cleric'];
+const IMG={},HID=['knight','ranger','mage','cleric'],PORT={};
+const HTINT={   // new hero id -> [base hero id, colour mapping]
+ 4:[1,L=>[L*.7+20,L*.45+8,L*.95+40]],
+ 5:[0,L=>[L*1.0+40,L*.35,L*.3]],
+ 6:[2,L=>[L*.5+20,L*.95+25,L*.45+10]],
+ 7:[3,L=>[L*.85+30,L*.95+30,L*1.05+55]]
+};
 function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;
+ {const m=/^hero(\d)$/.exec(key);if(m)for(const k in HTINT)if(HTINT[k][0]===+m[1])IMG['hero'+k]=tintImg(im,HTINT[k][1],'hero'+k);}
  if(key==='f_bear')IMG.f_icebear=tintImg(im,L=>[Math.min(255,L*.75+55),Math.min(255,L*.9+90),Math.min(255,L*1.05+130)],'f_icebear');
  if(key==='f_ogre')IMG.f_void=tintImg(im,L=>[Math.min(255,L*.7+45),Math.min(255,L*.35+5),Math.min(255,L*1.0+95)],'f_void');};im.onerror=()=>{};im.src=src;}
 HID.forEach((id,i)=>loadImg('hero'+i,'assets/heroes/'+id+'.png'));
-function heroIcon(i){return '<img class="pt" src="assets/heroes/'+HID[i]+'_p.png" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">';}
+for(const k in HTINT){const im=new Image();im.onload=()=>{PORT[k]=tintImg(im,HTINT[k][1],'p'+k).toDataURL();sig='';};im.onerror=()=>{};im.src='assets/heroes/'+HID[HTINT[k][0]]+'_p.png';}
+function heroIcon(i){const src=PORT[i]||(i<4?'assets/heroes/'+HID[i]+'_p.png':'');return src?'<img class="pt" src="'+src+'" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">':HEROES[i].w;}
 const _fc={};
 function flashed(im,f){   // the sprite washed toward white (hit flash)
  const key=im.src||im._k,w=im.naturalWidth||im.width,h=im.naturalHeight||im.height;let c=_fc[key];if(!c){c=document.createElement('canvas');c.width=w;c.height=h;_fc[key]=c;}
@@ -992,7 +1046,7 @@ function hpBar(x,y,w,f,col){
  g.fillStyle=col;g.beginPath();g.roundRect(x-w/2,y,Math.max(0,w*f),5,2.5);g.fill();
  g.fillStyle='rgba(255,255,255,.28)';g.fillRect(x-w/2+1.5,y+.7,Math.max(0,w*f-3),1.4);
 }
-const HH=[104,96,116,108];   // on-screen hero heights in world units
+const HH=[104,96,116,108,96,110,104,116];   // on-screen hero heights in world units
 function drawHeroImg(i,x,y){
  const im=IMG['hero'+i],h=H[i]||{lunge:0,flash:0},dead=S.hp[i]<=0,T=performance.now()/1000;
  const hh=HH[i],ww=hh*im.naturalWidth/im.naturalHeight,walk=phase==='walk'&&!dead;
@@ -1123,7 +1177,7 @@ function draw(dt){
  }
  else ambient(k);
  // heroes
- for(let i=0;i<4;i++)if(S.un[i])(IMG['hero'+i]?drawHeroImg:drawHero)(i,heroPx(i),244+(slot(i)%2?16:-4));
+ for(const i of S.order.slice().reverse())if(S.un[i])(IMG['hero'+i]?drawHeroImg:drawHero)(i,heroPx(i),244+(slot(i)%2?16:-4));
  // foes (painted sprites; emoji fallback)
  for(const f of foes){
   if(f.hp<=0&&!f.dieT)f.dieT=performance.now();
