@@ -396,6 +396,54 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #piles .bd b{color:#ffd24a;font-weight:900;margin-left:2px}
 #piles .bh{margin-left:auto;font:italic 12px Alegreya,Georgia,serif;color:var(--dim)}
 @media (max-width:640px){#piles .bh{display:none}}
+
+/* give the battle view back its room on phones */
+@media (max-width:640px){
+ #road .tile{height:clamp(46px,7dvh,60px)}
+ #road .tile .s{display:none}
+ #road .tile .n{font-size:10px}
+ #road .tile .ico{width:28px;height:28px}
+ #roadw .rl{margin-bottom:2px}
+ #roadw .rl b{font-size:11px;padding:3px 6px 5px}
+ .hc{max-height:92px;padding:2px}
+ .hc .ico{width:30px;height:30px}.hc .n{font-size:12px}.hc .r{font-size:8px}
+ #handw .pile,#piles{margin-bottom:2px}
+ .mc{min-height:40px;gap:0}.mc .ic .pt{width:30px;height:30px}.mc .mcost,.mc .mt{font-size:10px;line-height:1.1}
+ #ctrl .bar{height:15px}.row3 button,#reroll,#insbtn{min-height:34px}
+ #nav button{min-height:44px}
+ #top .act{font-size:9px;line-height:1}
+ #top .reg{line-height:1}
+}
+
+@media (max-width:640px){
+ #ctrl .bar b{font-size:10px;line-height:14px}
+ .mc .mt{display:none}.mc{min-height:36px}
+ #roadw .rl span{border-width:5px;border-image-width:5px;font-size:10px;padding:0 6px;line-height:1.5}
+ #roadw .rl b{font-size:10px}
+ #piles .bd{border-width:5px;border-image-width:5px;font-size:10px;line-height:1.5;padding:0 6px}
+}
+
+/* ---------- simple and clean: ornate frames only on the battle view, buttons, menus and popups ---------- */
+#top{border:1px solid #5a4430;border-image:none;border-radius:10px;background:rgba(24,17,11,.82);padding:6px 10px}
+.card{border:0;border-image:none;border-radius:0;background:none;padding:0}
+.mc{border:1px solid #5a4430;border-image:none;border-radius:10px;background:rgba(24,17,11,.8);padding:3px 2px}
+.mc.on,.mc.cur{border-color:var(--gold)}
+#nav button{border:1px solid #5a4430;border-image:none;border-radius:10px;background:rgba(24,17,11,.82)}
+#nav button.on{border-color:var(--gold);background:rgba(60,42,20,.9)}
+#roadw .rl{margin:0 2px 3px}
+#roadw .rl b{border:0;border-image:none;padding:0;background:none;font:700 11px Cinzel,Georgia,serif;letter-spacing:.12em;color:var(--dim);text-shadow:none}
+#roadw .rl span{border:0;border-image:none;padding:0;background:none;font:700 11px Cinzel,Georgia,serif;letter-spacing:.06em;color:var(--dim);text-shadow:none}
+#roadw .rl span em{color:#ffb48a}
+#piles{gap:10px;margin:0 2px 4px}
+#piles .bd{border:0;border-image:none;padding:0;background:none;font:700 11px Cinzel,Georgia,serif;color:var(--dim);text-shadow:none}
+#piles .bd b{color:var(--txt)}
+@media (max-width:640px){
+ #top{border-width:1px;padding:4px 8px}
+ .card{border-width:0}
+ .mc{border-width:1px;min-height:36px}
+ #nav button{border-width:1px;min-height:44px}
+ #roadw .rl span,#roadw .rl b,#piles .bd{border-width:0;font-size:10px;padding:0;line-height:1.3}
+}
 </style>
 </head>
 <body>
@@ -475,7 +523,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022222449';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022222751';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
