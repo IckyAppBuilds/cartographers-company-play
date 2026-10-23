@@ -69,7 +69,7 @@ button.on{border-color:var(--gold);color:var(--gold)}
 #mini{grid-area:mini;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 #ctrl{grid-area:ctrl;display:grid;gap:6px}
 #handw{grid-area:handw;display:flex;flex-direction:column;min-height:0}
-#nav{grid-area:nav;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#nav{grid-area:nav;display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 
 canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:manipulation}
 
@@ -127,6 +127,12 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 #sheet .sb{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(112px + env(safe-area-inset-top));max-width:min(92vw,520px);background:rgba(20,14,9,.96);border:1px solid var(--gold);padding:7px 12px;border-radius:10px;z-index:22;pointer-events:none;font-size:13px;opacity:0;transition:opacity .25s}
 #toast.show{opacity:1}
+#shopBody h3{margin:6px 0}
+.sc{display:flex;align-items:center;gap:10px;padding:8px;margin:6px 0;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px}
+.sc .si{font-size:30px;width:42px;text-align:center;flex:none}.sc .si img{width:36px;height:36px;object-fit:contain}
+.sc .sd{flex:1;min-width:0}.sc .sd b{display:block}.sc .sd small{display:block;color:var(--dim);line-height:1.25}
+.sc button{flex:none;min-width:84px;min-height:40px;padding:6px 10px;font-weight:700}
+.sc.off{opacity:.55}
 #retbtn{position:absolute;right:8px;top:8px;z-index:6;padding:8px 12px;border-radius:999px;border:2px solid #ffd24a;background:linear-gradient(180deg,#7a4fd0,#4a2a96);color:#fff3c4;font:800 13px Cinzel,Georgia,serif;letter-spacing:.04em;cursor:pointer;box-shadow:0 0 16px rgba(176,107,255,.8);animation:retpulse 1.8s ease-in-out infinite}
 #retbtn[hidden]{display:none}
 @keyframes retpulse{50%{transform:scale(1.07);box-shadow:0 0 28px rgba(200,140,255,1)}}
@@ -276,6 +282,7 @@ canvas.shake{animation:shake .6s}
    <button id="nav-party" data-sheet="party"><span class="nv"><img class="ico" src="assets/icons/company.png" alt="" draggable="false"></span><small>Company</small></button>
    <button id="nav-deck" data-sheet="deck"><span class="nv"><img class="ico" src="assets/icons/deck.png" alt="" draggable="false"></span><small>Deck</small></button>
    <button id="nav-relics" data-sheet="relics"><span class="nv"><img class="ico" src="assets/icons/relics.png" alt="" draggable="false"></span><small>Relics</small></button>
+   <button id="nav-shop" data-sheet="shop"><span class="nv"><img class="ico" src="assets/icons/coin.png" alt="" draggable="false"></span><small>Shop</small></button>
    <button id="nav-log" data-sheet="log"><span class="nv"><img class="ico" src="assets/icons/journal.png" alt="" draggable="false"></span><small>Journal</small></button>
   </nav>
  </div>
@@ -298,6 +305,7 @@ canvas.shake{animation:shake .6s}
     <h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button>
     <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
    </div>
+   <div class="pane" data-pane="shop" hidden><div id="shopBody"></div></div>
    <div class="pane" data-pane="log" hidden>
     <div id="objective"></div><h3 style="margin-top:14px">Journal</h3><div id="log"></div>
     <div class="hint" style="margin-top:10px">How to play: drag a tile card from your hand onto a tile on the road (or tap the card, then tap the tile) to replace it. Cards are single-use until the next boss or a wipe. Fights pay far more gold than rest tiles and build Battle Fervor: +20% gold per consecutive fight (up to +100%), lost when you rest at a Village or Springs or fall. Chain fights, then rest. Tap a hero icon under the battle to level them up; open Company to reorder the formation. Neighbouring tiles can make <span class="gold">combos</span> (gold chip under the tile). Select a card and tap Inscribe to etch a permanent glyph onto it.</div>
@@ -496,7 +504,7 @@ const region=d=>Math.floor(d/10);
 const heroMax=i=>HEROES[i].hp*1.16**(S.lv[i]-1)*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
 const heroAtk=i=>HEROES[i].atk*1.16**(S.lv[i]-1)*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
-const goldMul=()=>(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+const goldMul=()=>(S.fort>0?1.5:1)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
 const legGain=()=>S.depth>=30?Math.floor(S.depth/10)-1:0;
@@ -674,6 +682,7 @@ function win(){
  for(const i of S.order){if(!S.un[i])continue;if(S.hp[i]<=0)S.hp[i]=heroMax(i)*.3;if(t.heal)healHero(i,heroMax(i)*t.heal,true);}
  if(curSyn&&curSyn.heal)for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
  if(S.bless>0)S.bless--;
+ if(S.fort>0)S.fort--;
  modAfter();
  if(t.boss)say('Victory! '+RG(region(S.depth))[2]+' is slain. Map piece '+(region(S.depth)+1)+' restored. +'+fmt(g)+' gold.');
  advance();
@@ -926,8 +935,37 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(b
 function showIntro(){
  showModal("The Cartographer's Oath",'<p>The <b>Unmapped</b> has swallowed the realm\'s roads, and a <b>Warden</b> guards every region it left behind. You are the Royal Cartographer. You do not swing a sword; you lay the tiles, and the Company marches where your map leads.</p><p>Win fights for gold, rest when you must, and defeat each Warden to <span class="gold">restore a piece of the map</span>. The Unmapped never stops spreading, so the road never ends.</p>',[{t:'Begin the journey',primary:1,fn:()=>{S.seenIntro=true;save();}}]);
 }
+/* ---------- shop: stock refreshes every act; prices follow the act's income and climb with each purchase ---------- */
+const SUPPLIES={
+ potion:{n:'Healing Draught',ic:'🧪',d:'Heal the whole company by 50%.',m:6,fn:()=>{for(const i of S.order)if(S.un[i])healHero(i,heroMax(i)*.5,true);}},
+ pages:{n:'Page Bundle',ic:'📜',d:'+3 redraws right now.',m:8,fn:()=>{S.rd=Math.min(maxRd()+6,S.rd+3);}},
+ tonic:{n:'Battle Tonic',ic:'⚗️',d:'+30% damage for your next 5 fights.',m:10,fn:()=>{S.bless=Math.max(S.bless,5);}},
+ fortune:{n:'Fortune Charm',ic:'🍀',d:'+50% gold from your next 5 fights.',m:14,fn:()=>{S.fort=5;}}
+};
+function shopState(){const r=region(S.depth);if(!S.shop||S.shop.r!==r){const pool=RK.slice(),rel=[];while(rel.length<3&&pool.length)rel.push({k:pool.splice(Math.random()*pool.length|0,1)[0],sold:false});S.shop={r,rel,sh:0,n:{}};}return S.shop;}
+const supPrice=k=>Math.round(gpt()*SUPPLIES[k].m*1.3**(shopState().n[k]||0));
+const relPrice=()=>Math.round(gpt()*45*1.5**shopState().rel.filter(x=>x.sold).length);
+const shardPrice=()=>Math.round(gpt()*60*1.6**shopState().sh);
+function shopBuy(id){
+ const st=shopState();let cost,ok=false;
+ if(SUPPLIES[id]){cost=supPrice(id);if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;SUPPLIES[id].fn();st.n[id]=(st.n[id]||0)+1;toast(SUPPLIES[id].n+' used.');ok=true;}
+ else if(id[0]==='r'&&id[1]==='_'){const x=st.rel[+id.slice(2)];if(!x||x.sold)return;cost=relPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;x.sold=true;S.relics[x.k]=(S.relics[x.k]||0)+1;lootRelic(x.k,'Relic bought!');ok=true;}
+ else if(id==='shard'){if(st.sh>=2){toast('Sold out until the next act.');return;}cost=shardPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;st.sh++;S.shards=(S.shards||0)+1;toast('+1 hero shard ◆');ok=true;}
+ if(ok){save();shopHTML.v='';}
+}
+const shopHTML={v:''};
+function shopRender(){
+ const st=shopState(),g=S.gold;
+ const card=(id,ico,name,desc,price,extra,dis)=>'<div class="sc'+(dis?' off':'')+'"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-shop="'+id+'"'+(dis||g<price?' disabled':'')+'>'+(dis||(extra||'')+ic('coin','coin')+' '+fmt(price))+'</button></div>';
+ let h='<div class="hint" style="margin-bottom:8px">Stock refreshes every act and prices climb as you buy. You have '+ic('coin','coin')+' <b>'+fmt(g)+'</b> and ◆ <b>'+(S.shards||0)+'</b> hero shards.</div>';
+ h+='<h3>Supplies</h3>'+Object.keys(SUPPLIES).map(k=>card(k,SUPPLIES[k].ic,SUPPLIES[k].n,SUPPLIES[k].d,supPrice(k))).join('');
+ h+='<h3 style="margin-top:14px">Relics</h3>'+st.rel.map((x,i)=>x.sold?card('',RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,0,'','Sold'):card('r_'+i,RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,relPrice())).join('');
+ h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard','◆','Hero Shard','Spend shards on skills and new heroes. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
+ h+='<h3 style="margin-top:14px">Premium <small style="opacity:.6;font-weight:400">· coming soon</small></h3>'+[['🎒','Extra Deck Slot','Permanent +1 card slot.'],['💎','Shard Bundle','A stack of hero shards.'],['🎨','Hero Skins','New looks for your heroes.'],['🖼️','Card Themes','Restyle your tile cards.']].map(x=>card('',x[0],x[1],x[2],0,'','Soon')).join('');
+ return h;
+}
 /* ---------- menus (bottom sheets) and toasts ---------- */
-const SHEETS={party:'Company',deck:'Tile Deck',relics:'Relics & Legacy',log:'Journal'};
+const SHEETS={party:'Company',deck:'Tile Deck',relics:'Relics & Legacy',shop:'Shop',log:'Journal'};
 const RACC=['111,207,111','95,208,176','255,138,61','122,208,255','176,107,255','255,92,77','215,123,255'];   // per-region accent colours
 const ROMAN=['I','II','III','IV','V','VI','VII'];
 let sheet=null,lastLog,toastT,lastRegion,lastPips,splT,lastSub,lastGold;
@@ -954,6 +992,7 @@ function hud(){
  $('rate').textContent='≈ '+fmt(S.rate)+' gold/s';
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
  for(const i of S.order){const f=$('hb'+i),t=$('ht'+i);if(!f)continue;const m=heroMax(i);f.style.width=100*Math.max(0,S.hp[i])/m+'%';t.textContent=S.hp[i]<=0?'Fallen':Math.ceil(S.hp[i])+' / '+Math.ceil(m);}
+ if(sheet==='shop'){const h=shopRender();if(h!==shopHTML.v){shopHTML.v=h;$('shopBody').innerHTML=h;}}
  $('log').innerHTML=log.map(l=>'<div>'+l+'</div>').join('');
  for(const i of S.order){const m=$('mb'+i);if(m){m.style.width=100*Math.max(0,S.hp[i])/heroMax(i)+'%';m.parentElement.parentElement.classList.toggle('down',S.hp[i]<=0);}}
  if(log[0]!==lastLog){lastLog=log[0];if(lastLog)toast(lastLog);}
@@ -977,6 +1016,7 @@ document.addEventListener('click',e=>{
   else if(b.id==='insbtn')startInscribe();
   else if(b.dataset.mod)applyInscribe(b.dataset.mod);
   else if('cancel' in b.dataset){inscribing=false;sig='';}
+  else if(b.dataset.shop!==undefined){if(b.dataset.shop)shopBuy(b.dataset.shop);}
   else if(b.dataset.buy)buyTile(b.dataset.buy);
   else if(b.dataset.burn)burnCard(b.dataset.burn);
   else if(b.dataset.offer)takeOffer(b.dataset.offer);
