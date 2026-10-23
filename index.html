@@ -462,6 +462,29 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  #nav button{min-height:40px}#nav button small{font-size:9px}
  #nav .ico,#nav .nv{transform:scale(.85)}
 }
+
+/* ---------- tile cards: painted rarity frames (assets/ui/card0-4) ---------- */
+.dc,.hc{border:20px solid transparent;border-image:var(--ui-card0) 62 fill/20px stretch;border-radius:0;background:none;color:#3b2a18;text-shadow:none}
+.dc[data-r="1"],.hc[data-r="1"]{border-image-source:var(--ui-card1)}
+.dc[data-r="2"],.hc[data-r="2"]{border-image-source:var(--ui-card2)}
+.dc[data-r="3"],.hc[data-r="3"]{border-image-source:var(--ui-card3)}
+.dc[data-r="4"],.hc[data-r="4"]{border-image-source:var(--ui-card4)}
+.dgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.dc{aspect-ratio:5/6.4;padding:0 2px 0;justify-content:flex-start;gap:1px;min-height:0}
+.dc.shop{background:none}
+.dc .st{top:-14px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#2a1d0e;color:#d9c79b;border:1px solid #8a6a3a;font:700 8px Cinzel,Georgia,serif;letter-spacing:.08em;padding:1px 8px;z-index:2}
+.dc .st.hand{background:#2a1d0e;color:var(--gold);border-color:var(--gold)}
+.dc .i{font-size:40px;margin-top:4px}.dc .i img,.dc .ico{width:46px;height:46px}
+.dc .n{font-size:13px;line-height:1.1;margin-top:2px}
+.dc .r{margin-bottom:2px}
+.dc .d{font-size:11px;line-height:1.2;flex:0 1 auto;max-height:3.7em;overflow:hidden;color:#4a3720}
+.dc .m{font-size:10px}
+.dc button{margin-top:auto;width:92%;min-height:28px;font-size:10px;border-width:9px;border-image-width:9px;padding:0 2px}
+.dc.spent{opacity:.6}
+.hc{padding:0 2px;border-width:16px;border-image-width:16px}
+.hc .n{color:#3b2a18}
+.hc.sel{filter:drop-shadow(0 0 8px rgba(255,210,74,.95)) brightness(1.06);transform:translateY(-4px)}
+@media (max-width:640px){.hc{border-width:13px;border-image-width:13px}.dgrid{grid-template-columns:repeat(2,1fr);gap:8px}.dc{border-width:16px;border-image-width:16px}.dc .d{font-size:10px}.dc .i{font-size:34px}}
 </style>
 </head>
 <body>
@@ -541,9 +564,9 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022223352';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022223624';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
-try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
+try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
  const el=document.getElementById('icky');if(!el)return;
@@ -1127,7 +1150,7 @@ function build(){
   const can=selCard>=0&&j>=1&&k!=='lair'&&(S.depth+j)%10!==9;
   return `<div class="tile ${j===0?'cur':''} ${can?'can':''} ${k==='lair'?'lair':''}" data-j="${j}" title="${t.d}" ${k==='lair'?'':`style="--rc:${RAR[t.r].c}"`}><div class="i">${t.i}</div><div class="n">${t.n}${(S.rrank[j]||1)>1?' ★'+S.rrank[j]:''}</div><div class="s">tile ${S.depth+j+1}</div>${S.rmod[j]?`<div class="md" title="${MODS[S.rmod[j]].n}: ${MODS[S.rmod[j]].d}">✦ ${MODS[S.rmod[j]].n}</div>`:''}${sy?`<div class="chip" title="${sy.d}">★ ${sy.n}</div>`:''}</div>`;
  }).join('');
- $('hand').innerHTML=S.hand.map((c,i)=>{const t=TILES[kindOf(c)],m=modOf(c),rk=rankOf(c);return `<div class="hc ${i===selCard?'sel':''}" data-h="${i}" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}${rk>1?' ★'+rk:''}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m" title="${MODS[m].d}">✦ ${MODS[m].n}</div>`:''}<div class="d">${m?MODS[m].d:t.d}</div></div>`;}).join('')+(S.hand.length?'':'<div class="hint" style="grid-column:1/-1;text-align:center">No tiles left to play. Beat the boss or fall in battle to gather your deck again. Empty road defaults to Wilds.</div>');
+ $('hand').innerHTML=S.hand.map((c,i)=>{const t=TILES[kindOf(c)],m=modOf(c),rk=rankOf(c);return `<div class="hc ${i===selCard?'sel':''}" data-h="${i}" data-r="${t.r}" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}${rk>1?' ★'+rk:''}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m" title="${MODS[m].d}">✦ ${MODS[m].n}</div>`:''}<div class="d">${m?MODS[m].d:t.d}</div></div>`;}).join('')+(S.hand.length?'':'<div class="hint" style="grid-column:1/-1;text-align:center">No tiles left to play. Beat the boss or fall in battle to gather your deck again. Empty road defaults to Wilds.</div>');
  const ib=$('insbtn'),icost=inscribeCost();ib.textContent='Inscribe ✦ '+fmt(icost);ib.disabled=!(selCard>=0&&S.hand[selCard]&&S.gold>=icost);
  const ip=$('inscribe');ip.hidden=!(inscribing&&S.hand[selCard]);
  if(!ip.hidden){const ik=kindOf(S.hand[selCard]);ip.innerHTML=`<h3>Etch a glyph onto ${TILES[ik].n} (${fmt(icost)} gold)</h3><div class="row">${inscribeOpts.map(m=>`<button data-mod="${m}"><b>${MODS[m].n}</b><br><small>${MODS[m].d}</small></button>`).join('')}<button data-cancel>Cancel</button></div>`;}
@@ -1137,8 +1160,8 @@ function build(){
   loc.sort((a,b)=>KINDS.indexOf(kindOf(a[0]))-KINDS.indexOf(kindOf(b[0]))||(modOf(a[0])||'').localeCompare(modOf(b[0])||''));
   const LBL={hand:'In hand',draw:'Draw pile',disc:'Spent'},bc=burnCost(),canBurn=S.deck.length>MIN_DECK,full=S.deck.length>=MAX_DECK;
   const dcard=([c,w])=>{const k=kindOf(c),m=modOf(c),rk=rankOf(c),t=TILES[k],key=c+'|'+w,armed=burnArm===key&&Date.now()<burnArmT;
-   return `<div class="dc ${w==='disc'?'spent':''}" style="--rc:${RAR[t.r].c}"><div class="st ${w}">${LBL[w]}</div><div class="i">${t.i}</div><div class="n">${t.n}${rk>1?' ★'+rk:''}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m">✦ ${MODS[m].n}: ${MODS[m].d}</div>`:''}<div class="d">${rk>1?rankDesc(k,rk):t.d}</div><button data-burn="${key}" ${(!canBurn||S.gold<bc)?'disabled':''}>${armed?'Tap again to burn':'Burn <span class="gold">'+fmt(bc)+'</span>'}</button></div>`;};
-  const shop=KINDS.filter(buyable).map(k=>{const t=TILES[k],c=cardCost(k);return `<div class="dc shop" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div><div class="d">${t.d}</div><button data-buy="${k}" ${(full||S.gold<c)?'disabled':''}>${full?'Deck full':'Buy <span class="gold">'+fmt(c)+'</span>'}</button></div>`;}).join('');
+   return `<div class="dc ${w==='disc'?'spent':''}" data-r="${t.r}" style="--rc:${RAR[t.r].c}"><div class="st ${w}">${LBL[w]}</div><div class="i">${t.i}</div><div class="n">${t.n}${rk>1?' ★'+rk:''}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m">✦ ${MODS[m].n}: ${MODS[m].d}</div>`:''}<div class="d">${rk>1?rankDesc(k,rk):t.d}</div><button data-burn="${key}" ${(!canBurn||S.gold<bc)?'disabled':''}>${armed?'Tap again to burn':'Burn <span class="gold">'+fmt(bc)+'</span>'}</button></div>`;};
+  const shop=KINDS.filter(buyable).map(k=>{const t=TILES[k],c=cardCost(k);return `<div class="dc shop" data-r="${t.r}" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div><div class="d">${t.d}</div><button data-buy="${k}" ${(full||S.gold<c)?'disabled':''}>${full?'Deck full':'Buy <span class="gold">'+fmt(c)+'</span>'}</button></div>`;}).join('');
   $('deck').innerHTML=`<h3>Your deck · ${S.deck.length}/${MAX_DECK}</h3><div class="pile">${S.hand.length} in hand · ${S.draw.length} in draw pile · ${S.disc.length} spent. Spent cards return when you beat a boss or die.</div><div class="dgrid">${loc.map(dcard).join('')}</div>${fuseHTML()}<h3 style="margin-top:16px">Shop</h3><div class="dgrid">${shop}</div>`;}
  $('combos').innerHTML=Object.entries(SYN).map(([k,v])=>{const [a,b]=k.split('>');return `<div class="cmb"><div class="cn">★ ${v.n}</div><div class="hint">${TILES[a].i} ${TILES[a].n} then ${TILES[b].i} ${TILES[b].n}: ${v.d}</div></div>`;}).join('');
  $('glyphs').innerHTML=Object.values(MODS).map(m=>`<div class="cmb"><div class="cn">✦ ${m.n}</div><div class="hint">${m.d}</div></div>`).join('');
