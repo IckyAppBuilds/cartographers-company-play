@@ -516,6 +516,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #delacct{color:#ff9a8a}
 #mute{position:absolute;right:6px;top:6px;z-index:6;width:30px;height:30px;padding:0;min-height:0;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.45);color:#fff;font-size:15px;line-height:1;cursor:pointer}
 .sndrow{display:flex;gap:8px}.sndrow button{flex:1}
+[data-hero],button[data-lv],button[data-sk]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
 </style>
 </head>
 <body>
@@ -599,7 +600,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023113205';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023114434';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -801,7 +802,7 @@ const SND=(()=>{
   retire:()=>{noise({dur:1.1,vol:.12,type:'bandpass',f:200,f2:5000,q:1.5});arp([60,64,67,72,76,79,84],'sawtooth',.06,.1,.6);},
   nope:()=>tone({f:160,f2:110,dur:.12,type:'square',vol:.06})
  };
- const GAP={hit:60,kill:90,foehit:80,heal:150,click:40,coin:100,place:60,popup:120,loot:150,herodown:120};
+ const GAP={hit:60,kill:90,foehit:80,heal:150,click:40,coin:100,place:60,popup:120,loot:150,herodown:120,level:70};
  function play(name,o){
   if(!cfg.sfx||held||!R[name])return;
   const now=performance.now(),g=GAP[name]||0;if(g&&last[name]&&now-last[name]<g)return;last[name]=now;
@@ -2072,6 +2073,27 @@ say('The company sets out from the village...');
 if(!S.seenIntro)setTimeout(showIntro,700);
 let prev=performance.now(),fitN=0;
 document.addEventListener('click',e=>{if(e.target.closest('button:not(:disabled),.hc,.tile.can'))SND.play('click');},true);
+/* ---------- hold to repeat: press and hold a hero icon, a Lv button or a Skill button to keep buying until you run out ---------- */
+let holdT=0,holdN=0,holdFired=false;
+function holdAction(el){   // returns a function that buys one more level/skill and says whether it worked, or null if this button does not repeat
+ const hh=el.closest('[data-hero]'),lv=el.closest('button[data-lv]'),sk=el.closest('button[data-sk]');
+ const hi=hh?+hh.dataset.hero:lv?+lv.dataset.lv:-1;
+ if(hi>=0&&S.un[hi])return()=>{if(!S.un[hi]||S.gold<lvCost(hi))return false;levelUp(hi);return true;};
+ if(sk){const i=+sk.dataset.sk;return()=>{const r=skr(i);if(!S.owned.includes(i)||r>=skMax(i)||S.shards<skCost(r))return false;upSkill(i);return true;};}
+ return null;
+}
+function holdStop(){clearTimeout(holdT);holdT=0;holdN=0;}
+document.addEventListener('pointerdown',e=>{
+ if(e.button>0)return;holdStop();holdFired=false;
+ const act=holdAction(e.target);if(!act)return;
+ const loop=()=>{if(!act()){holdStop();return;}holdFired=true;holdN++;holdT=setTimeout(loop,Math.max(35,150-holdN*10));};
+ holdT=setTimeout(loop,380);   // a quick tap is still a normal single click
+},true);
+['pointerup','pointercancel','blur'].forEach(ev=>(ev==='blur'?window:document).addEventListener(ev,()=>{holdStop();setTimeout(()=>{holdFired=false;},450);},true));
+document.addEventListener('visibilitychange',holdStop);
+document.addEventListener('click',e=>{if(holdFired){e.stopPropagation();e.preventDefault();holdFired=false;}},true);   // the click that ends a hold must not buy one extra
+document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hero],button[data-lv],button[data-sk]'))e.preventDefault();});
+
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
  let rem=dt*speed;while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
