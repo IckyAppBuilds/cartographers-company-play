@@ -585,7 +585,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023001320';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023002027';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -718,7 +718,7 @@ const TILES={
 };
 const UNLOCK={wilds:1,forest:1,village:1,ruins:2,shrine:2,springs:2,swamp:3,market:3,crypt:4};
 const RAR=[{n:'Common',c:'#9a8a6a',d:'#6a5a3a',w:40},{n:'Uncommon',c:'#5fbf6a',d:'#2f8f3a',w:35},{n:'Rare',c:'#5aa0ff',d:'#2a6fd0',w:17},{n:'Epic',c:'#b06bff',d:'#7a3ad0',w:6},{n:'Legendary',c:'#ffb02e',d:'#b36b00',w:2}];
-const REGIONS=[['Greenwood','🐗','Grubnak the Boar King'],['Mirefen','🐊','Old Gator Moss'],['Ashen Hills','🦂','The Cinder Scorpion'],['Frostpeak','🐻‍❄️','Rimefang'],['Sunken Crypt','🧛','Count Veyl'],['Dragonspine','🐉','Vharax the Elder'],['The Void Rim','👹','The Unmapped']];
+const REGIONS=[['Greenwood','🐗','Grubnak the Boar King'],['Mirefen','🐊','Old Gator Moss'],['Ashen Hills','🦂','The Cinder Scorpion'],['Frostpeak','🐻‍❄️','Rimefang'],['Sunken Crypt','🧛','Count Veyl'],['Dragonspine','🐉','Vharax the Elder'],['The Void Rim','👹','The Unmapped'],['Sunken Reef','🐙','Maelgor the Reef Leviathan'],['Gilded Sands','🦁','Khepsun the Gilded Sphinx'],['Stormspire','🦅','Zahra the Thunder Roc']];
 const SYN={
  'forest>forest':{n:'Deep Woods',d:'Foes ×1.3, gold ×1.6',foe:1.3,rew:1.6},
  'swamp>swamp':{n:'Bottomless Mire',d:'Foes ×1.3, gold ×2',foe:1.3,rew:2},
@@ -935,7 +935,7 @@ function startTile(){
   const hp=hpM*t.pow*synF*(boss?(dual?4.6:7):1)*(.85+.3*Math.random());
   foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],
    hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(dual?1.4:1.8):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
-   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(dual?.6:1)*rkM(curRank),art:boss?'boss'+(k2?(Math.max(0,BOSSFORM.indexOf(RG(r)[1]))+3+r%5)%9:Math.max(0,BOSSFORM.indexOf(RG(r)[1]))):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%NORMAL_ACTS)+'_'+(Math.random()*3|0):null)});
+   boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(dual?.6:1)*rkM(curRank),art:boss?'boss'+(k2?(bossArt(r)+3+r%5)%BOSS_N:bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%NORMAL_ACTS)+'_'+(Math.random()*3|0):null)});
  }
  H=HEROES.map((h,i)=>({cd:Math.random()*.4,n:0,flash:0,lunge:0}));
  phase='fight';
@@ -1238,6 +1238,8 @@ const NOUN=['Barrens','Expanse','Reach','Wastes','Moors','Depths','Spires','Vale
 const EPI=['Morrigan','Valkor','Ishtara','Draegoth','Sylvane','Orrick','Vexara','Thulgar','Nyx','Kharzul','Ombra','Bastion','Hexen','Mordaine','Tarrow','Zephyra'];
 const WTITLE=['Wraith-King','Devourer','Colossus','Matriarch','Tyrant','Hierophant','Behemoth','Lich','Hydra','Warlord','Harbinger','Ravager'];
 const BOSSFORM=['🐗','🐊','🦂','🐻‍❄️','🧛','🐉','👹'];
+const BOSS_ART=[0,1,2,3,4,5,6,9,10,11],BOSS_N=12;   // boss sprite for each of the ten acts; endless acts reuse them with their act's theme
+const bossArt=r=>BOSS_ART[r%NORMAL_ACTS];
 const _rg={};
 function RG(r){   // [name, boss emoji (picks the boss sprite), warden name] for any region number
  if(r<REGIONS.length)return REGIONS[r];
@@ -1583,7 +1585,7 @@ function flashed(im,f){   // the sprite washed toward white (hit flash)
  const x=c.getContext('2d');x.globalCompositeOperation='source-over';x.clearRect(0,0,c.width,c.height);x.drawImage(im,0,0);
  x.globalCompositeOperation='source-atop';x.fillStyle='rgba(255,255,255,'+Math.min(1,f)+')';x.fillRect(0,0,c.width,c.height);x.globalCompositeOperation='source-over';return c;
 }
-const BOSSNAMES=['Grubnak the Boar King','Old Gator Moss','The Cinder Scorpion','Rimefang','Count Veyl','Vharax the Elder','The Unmapped','The Elder Treant','The Bone Colossus'];
+const BOSSNAMES=['Grubnak the Boar King','Old Gator Moss','The Cinder Scorpion','Rimefang','Count Veyl','Vharax the Elder','The Unmapped','The Elder Treant','The Bone Colossus','Maelgor the Reef Leviathan','Khepsun the Gilded Sphinx','Zahra the Thunder Roc'];
 function bossBars(top){   // big named health bars pinned to the top of the battle view
  const bs=foes.filter(f=>f.boss);if(!bs.length)return 0;
  const first=bs[0],w=Math.min(CW-60,340),cx=-OX+CW/2;let y=top+10;
@@ -1635,9 +1637,10 @@ const FOEFILE={'🐗':'boar','🦊':'fox','🦇':'bat','🐺':'wolf','🕷️':'
 const FOEH={boar:64,fox:54,bat:58,wolf:64,spider:58,bear:78,icebear:78,skeleton:88,zombie:88,ghost:88,frog:58,gator:52,leech:46,vampire:96,goblin:68,troll:104,ogre:110,void:112,scorpion:84,dragon:124};
 ['boar','fox','bat','wolf','spider','bear','skeleton','zombie','ghost','frog','gator','leech','vampire','goblin','troll','ogre','scorpion','dragon'].forEach(n=>loadImg('f_'+n,'assets/enemies/'+n+'.png'+V));
 const ACTFOE=[['beetle','treant','hornet'],['golem','hag','wisp'],['imp','lavahound','magma'],['frostwolf','wraith','yeti'],['drowned','mummy','gargoyle'],['wyvern','kobold','drakeknight'],['beholder','stalker','cultist'],['hermitcrab','siren','serpent'],['scarab','jackal','sandelem'],['harpy','stormcloud','skyknight']];
-const ACTH={a0_0:56,a0_1:84,a0_2:58,a1_0:100,a1_1:88,a1_2:60,a2_0:62,a2_1:64,a2_2:104,a3_0:66,a3_1:90,a3_2:100,a4_0:88,a4_1:88,a4_2:84,a5_0:72,a5_1:80,a5_2:100,a6_0:84,a6_1:96,a6_2:92,a7_0:80,a7_1:96,a7_2:100,a8_0:72,a8_1:96,a8_2:92,a9_0:88,a9_1:92,a9_2:112,boss0:120,boss1:100,boss2:140,boss3:140,boss4:150,boss5:185,boss6:170,boss7:150,boss8:170};
+const ACTH={a0_0:56,a0_1:84,a0_2:58,a1_0:100,a1_1:88,a1_2:60,a2_0:62,a2_1:64,a2_2:104,a3_0:66,a3_1:90,a3_2:100,a4_0:88,a4_1:88,a4_2:84,a5_0:72,a5_1:80,a5_2:100,a6_0:84,a6_1:96,a6_2:92,a7_0:80,a7_1:96,a7_2:100,a8_0:72,a8_1:96,a8_2:92,a9_0:88,a9_1:92,a9_2:112,boss0:120,boss1:100,boss2:140,boss3:140,boss4:150,boss5:185,boss6:170,boss7:150,boss8:170,boss9:165,boss10:160,boss11:170};
 Object.assign(FOEH,ACTH);
-for(let a=0;a<NORMAL_ACTS;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/enemies/a'+a+'_'+i+'.png'+V);if(a<2)loadImg('f_boss'+(a+7),'assets/enemies/boss'+(a+7)+'.png'+V);loadImg('f_boss'+a,'assets/enemies/boss'+a+'.png'+V);}
+for(let a=0;a<NORMAL_ACTS;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/enemies/a'+a+'_'+i+'.png'+V);}
+for(let i=0;i<BOSS_N;i++)loadImg('f_boss'+i,'assets/enemies/boss'+i+'.png'+V);
 const ICONS=['wilds','forest','village','ruins','swamp','crypt','shrine','springs','market','battlefield','leyline','treasury','vault','lair','coin','whet','oak','ink','fang','boots','company','deck','relics','journal','flame'];
 ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'+V));
 function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png'+V+'" alt="" draggable="false">';}
