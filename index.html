@@ -133,6 +133,8 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 .sc .sd{flex:1;min-width:0}.sc .sd b{display:block}.sc .sd small{display:block;color:var(--dim);line-height:1.25}
 .sc button{flex:none;min-width:84px;min-height:40px;padding:6px 10px;font-weight:700}
 .sc.off{opacity:.55}
+body.th-midnight .hc{background:linear-gradient(180deg,#1d1a4a,#0a0920)!important;color:#e8e4ff}
+body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 #retbtn{position:absolute;right:8px;top:8px;z-index:6;padding:8px 12px;border-radius:999px;border:2px solid #ffd24a;background:linear-gradient(180deg,#7a4fd0,#4a2a96);color:#fff3c4;font:800 13px Cinzel,Georgia,serif;letter-spacing:.04em;cursor:pointer;box-shadow:0 0 16px rgba(176,107,255,.8);animation:retpulse 1.8s ease-in-out infinite}
 #retbtn[hidden]{display:none}
 @keyframes retpulse{50%{transform:scale(1.07);box-shadow:0 0 28px rgba(200,140,255,1)}}
@@ -402,7 +404,9 @@ const CC=(function(){
   if(data.session)enter(data.session.user);else msg('Sign in to chart the realm. Your progress follows you to every device.');
  }
  document.addEventListener('DOMContentLoaded',init);
- return {queue,out,get email(){return user?user.email:'';}};
+ async function purchases(){const {data,error}=await db.from('purchases').select('sku,qty').eq('user_id',user.id);if(error)throw error;return data||[];}
+ async function buy(sku){const {error}=await db.rpc('claim_test_purchase',{p_sku:sku});if(error)throw error;}   // TEST MODE: free. Replaced by Stripe Checkout when payments go live
+ return {queue,out,purchases,buy,testMode:true,get email(){return user?user.email:'';}};
 })();
 </script>
 <script type="text/plain" id="game">
@@ -517,7 +521,7 @@ function buildRoad(){S.road=[];S.rmod=[];for(let j=0;j<7;j++){S.road.push(kindAt
 const KINDS=['forest','village','springs','shrine','ruins','swamp','market','battlefield','crypt','leyline','treasury','vault'];
 const buyable=k=>TILES[k].r<=1&&unlocked(k);   // rare and above only come from bosses
 const TILE_PRICE={forest:5,village:6,springs:7,shrine:8,ruins:10,swamp:12,market:12};   // in "tiles of income"
-const MIN_DECK=5,MAX_DECK=10;   // a deck holds at most 10 cards; each card is single-use until the next boss kill or a wipe
+const MIN_DECK=5;let MAX_DECK=10;   // a deck holds at most 10 cards; each card is single-use until the next boss kill or a wipe
 const gpt=()=>6*1.15**(region(S.depth)*10);   // card prices step up once per act, not per tile
 const cardCost=k=>TILE_PRICE[k]?Math.round(gpt()*TILE_PRICE[k]):0;
 const burnCost=()=>Math.round(gpt()*4);
@@ -954,6 +958,43 @@ function shopBuy(id){
  if(ok){save();shopHTML.v='';}
 }
 const shopHTML={v:''};
+/* ---------- premium store (TEST MODE: purchases are free and recorded in the account's purchases table; Stripe comes later) ---------- */
+const ENT={},PREM={
+ deck_slot:{n:'Extra Deck Slot',ic:'🎒',d:'Permanent +1 card slot, so your deck holds 11.',p:'$2.99',once:1},
+ shard_bundle:{n:'Shard Bundle',ic:'💎',d:'+25 hero shards, delivered instantly. Buy as many as you like.',p:'$1.99'},
+ skin_gilded:{n:'Gilded Heroes',ic:'✨',d:'A golden colourway for every hero.',p:'$1.99',once:1,eq:'skin:gilded'},
+ skin_frost:{n:'Frostbound Heroes',ic:'❄️',d:'An icy colourway for every hero.',p:'$1.99',once:1,eq:'skin:frost'},
+ theme_midnight:{n:'Midnight Cards',ic:'🌌',d:'A dark, star-lit look for your tile cards.',p:'$0.99',once:1,eq:'theme:midnight'}
+};
+const SKINS={gilded:(L,r,g,b)=>[r*.45+Math.min(255,L+65)*.55,g*.45+Math.min(255,L*.85+35)*.55,b*.45+L*.3*.55],frost:(L,r,g,b)=>[r*.4+Math.min(255,L*.7+45)*.6,g*.4+Math.min(255,L*.9+75)*.6,b*.4+Math.min(255,L*1.05+115)*.6]};
+function recolor(im,fn){const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height),p=d.data;
+ for(let i=0;i<p.length;i+=4){if(!p[i+3])continue;const L=.3*p[i]+.59*p[i+1]+.11*p[i+2],o=fn(L,p[i],p[i+1],p[i+2]);p[i]=Math.min(255,o[0]);p[i+1]=Math.min(255,o[1]);p[i+2]=Math.min(255,o[2]);}
+ x.putImageData(d,0,0);return c;}
+const _sk={};
+function applySkin(){
+ const sk=S.skin&&ENT['skin_'+S.skin]?S.skin:'';
+ for(const i in HERO0)IMG['hero'+i]=sk?(_sk[sk+i]||(_sk[sk+i]=Object.assign(recolor(HERO0[i],SKINS[sk]),{_k:"sk"+sk+i}))):HERO0[i];
+}
+function applyEnt(){MAX_DECK=10+(ENT.deck_slot||0);applySkin();document.body.classList.toggle('th-midnight',S.theme==='midnight'&&!!ENT.theme_midnight);shopHTML.v='';sig='';}
+async function loadEnt(){try{const rows=await CC.purchases();for(const k in ENT)delete ENT[k];rows.forEach(r=>ENT[r.sku]=(ENT[r.sku]||0)+r.qty);}catch(e){}applyEnt();}
+let premBusy=false;
+async function premBuy(sku){
+ if(premBusy||!PREM[sku])return;premBusy=true;
+ try{await CC.buy(sku);await loadEnt();const p=PREM[sku];
+  if(sku==='shard_bundle'){S.shards=(S.shards||0)+25;}
+  if(p.eq){const [k,v]=p.eq.split(':');S[k]=v;applyEnt();}
+  save();loot({head:'Purchase complete!',icon:p.ic,name:p.n,sub:'Premium · test mode',desc:p.d,rar:3,col:[176,107,255]});
+ }catch(e){toast(/already owned/.test(e.message||'')?'You already own that.':'Could not complete the purchase. Try again.');}
+ premBusy=false;
+}
+function premEquip(spec){const [k,v]=spec.split(':');S[k]=S[k]===v?'':v;applyEnt();save();}
+function premCard(sku){
+ const p=PREM[sku],own=ENT[sku]>0&&p.once;let btn;
+ if(own&&p.eq){const [k,v]=p.eq.split(':');btn='<button data-eq="'+p.eq+'">'+(S[k]===v?'✔ Equipped':'Equip')+'</button>';}
+ else if(own)btn='<button disabled>Owned</button>';
+ else btn='<button data-prem="'+sku+'"'+(premBusy?' disabled':'')+'>Buy · '+p.p+'</button>';
+ return '<div class="sc"><div class="si">'+p.ic+'</div><div class="sd"><b>'+p.n+'</b><small>'+p.d+'</small></div>'+btn+'</div>';
+}
 function shopRender(){
  const st=shopState(),g=S.gold;
  const card=(id,ico,name,desc,price,extra,dis)=>'<div class="sc'+(dis?' off':'')+'"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-shop="'+id+'"'+(dis||g<price?' disabled':'')+'>'+(dis||(extra||'')+ic('coin','coin')+' '+fmt(price))+'</button></div>';
@@ -961,7 +1002,7 @@ function shopRender(){
  h+='<h3>Supplies</h3>'+Object.keys(SUPPLIES).map(k=>card(k,SUPPLIES[k].ic,SUPPLIES[k].n,SUPPLIES[k].d,supPrice(k))).join('');
  h+='<h3 style="margin-top:14px">Relics</h3>'+st.rel.map((x,i)=>x.sold?card('',RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,0,'','Sold'):card('r_'+i,RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,relPrice())).join('');
  h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard','◆','Hero Shard','Spend shards on skills and new heroes. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
- h+='<h3 style="margin-top:14px">Premium <small style="opacity:.6;font-weight:400">· coming soon</small></h3>'+[['🎒','Extra Deck Slot','Permanent +1 card slot.'],['💎','Shard Bundle','A stack of hero shards.'],['🎨','Hero Skins','New looks for your heroes.'],['🖼️','Card Themes','Restyle your tile cards.']].map(x=>card('',x[0],x[1],x[2],0,'','Soon')).join('');
+ h+='<h3 style="margin-top:14px">Premium <small style="opacity:.7;font-weight:400">· test mode: nothing is charged</small></h3>'+Object.keys(PREM).map(premCard).join('');
  return h;
 }
 /* ---------- menus (bottom sheets) and toasts ---------- */
@@ -1016,6 +1057,8 @@ document.addEventListener('click',e=>{
   else if(b.id==='insbtn')startInscribe();
   else if(b.dataset.mod)applyInscribe(b.dataset.mod);
   else if('cancel' in b.dataset){inscribing=false;sig='';}
+  else if(b.dataset.prem)premBuy(b.dataset.prem);
+  else if(b.dataset.eq)premEquip(b.dataset.eq);
   else if(b.dataset.shop!==undefined){if(b.dataset.shop)shopBuy(b.dataset.shop);}
   else if(b.dataset.buy)buyTile(b.dataset.buy);
   else if(b.dataset.burn)burnCard(b.dataset.burn);
@@ -1114,8 +1157,8 @@ function drawHero(i,x,y){
  if(!dead){const m=heroMax(i),w=36;g.fillStyle='#150f0a';g.fillRect(x-w/2,y+8,w,5);g.fillStyle='#4caf6a';g.fillRect(x-w/2,y+8,w*Math.max(0,S.hp[i])/m,5);}
 }
 /* ---------- painted sprite assets (generated art). If an image is missing the simple drawn version is used. ---------- */
-const IMG={},HID=['knight','ranger','mage','cleric','rogue','berserker','druid','paladin'],PORT={};
-function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;
+const HERO0={},IMG={},HID=['knight','ranger','mage','cleric','rogue','berserker','druid','paladin'],PORT={};
+function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;{const m=/^hero(\d)$/.exec(key);if(m){HERO0[+m[1]]=im;applySkin();}}
  if(key==='f_bear')IMG.f_icebear=tintImg(im,L=>[Math.min(255,L*.75+55),Math.min(255,L*.9+90),Math.min(255,L*1.05+130)],'f_icebear');
  if(key==='f_ogre')IMG.f_void=tintImg(im,L=>[Math.min(255,L*.7+45),Math.min(255,L*.35+5),Math.min(255,L*1.0+95)],'f_void');};im.onerror=()=>{};im.src=src;}
 HID.forEach((id,i)=>loadImg('hero'+i,'assets/heroes/'+id+'.png'));
@@ -1134,7 +1177,7 @@ function hpBar(x,y,w,f,col){
 const HH=[104,96,116,108,96,110,104,116];   // on-screen hero heights in world units
 function drawHeroImg(i,x,y){
  const im=IMG['hero'+i],h=H[i]||{lunge:0,flash:0},dead=S.hp[i]<=0,T=performance.now()/1000;
- const hh=HH[i],ww=hh*im.naturalWidth/im.naturalHeight,walk=phase==='walk'&&!dead;
+ const hh=HH[i],ww=hh*(im.naturalWidth||im.width)/(im.naturalHeight||im.height),walk=phase==='walk'&&!dead;
  const bob=walk?Math.abs(Math.sin(T*9+i))*5:0,breathe=1+Math.sin(T*2.4+i*1.7)*.014;
  g.save();
  g.fillStyle='rgba(0,0,0,.34)';g.beginPath();g.ellipse(x,y+1,ww*.4,6,0,0,TAU);g.fill();
@@ -1318,6 +1361,7 @@ function claimAway(raw){
  say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
 }
 claimAway((Date.now()-S.saved)/1000);
+loadEnt();
 let hidAt=0;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){hidAt=Date.now();save();}else if(hidAt){const d=(Date.now()-hidAt)/1000;hidAt=0;claimAway(d);}});
 if(!S.road.length)buildRoad();
