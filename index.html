@@ -53,9 +53,9 @@ button.on{border-color:var(--gold);color:var(--gold)}
 #splash{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;padding:0 10px;
  background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.6),rgba(0,0,0,.28) 70%,transparent);animation:splash 2.8s ease both}
 #splash .sa{font:700 13px Cinzel,Georgia,serif;letter-spacing:.5em;color:rgb(var(--acc))}
-#splash .sn{font:900 clamp(32px,11vw,64px)/1.05 Cinzel,Georgia,serif;letter-spacing:.07em;text-transform:uppercase;color:#fff3c4;text-shadow:0 3px 0 #5a3a08,0 0 26px rgba(var(--acc),.85)}
+#splash .sn{font:900 clamp(24px,8vw,64px)/1.05 Cinzel,Georgia,serif;font-size:clamp(22px,10cqw,64px);letter-spacing:.05em;max-width:100%;white-space:nowrap;text-transform:uppercase;color:#fff3c4;text-shadow:0 3px 0 #5a3a08,0 0 26px rgba(var(--acc),.85)}
 #splash .sb{margin-top:8px;font:italic 14px Georgia,serif;color:var(--dim)}
-@keyframes splash{0%{opacity:0;transform:scale(1.4)}14%{opacity:1;transform:scale(1)}72%{opacity:1}100%{opacity:0;transform:scale(.97)}}
+@keyframes splash{0%{opacity:0;transform:scale(1.15)}14%{opacity:1;transform:scale(1)}72%{opacity:1}100%{opacity:0;transform:scale(.97)}}
 @keyframes splashfade{0%,100%{opacity:0}15%,75%{opacity:1}}
 @media (prefers-reduced-motion:reduce){#splash{animation:splashfade 2.8s}.p.cur{animation:none}}
 @media (orientation:landscape){.act{font-size:10px}#top{padding:5px 10px}.pr{margin-top:3px}}
@@ -65,7 +65,7 @@ button.on{border-color:var(--gold);color:var(--gold)}
 #spoils{grid-area:spoils;background:var(--gold);color:#2a1d08;font-weight:700;border-color:var(--gold);min-height:36px;animation:glow 1.6s infinite}
 @keyframes glow{50%{box-shadow:0 0 0 4px rgba(255,210,74,.4)}}
 #roadw{grid-area:roadw}
-#stage{grid-area:stage;min-height:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0b0805}
+#stage{container-type:inline-size;grid-area:stage;min-height:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#0b0805}
 #mini{grid-area:mini;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 #ctrl{grid-area:ctrl;display:grid;gap:6px}
 #handw{grid-area:handw;display:flex;flex-direction:column;min-height:0}
@@ -585,7 +585,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023074534';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023081439';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1421,7 +1421,8 @@ const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X'];
 let sheet=null,lastRsub,lastLog,toastT,lastRegion,lastPips,splT,lastSub,lastGold;
 function showSplash(r){   // big act title over the battle when a new region begins
  const sp=$('splash');sp.querySelector('.sa').textContent='ACT '+roman(r+1);sp.querySelector('.sn').textContent=RG(r)[0];sp.querySelector('.sb').textContent='Warden: '+RG(r)[2];
- sp.hidden=false;sp.style.animation='none';void sp.offsetWidth;sp.style.animation='';
+ sp.hidden=false;{const n=sp.querySelector('.sn');n.style.fontSize='';let f=parseFloat(getComputedStyle(n).fontSize);const room=sp.clientWidth-24;while(n.scrollWidth>room&&f>12){f-=1;n.style.fontSize=f+'px';}}   // shrink long names until they fit the battle view
+ sp.style.animation='none';void sp.offsetWidth;sp.style.animation='';
  clearTimeout(splT);splT=setTimeout(()=>{sp.hidden=true;},2900);
 }
 function showSheet(n){
