@@ -585,7 +585,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023000344';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023000917';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -799,7 +799,8 @@ const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
 const goldMul=()=>(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
-const legGain=()=>S.depth>=30?Math.floor(S.depth/10)-1:0;
+const retMin=()=>30+10*Math.floor(S.legend/4);   // the first retire is open at tile 30; every 4 Legend the bar rises by one act
+const legGain=()=>S.depth>=retMin()?Math.floor(S.depth/10)-1-Math.floor(S.legend/4):0;   // pay-out grows with how far past that bar you push
 const NORMAL_ACTS=10;   // acts with their own art before the cycle repeats and bosses double up
 const unlocked=k=>(UNLOCK[k]||1)<=region(S.best)+1;
 function synFor(p,k){return SYN[p+'>'+k]||null;}
@@ -1226,7 +1227,7 @@ function build(){
  const lg=legGain();$('leg').disabled=!lg;$('leg').textContent=lg?`Retire the company: +${lg} Legend`:'Retire the company';
  {const rb=$('retbtn');rb.hidden=!lg;if(lg){rb.textContent='★ Retire +'+lg;}
   if(lg&&!S.retHint&&$('modal').hidden){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>★ Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
- $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats, +${S.legend*10}% gold). Unlocks at tile 30.`;
+ $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats, +${S.legend*10}% gold). Next retire opens at tile ${retMin()} (Act ${roman(retMin()/10+1)}); the further past it you go, the more Legend you earn.`;
  $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">▶ x${speed}</button>`;
  $('reroll').disabled=S.rd<1;
 }
