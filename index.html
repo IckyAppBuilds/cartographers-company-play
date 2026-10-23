@@ -447,6 +447,21 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 
 @media (max-width:640px){.mc:not(.lock) .mt{display:block}.mc.lock .mt{display:none}}
 #insbtn,.row3 button{white-space:nowrap}@media (max-width:640px){#insbtn{font-size:12px;letter-spacing:0}}
+
+/* landscape phones: the battle gets the room, everything else compacts */
+@media (orientation:landscape) and (max-height:520px){
+ #top{padding:2px 8px}#top .act{display:none}#top .pr{margin-top:0}#top .big{font-size:15px}
+ #roadw .rl{display:none}
+ #road .tile{height:42px;padding:2px 1px}#road .tile .s,#road .tile .md,#road .tile .chip{display:none}
+ #road .tile .ico{width:24px;height:24px}#road .tile .n{font-size:9px}
+ #ctrl{gap:3px}#ctrl .bar{height:12px}#ctrl .bar b{font-size:9px;line-height:11px}
+ .row3 button,#reroll,#insbtn{min-height:30px;border-width:8px;border-image-width:8px;font-size:12px}
+ .mc{min-height:36px}.mc .ic .pt{width:26px;height:26px}.mc .mt{display:none}.mc:not(.lock) .mt{display:block}
+ .hc{max-height:96px}.hc .d{display:none}.hc .ico{width:30px;height:30px}
+ #piles .bh{display:none}#piles{margin-bottom:2px}
+ #nav button{min-height:40px}#nav button small{font-size:9px}
+ #nav .ico,#nav .nv{transform:scale(.85)}
+}
 </style>
 </head>
 <body>
@@ -526,7 +541,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022223225';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022223352';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
