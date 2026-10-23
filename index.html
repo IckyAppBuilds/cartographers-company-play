@@ -600,7 +600,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023114918';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023115749';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1030,7 +1030,7 @@ const MODS={
  empowered:{n:'Empowered',d:'Heroes deal +30% damage.',ok:isFight},
  restorative:{n:'Restorative',d:'Heals the company 30% after.',ok:()=>true},
  inkwell:{n:'Inkwell',d:'Refunds 1 redraw when it resolves.',ok:()=>true},
- echo:{n:'Echo',d:'Shuffles back into your draw pile instead of the discard.',ok:()=>true}
+ echo:{n:'Echo',d:'Shuffles back into your draw pile once per deck, instead of the discard.',ok:()=>true}
 };
 const modGold=()=>curMod==='gilded'?1.6:1;
 function modAfter(){
@@ -1110,7 +1110,7 @@ function replaceCard(kind){   // deck is full: swap one existing card for the ch
 }
 function skipOffer(){S.offer=null;pendingTake=null;say('You leave the spoils behind.');sig='';}
 function reshuffleAll(why){   // every card (hand, draw pile and spent pile) goes back into one shuffled deck
- S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];selCard=-1;inscribing=false;S.rd=maxRd();fillHand();
+ S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];S.echoed={};selCard=-1;inscribing=false;S.rd=maxRd();fillHand();
  say(why);replay($('hand'),'reshuf',1600);replay($('piles'),'flash',1700);sig='';
 }
 const active=()=>S.un.filter(Boolean).length;
@@ -1339,13 +1339,14 @@ function step(dt){
 }
 
 /* ---------- actions ---------- */
+const echoLeft=c=>((S.echoed||{})[c]||0)<S.deck.filter(x=>x===c).length;   // Echo returns each copy to the draw pile once per deck; the next boss kill or wipe resets it
 function placeTile(j){st('tiles');
  if(selCard<0||j<1)return;
  if((S.depth+j)%10===9)return;
   const c=S.hand[selCard];if(!c)return;
  if(S.road[j]===kindOf(c)&&(S.rmod[j]||null)===modOf(c)&&(S.rrank[j]||1)===rankOf(c))return;
  S.road[j]=kindOf(c);S.rmod[j]=modOf(c);S.rrank[j]=rankOf(c);SND.play('place');
- if(modOf(c)==='echo')S.draw.splice(Math.random()*(S.draw.length+1)|0,0,c);else S.disc.push(c);
+ if(modOf(c)==='echo'&&echoLeft(c)){const u=S.echoed||(S.echoed={});u[c]=(u[c]||0)+1;S.draw.splice(Math.random()*(S.draw.length+1)|0,0,c);say('Echo: the card is shuffled back into your deck (once per deck).');}else S.disc.push(c);
  S.hand.splice(selCard,1);selCard=-1;inscribing=false;fillHand();sig='';
 }
 function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[j]]=[S.order[j],S.order[pos]];sig='';}
