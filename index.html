@@ -380,7 +380,7 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022213736';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022215641';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
@@ -1376,19 +1376,25 @@ function tintImg(im,fn,key){
 }
 /* ---------- painted backdrops: 4 generated scenes, the other biomes are tinted variants made at load time ---------- */
 const BGB={},BGV={};
-const BGSPEC={
- wilds:['meadow'],forest:['forest'],ruins:['ruins'],lair:['lair'],
- swamp:['forest','overlay','rgba(150,175,55,.6)','multiply','rgba(170,185,140,.45)'],
- crypt:['ruins','multiply','rgba(80,90,175,.6)'],
- village:['meadow','overlay','rgba(255,140,60,.5)'],
- shrine:['meadow','overlay','rgba(150,105,255,.55)'],
- springs:['meadow','overlay','rgba(90,200,255,.35)'],
- market:['meadow','overlay','rgba(255,190,80,.4)'],
- battlefield:['ruins','overlay','rgba(230,70,50,.45)'],
- leyline:['ruins','overlay','rgba(70,200,255,.5)'],
- treasury:['meadow','overlay','rgba(255,205,60,.55)'],
- vault:['ruins','overlay','rgba(165,90,255,.5)']
-};
+const BGNAMES=['meadow','forest','ruins','lair','act0','act1','act2','act3','act4','act5','act6','battlefield','village','shrine','springs','market','leyline','treasury','vault','crypt','swamp','lair0','lair1','lair2','lair3','lair4','lair5','lair6'];
+const BGSPEC={};BGNAMES.forEach(n=>BGSPEC[n]=[n]);
+// which painted backdrop a tile gets: acts own their fights and boss lairs, special tiles own their scene; later acts reuse the art in a new colour cast
+const BGCAST=[null,'rgba(255,110,190,.38)','rgba(70,190,255,.38)','rgba(255,200,60,.38)'];
+function bgKeyFor(k){
+ const r=region(S.depth),a=r%7,cyc=Math.floor(r/7)%4;let n;
+ if(k==='lair')n='lair'+a;
+ else if(TILES[k].ev||k==='battlefield'||k==='crypt'||k==='swamp')n=k;
+ else n='act'+a;
+ return cyc&&BGCAST[cyc]&&(n==='lair'+a||n==='act'+a)?n+'#'+cyc:n;
+}
+function getBG(key){
+ if(BGV[key])return BGV[key];
+ const i=key.indexOf('#');if(i<0)return null;
+ const base=BGB[key.slice(0,i)];if(!base)return null;
+ const c=document.createElement('canvas');c.width=base.naturalWidth;c.height=base.naturalHeight;const x=c.getContext('2d');x.drawImage(base,0,0);
+ x.globalCompositeOperation='overlay';x.fillStyle=BGCAST[+key.slice(i+1)];x.fillRect(0,0,c.width,c.height);x.globalCompositeOperation='source-over';
+ return BGV[key]=c;
+}
 function buildBGV(){
  for(const k in BGSPEC){
   if(BGV[k])continue;const sp=BGSPEC[k],b=BGB[sp[0]];if(!b)continue;
@@ -1398,9 +1404,9 @@ function buildBGV(){
   x.globalCompositeOperation='source-over';BGV[k]=c;
  }
 }
-['meadow','forest','ruins','lair'].forEach(n=>{const im=new Image();im.onload=()=>{BGB[n]=im;buildBGV();};im.onerror=()=>{};im.src='assets/bg/'+n+'.jpg'+V;});
+BGNAMES.forEach(n=>{const im=new Image();im.onload=()=>{BGB[n]=im;buildBGV();};im.onerror=()=>{};im.src='assets/bg/'+n+'.jpg'+V;});
 function drawBG(k){
- const im=BGV[k];if(!im)return false;
+ const im=getBG(k);if(!im)return false;
  const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,T=performance.now()/1000;
  const vw=CW,left=-OX,wide=CW===800;
  const H=Math.max(vw/iw*ih*(wide?.62:1),(250+EX)/.86,500),W=vw*1.06;   // keep the path under the heroes' feet (y~250)
@@ -1410,9 +1416,10 @@ function drawBG(k){
  return true;
 }
 function hash(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+const AMBCOL={act0:'255,235,150',act1:'170,255,170',act2:'255,150,60',act3:'225,240,255',act4:'150,255,190',act5:'255,175,80',act6:'225,150,255',village:'255,210,130',shrine:'230,170,255',springs:'220,245,255',market:'255,220,140',leyline:'120,230,255',treasury:'255,225,110',vault:'210,150,255',crypt:'190,160,255',battlefield:'200,200,200',swamp:'170,255,160'};
 function ambient(k){   // drifting pollen / spores / wisps / embers, stateless
- const T=performance.now()/1000,base=BGSPEC[k]?BGSPEC[k][0]:'meadow',left=-OX,hh=320+EX;
- const col={meadow:'255,250,225',forest:'255,230,140',ruins:'190,205,255',lair:'255,150,60'}[base]||'255,250,225',rise=base==='lair';
+ const T=performance.now()/1000,base=k.replace(/#.*/,''),left=-OX,hh=320+EX;
+ const col=AMBCOL[base]||(/^lair/.test(base)?'255,150,60':'255,250,225'),rise=/^lair/.test(base)||base==='act2'||base==='act5';
  for(let i=0;i<26;i++){
   const sp=.4+hash(i+13),walk=phase==='walk'?scroll*.35:0;
   const px=left+(((hash(i)*CW-(walk+T*6)*sp)%CW)+CW)%CW;
@@ -1429,7 +1436,7 @@ function draw(dt){
  const k=S.road[0],t=TILES[k];
  const gr=g.createLinearGradient(0,0,0,250);gr.addColorStop(0,t.bg[0]);gr.addColorStop(1,'#00000022');
  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(K,0,0,K,OX*K,EX*K);const TOPY=Math.max(0,-EX);   // keep top-anchored labels visible when sky is trimmed
- const usedBG=drawBG(k);
+ const bgk=bgKeyFor(k),usedBG=drawBG(bgk);
  if(!usedBG){
  g.fillStyle=t.bg[0];g.fillRect(0,-EX,800,320+EX);
  // drifting clouds fill the extra sky on tall screens
@@ -1449,7 +1456,7 @@ function draw(dt){
  // path
  g.fillStyle='rgba(255,230,170,.15)';g.fillRect(0,262,800,22);
  }
- else ambient(k);
+ else ambient(bgk);
  // heroes
  for(const i of S.order.slice().reverse())if(S.un[i])(IMG['hero'+i]?drawHeroImg:drawHero)(i,heroPx(i),256-slot(i)*5);
  // foes (painted sprites; emoji fallback)
