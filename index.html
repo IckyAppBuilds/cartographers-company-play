@@ -600,7 +600,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023114434';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023114918';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -765,7 +765,8 @@ const SND=(()=>{
   os.type=o.type||'sine';os.frequency.setValueAtTime(o.f,t);if(o.f2)os.frequency.exponentialRampToValueAtTime(Math.max(1,o.f2),t+o.dur);
   const v=o.vol==null?.2:o.vol,a=Math.min(o.att||.005,o.dur*.6);
   g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+o.dur);
-  os.connect(g);g.connect(o.bus||sfxBus);os.start(t);os.stop(t+o.dur+.05);
+  if(o.lp){const fl=ctx.createBiquadFilter();fl.type='lowpass';fl.frequency.value=o.lp;os.connect(fl);fl.connect(g);}else os.connect(g);
+  g.connect(o.bus||sfxBus);os.start(t);os.stop(t+o.dur+.05);
  }
  function noise(o){  // {dur,vol,type,f,f2,q,delay,bus}
   const t=ctx.currentTime+(o.delay||0),g=ctx.createGain(),s=ctx.createBufferSource(),fl=ctx.createBiquadFilter();
@@ -775,6 +776,10 @@ const SND=(()=>{
  }
  const arp=(notes,type,vol,gap,dur)=>notes.forEach((n,i)=>tone({f:hz(n),dur:dur||.24,type,vol,delay:i*gap}));
  const jit=()=>.93+Math.random()*.14;
+ function duck(sec){   // dip the music under a fanfare, then bring it back
+  if(!ctx||!musBus)return;const g=musBus.gain,t=ctx.currentTime,base=cfg.music?.55:0;
+  g.cancelScheduledValues(t);g.setValueAtTime(g.value,t);g.linearRampToValueAtTime(base*.12,t+.08);g.setValueAtTime(base*.12,t+sec);g.linearRampToValueAtTime(base,t+sec+.9);
+ }
  const R={   // sound effects
   click:()=>tone({f:900,f2:600,dur:.05,type:'square',vol:.04}),
   place:()=>{noise({dur:.09,vol:.16,f:900,f2:200});tone({f:180,f2:90,dur:.12,vol:.22});},
@@ -790,7 +795,14 @@ const SND=(()=>{
   herodown:()=>tone({f:380,f2:90,dur:.4,type:'sawtooth',vol:.14}),
   heal:()=>arp([76,81,88],'sine',.08,.07,.22),
   win:()=>arp([72,76,79,84],'triangle',.12,.09,.3),
-  bossWin:()=>{arp([67,72,76,79,84,88],'triangle',.14,.11,.45);tone({f:hz(48),dur:1.2,type:'sine',vol:.2});},
+  bossWin:()=>{   // a proper victory fanfare: timpani, brass, a rising sparkle and a cymbal crash, with the music ducked underneath
+   duck(3.4);
+   [0,.14,.28].forEach(d=>tone({f:90,f2:48,dur:.38,vol:.32,delay:d}));noise({dur:.3,vol:.1,f:400,f2:90});
+   const br=(notes,d,dur,v)=>notes.forEach(n=>tone({f:hz(n),dur,type:'sawtooth',vol:v,att:.03,lp:2600,delay:d}));
+   br([60,64,67],0,.2,.07);br([60,64,67],.24,.2,.07);br([60,64,67],.48,.2,.07);br([65,69,72],.72,.5,.08);br([67,71,74],1.25,.28,.08);br([72,76,79,84],1.6,1.7,.09);
+   [84,88,91,96,100,103].forEach((n,i)=>tone({f:hz(n),dur:.5,type:'triangle',vol:.06,delay:1.7+i*.07}));
+   noise({dur:1.9,vol:.13,type:'highpass',f:5000,delay:1.6});tone({f:hz(36),dur:2.2,vol:.25,delay:1.6});
+  },
   defeat:()=>arp([69,66,62,57],'sawtooth',.07,.2,.5),
   boss:()=>{tone({f:75,f2:42,dur:.9,type:'sawtooth',vol:.2,att:.05});tone({f:80,f2:46,dur:.9,type:'square',vol:.08,att:.05});noise({dur:.8,vol:.1,f:300,f2:80});},
   level:()=>arp([72,76,79],'square',.07,.07,.16),
@@ -809,22 +821,63 @@ const SND=(()=>{
   if(!init())return;if(ctx.state==='suspended'&&unlocked)ctx.resume();
   try{R[name](o||{});}catch(e){}
  }
- /* background music: a slow generative loop (pad, bass and a plucked arpeggio); drums join in during fights and bosses */
- const PROG=[[0,3,7],[-4,0,3],[3,7,10],[-2,2,5]],ROOTS=[57,55,52,59,50,56,53,58,54,60],E=60/76/2;
+ /* background music: every act has its own theme (tempo, scale, chords, instruments, melody) to match its setting; drums join in during fights and bosses */
+ const SC={majPent:[0,2,4,7,9],minPent:[0,3,5,7,10],phrygian:[0,1,3,5,7,8,10],lydian:[0,2,4,6,7,9,11],harmMinor:[0,2,3,5,7,8,11],aeolian:[0,2,3,5,7,8,10],whole:[0,2,4,6,8,10],mixo:[0,2,4,5,7,9,10],phrygDom:[0,1,4,5,7,8,10]};
+ const ALL=[1,1,1,1,1,1,1,1];
+ const THEMES=[
+  /* I Greenwood: bright, pastoral, plucked and flute-like */
+  {bpm:84,root:55,sc:SC.majPent,ch:[[0,4,7],[7,11,14],[9,12,16],[5,9,12]],pad:{type:'triangle',lp:2400,vol:.05},bass:{type:'sine',vol:.14},arp:{type:'triangle',o:12,vol:.06,dur:1.5,mask:[1,0,1,1,0,1,0,1]},lead:{type:'sine',o:12,vol:.07,dens:.45,dur:2.2},perc:0},
+  /* II Mirefen: slow, murky, low drones and sparse bells */
+  {bpm:58,root:50,sc:SC.minPent,ch:[[0,3,7],[-2,2,5],[0,3,7],[-4,0,3]],pad:{type:'sawtooth',lp:600,vol:.045},bass:{type:'sine',vol:.16},arp:{type:'sine',o:12,vol:.04,dur:2.5,mask:[1,0,0,1,0,0,1,0]},lead:{type:'triangle',o:12,vol:.06,dens:.3,dur:3,echo:1.5,lp:1800},perc:0},
+  /* III Ashen Hills: driving, phrygian, buzzing bass */
+  {bpm:94,root:52,sc:SC.phrygian,ch:[[0,3,7],[1,5,8],[0,3,7],[-2,2,5]],pad:{type:'sawtooth',lp:900,vol:.04},bass:{type:'sawtooth',vol:.1,lp:500,drive:1},arp:{type:'square',o:12,vol:.035,dur:1,lp:1800,mask:[1,1,0,1,1,0,1,0]},lead:{type:'sawtooth',o:12,vol:.045,dens:.5,dur:1.6,lp:1500},perc:1},
+  /* IV Frostpeak: airy, glittering high bells */
+  {bpm:70,root:59,sc:SC.lydian,ch:[[0,4,7,11],[2,6,9],[4,7,11],[-1,2,6]],pad:{type:'sine',lp:3000,vol:.06},bass:{type:'sine',vol:.12},arp:{type:'sine',o:24,vol:.05,dur:1.2,mask:[1,1,0,1,0,1,1,0]},lead:{type:'triangle',o:12,vol:.06,dens:.4,dur:2,echo:1},perc:0},
+  /* V Sunken Crypt: slow, organ-like, harmonic minor, hollow echoes */
+  {bpm:56,root:45,sc:SC.harmMinor,ch:[[0,3,7],[7,11,14],[5,8,12],[0,3,7]],pad:{type:'square',lp:500,vol:.04},bass:{type:'sine',vol:.16},arp:{type:'triangle',o:12,vol:.045,dur:2,mask:[1,0,0,0,1,0,0,1]},lead:{type:'sine',o:24,vol:.05,dens:.25,dur:3.5,echo:2},perc:0},
+  /* VI Dragonspine: heroic march, brassy */
+  {bpm:100,root:50,sc:SC.aeolian,ch:[[0,3,7],[-4,0,3],[-2,2,5],[0,3,7]],pad:{type:'sawtooth',lp:1400,vol:.045},bass:{type:'sawtooth',vol:.1,lp:700,drive:1},arp:{type:'triangle',o:12,vol:.05,dur:1,mask:[1,0,1,1,1,0,1,1]},lead:{type:'sawtooth',o:12,vol:.05,dens:.55,dur:1.8,lp:2000},perc:2},
+  /* VII The Void Rim: strange whole-tone drift, detuned and sparse */
+  {bpm:64,root:49,sc:SC.whole,ch:[[0,4,8],[2,6,10],[0,4,8],[-2,2,6]],pad:{type:'sawtooth',lp:1000,vol:.045},bass:{type:'sine',vol:.14},arp:{type:'sine',o:12,vol:.04,dur:1.4,mask:[0,1,0,0,1,0,1,0]},lead:{type:'sine',o:24,vol:.05,dens:.3,dur:2.6,echo:1.2},perc:0},
+  /* VIII Sunken Reef: watery, rippling major-seventh arpeggios with echo */
+  {bpm:72,root:52,sc:SC.mixo,ch:[[0,4,7,11],[5,9,12,16],[-2,2,5,9],[7,11,14]],pad:{type:'triangle',lp:2000,vol:.05},bass:{type:'sine',vol:.13},arp:{type:'sine',o:12,vol:.06,dur:.8,mask:[1,1,1,0,1,1,0,1]},lead:{type:'sine',o:12,vol:.06,dens:.5,dur:1.4,echo:.75},perc:0},
+  /* IX Gilded Sands: desert phrygian-dominant, plucked oud and hand drum */
+  {bpm:88,root:50,sc:SC.phrygDom,ch:[[0,4,7],[1,5,8],[0,4,7],[-2,2,5]],pad:{type:'triangle',lp:1500,vol:.045},bass:{type:'sine',vol:.13},arp:{type:'sawtooth',o:12,vol:.04,dur:.6,lp:2400,mask:[1,0,1,1,0,1,1,0]},lead:{type:'sawtooth',o:12,vol:.045,dens:.55,dur:1.1,lp:2200},perc:1},
+  /* X Stormspire: epic strings, big drums, distant thunder */
+  {bpm:110,root:48,sc:SC.harmMinor,ch:[[0,3,7],[-4,0,3],[-2,2,5],[-5,-1,2]],pad:{type:'sawtooth',lp:1600,vol:.05},bass:{type:'sawtooth',vol:.1,lp:600,drive:1},arp:{type:'triangle',o:12,vol:.05,dur:1,mask:ALL},lead:{type:'sawtooth',o:12,vol:.05,dens:.6,dur:1.4,lp:2400},perc:2,thunder:1}
+ ];
+ let th=THEMES[0],thAct=-1,E=60/th.bpm/2,lead=[];
+ function setTheme(a){   // pick the act's theme and compose its melody (the same notes every time you hear that act)
+  thAct=a;th=THEMES[a%THEMES.length];E=60/th.bpm/2;step=0;
+  let sd=(a%THEMES.length)*7919+13;const rnd=()=>{sd=sd+0x6D2B79F5|0;let t=Math.imul(sd^sd>>>15,1|sd);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  lead=th.ch.map(()=>{let deg=Math.floor(rnd()*th.sc.length);const arr=[];for(let i=0;i<16;i++){if(i===0||(i%2===0&&rnd()<th.lead.dens*1.3)||rnd()<th.lead.dens*.45){deg=Math.max(0,Math.min(th.sc.length*2-1,deg+Math.floor(rnd()*5)-2));arr.push(deg);}else arr.push(-1);}return arr;});
+ }
+ const degNote=(base,sc,deg)=>base+sc[deg%sc.length]+12*Math.floor(deg/sc.length);
  function sched(s,t){
-  const ch=PROG[(s>>4)&3],root=ROOTS[mood.act%ROOTS.length],d=t-ctx.currentTime;
-  if(s%16===0)for(const n of ch){tone({f:hz(root+n),dur:16*E+.5,type:'triangle',vol:.05,att:1.4,delay:d,bus:musBus});tone({f:hz(root+n+12)*1.004,dur:16*E+.5,type:'sine',vol:.025,att:1.8,delay:d,bus:musBus});}
-  if(s%4===0)tone({f:hz(root+ch[0]-12),dur:E*3.2,vol:.14,delay:d,bus:musBus});
-  const pat=[0,1,2,1,2,1,0,2],mask=[1,0,1,1,0,1,0,1];
-  if(mask[s%8]||mood.fight){const n=root+ch[pat[s%8]%3]+(s%16>=8?12:0)+12;tone({f:hz(n),dur:E*1.6,type:'triangle',vol:mood.fight?.08:.06,delay:d,bus:musBus});}
+  const ci=(s>>4)&3,ch=th.ch[ci],root=th.root,d=t-ctx.currentTime,p=th.pad,b=th.bass,a=th.arp,l=th.lead;
+  if(s%16===0)for(const n of ch){tone({f:hz(root+n),dur:16*E+.5,type:p.type,vol:p.vol,att:1.4,lp:p.lp,delay:d,bus:musBus});tone({f:hz(root+n+12)*1.004,dur:16*E+.5,type:'sine',vol:p.vol*.5,att:1.8,delay:d,bus:musBus});}
+  if(b.drive?s%2===0:s%4===0)tone({f:hz(root+ch[0]-12),dur:E*(b.drive?1.7:3.2),type:b.type,vol:b.vol,lp:b.lp,delay:d,bus:musBus});
+  if(a.mask[s%8]||mood.fight){const idx=[0,1,2,1,2,1,0,2][s%8];tone({f:hz(root+ch[idx%ch.length]+(s%16>=8?12:0)+a.o),dur:E*a.dur,type:a.type,vol:mood.fight?a.vol*1.3:a.vol,lp:a.lp,delay:d,bus:musBus});}
+  const ld=lead[ci][s%16];
+  if(ld>=0){const f=hz(degNote(root+l.o,th.sc,ld));tone({f,dur:E*l.dur,type:l.type,vol:l.vol,att:.02,lp:l.lp,delay:d,bus:musBus});if(l.echo)tone({f,dur:E*l.dur,type:l.type,vol:l.vol*.4,att:.02,lp:l.lp,delay:d+E*l.echo,bus:musBus});}
+  if(th.perc&&!mood.fight){   // each act's own gentle beat when nothing is fighting
+   if(s%8===0)tone({f:130,f2:45,dur:.15,vol:.12,delay:d,bus:musBus});
+   if(th.perc>=2){if(s%8===4)noise({dur:.1,vol:.07,type:'bandpass',f:1800,delay:d,bus:musBus});if(s%2===1)noise({dur:.03,vol:.03,type:'highpass',f:7000,delay:d,bus:musBus});}
+   else if([3,6].includes(s%8))tone({f:150,f2:95,dur:.09,type:'triangle',vol:.07,delay:d,bus:musBus});
+  }
+  if(th.thunder&&s%32===16&&Math.random()<.7)noise({dur:2.2,vol:.1,f:260,f2:50,delay:d,bus:musBus});
   if(mood.fight){
    if(s%4===0)tone({f:150,f2:42,dur:.16,vol:.22,delay:d,bus:musBus});
    if(s%2===1)noise({dur:.04,vol:.05,type:'highpass',f:7000,delay:d,bus:musBus});
    if(mood.boss&&s%8===4){noise({dur:.12,vol:.12,type:'bandpass',f:1800,delay:d,bus:musBus});tone({f:210,f2:120,dur:.1,type:'triangle',vol:.08,delay:d,bus:musBus});}
-   if(mood.boss&&s%2===0)tone({f:hz(root+ch[0]-24),dur:E*1.2,type:'sawtooth',vol:.05,delay:d,bus:musBus});
+   if(mood.boss&&s%2===0)tone({f:hz(root+ch[0]-24),dur:E*1.2,type:'sawtooth',vol:.05,lp:500,delay:d,bus:musBus});
   }
  }
- function tick(){if(!ctx||held||ctx.state!=='running')return;while(nextT<ctx.currentTime+.45){sched(step,nextT);nextT+=E;step=(step+1)%64;}}
+ function tick(){
+  if(!ctx||held||ctx.state!=='running')return;
+  const a=mood.act%THEMES.length;if(a!==thAct){setTheme(a);nextT=Math.max(nextT,ctx.currentTime+.15);}   // new act: switch tune at the next beat
+  while(nextT<ctx.currentTime+.45){sched(step,nextT);nextT+=E;step=(step+1)%64;}
+ }
  function startMusic(){if(!cfg.music||!unlocked||!init()||timer)return;nextT=ctx.currentTime+.1;timer=setInterval(tick,120);}
  function stopMusic(){clearInterval(timer);timer=0;}
  function unlock(){
