@@ -596,7 +596,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023094702';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023110144';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1878,7 +1878,11 @@ const ADMOB={test:true,   // flip to false and swap in your own rewarded ad unit
 const ADS=(()=>{
  const cap=window.Capacitor,A=cap&&cap.Plugins&&cap.Plugins.AdMob,native=!!(A&&cap.isNativePlatform&&cap.isNativePlatform());
  const demo=/^(localhost|127.0.0.1)$/.test(location.hostname)||/[?&]adtest/.test(location.search);
+ const bridge=!!window.__ICKY_NATIVE&&!!window.ReactNativeWebView;   // running inside the Expo app's WebView: the app shows the AdMob ad
  let busy=false,rewarded=false;
+ const pend={};let nid=0;
+ window.__nativeAdResult=(id,ok)=>{const f=pend[id];if(f){delete pend[id];f(!!ok);}};
+ const bridgeAd=()=>new Promise(res=>{const id=++nid;pend[id]=res;setTimeout(()=>{if(pend[id]){delete pend[id];res(false);}},180000);try{window.ReactNativeWebView.postMessage(JSON.stringify({t:'ad',id}));}catch(e){delete pend[id];res(false);}});
  if(native){try{A.initialize({initializeForTesting:ADMOB.test});A.addListener('onRewardedVideoAdReward',()=>{rewarded=true;});}catch(e){}}
  const testAd=()=>new Promise(res=>{
   const el=document.createElement('div');el.id='adtest';let n=5;
@@ -1890,8 +1894,8 @@ const ADS=(()=>{
  });
  const nativeAd=async()=>{rewarded=false;try{await A.prepareRewardVideoAd({adId:cap.getPlatform()==='ios'?ADMOB.ios:ADMOB.android,isTesting:ADMOB.test});await A.showRewardVideoAd();}catch(e){return false;}return rewarded;};
  return{
-  ok:()=>native||demo,
-  show:async()=>{if(busy||!(native||demo))return false;busy=true;try{return native?await nativeAd():await testAd();}finally{busy=false;}}
+  ok:()=>native||bridge||demo,
+  show:async()=>{if(busy||!(native||bridge||demo))return false;busy=true;try{return bridge?await bridgeAd():native?await nativeAd():await testAd();}finally{busy=false;}}
  };
 })();
 const AD_CD={boost:600,shard:1800};   // seconds between uses of the Shop rewards
