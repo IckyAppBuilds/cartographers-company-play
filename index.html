@@ -512,6 +512,26 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #adtest small{letter-spacing:.3em;opacity:.7}#adtest b{font:900 64px/1 Cinzel,Georgia,serif}
 #adtest button{margin-top:8px;min-width:120px;min-height:44px;font-size:16px}
 .ldb{margin-top:12px;min-height:44px;padding:0 16px;font-size:15px;font-weight:700;background:var(--gold);color:#2a1d08;border:2px solid var(--gold);border-radius:10px;cursor:pointer;position:relative;z-index:2}
+/* sign-in screen: painted backdrop, logo, the party, then the form */
+#auth{background:#120c07;overflow-y:auto;align-items:flex-start}
+#auth .au-bg{position:fixed;inset:0;background:url(assets/bg/act0.jpg) center/cover;filter:brightness(.55) saturate(1.1);animation:auDrift 40s ease-in-out infinite alternate}
+#auth .au-bg::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 35%,rgba(18,12,7,0) 0%,rgba(18,12,7,.55) 70%,rgba(18,12,7,.9) 100%)}
+@keyframes auDrift{from{transform:scale(1.04)}to{transform:scale(1.14) translateX(-1.5%)}}
+#auth .au-wrap{position:relative;width:100%;max-width:380px;margin:auto;display:flex;flex-direction:column;align-items:center;padding:6px 0 18px}
+#auth .au-logo{width:84px;height:84px;border-radius:20px;border:2px solid var(--gold);box-shadow:0 0 28px rgba(255,210,74,.45),0 8px 20px rgba(0,0,0,.6);margin-bottom:4px}
+#auth .au-heroes{display:flex;justify-content:center;align-items:flex-end;gap:2px;height:84px;margin-bottom:-26px;position:relative;z-index:2;pointer-events:none}
+#auth .au-heroes img{height:84px;width:auto;filter:drop-shadow(0 6px 6px rgba(0,0,0,.7));animation:auBob 2.6s ease-in-out infinite}
+#auth .au-heroes img:nth-child(2){animation-delay:-.6s;height:78px}#auth .au-heroes img:nth-child(3){animation-delay:-1.2s;height:80px}#auth .au-heroes img:nth-child(4){animation-delay:-1.8s;height:76px}
+@keyframes auBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+#auth .ap{position:relative;width:100%}
+#auth .au-sub{margin:-4px 0 6px;font:600 12px Cinzel,Georgia,serif;letter-spacing:.22em;text-transform:uppercase;color:#d8bf84}
+#auth .au-pw{position:relative}#auth .au-pw input{padding-right:64px}
+#auth .au-pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0!important;border-image:none!important;background:none!important;min-height:0!important;padding:8px 10px!important;color:var(--gold)!important;font:700 13px Georgia,serif;text-shadow:none!important;cursor:pointer}
+#auth .au-one{margin-top:12px}#auth .au-one button{min-height:50px;font-size:17px}
+#auth .au-forgot{margin:10px 0 0}
+#auth .au-or{display:flex;align-items:center;gap:10px;margin:14px 0 2px;color:var(--dim);font-size:12px}#auth .au-or::before,#auth .au-or::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,210,74,.4),transparent)}
+#auth input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px rgba(255,210,74,.25)}
+@media(max-height:640px){#auth .au-logo{display:none}#auth .au-heroes{height:64px}#auth .au-heroes img{height:64px!important}}
 #auth .legal{margin:12px 0 0;font-size:12px;color:var(--dim);text-align:center}#auth .legal a,#acct~div a{color:var(--gold)}
 #delacct{color:#ff9a8a}
 #mute{position:absolute;right:6px;top:6px;z-index:6;width:30px;height:30px;padding:0;min-height:0;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.45);color:#fff;font-size:15px;line-height:1;cursor:pointer}
@@ -588,19 +608,29 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  <div class="ik-tag">Cartographer's Company</div>
  <div class="ik-skip">tap to continue</div>
 </div>
-<div id="auth" hidden><form class="ap" id="authForm" autocomplete="on">
- <h2>Cartographer's Company</h2>
- <p id="authMsg">Sign in to chart the realm. Your progress follows you to every device.</p>
- <input id="authEmail" type="email" placeholder="Email" autocomplete="email" required>
- <input id="authPass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" minlength="6" required>
- <div class="row"><button type="submit" class="prim" id="authIn">Log in</button><button type="button" id="authUp">Create account</button></div>
- <p class="legal"><a href="#" id="authForgot">Forgot your password?</a></p>
- <p class="legal">By creating an account you agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
-</form></div>
+<div id="auth" hidden>
+ <div class="au-bg"></div>
+ <div class="au-wrap">
+  <img class="au-logo" src="assets/brand/logo.png" alt="" draggable="false">
+  <div class="au-heroes" aria-hidden="true"><img src="assets/heroes/knight.png" alt=""><img src="assets/heroes/ranger.png" alt=""><img src="assets/heroes/mage.png" alt=""><img src="assets/heroes/cleric.png" alt=""></div>
+  <form class="ap" id="authForm" autocomplete="on">
+   <h2>Cartographer's Company</h2>
+   <div class="au-sub">An endless idle adventure</div>
+   <p id="authMsg">Sign in to chart the realm. Your progress follows you to every device.</p>
+   <input id="authEmail" type="email" placeholder="Email" autocomplete="email" autocapitalize="none" spellcheck="false" required>
+   <div class="au-pw"><input id="authPass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" minlength="6" required><button type="button" id="authShow" aria-label="Show password">Show</button></div>
+   <div class="row au-one"><button type="submit" class="prim" id="authIn">Log in</button></div>
+   <p class="legal au-forgot"><a href="#" id="authForgot">Forgot your password?</a></p>
+   <div class="au-or"><span>New to the realm?</span></div>
+   <div class="row au-one"><button type="button" id="authUp">Create account</button></div>
+   <p class="legal">By creating an account you agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
+  </form>
+ </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023130832';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023131822';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -714,7 +744,7 @@ const CC=(function(){
   start();
  }
  function recoveryUI(on){   // reuse the sign-in card as a "choose a new password" screen
-  $('authEmail').hidden=on;$('authUp').hidden=on;$('authForgot').parentElement.hidden=on;
+  $('authEmail').hidden=on;$('authUp').parentElement.hidden=on;document.querySelector('#auth .au-or').hidden=on;$('authForgot').parentElement.hidden=on;
   $('authIn').textContent=on?'Save new password':'Log in';$('authPass').placeholder=on?'New password (6+ characters)':'Password (6+ characters)';$('authPass').autocomplete=on?'new-password':'current-password';$('authPass').value='';
   $('authEmail').required=!on;
  }
@@ -738,6 +768,7 @@ const CC=(function(){
   msg(up?'Creating your account...':'Signing in...');
   const r=up?await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}}):await db.auth.signInWithPassword({email,password});
   if(r.error)return msg(r.error.message,1);
+  lset('cc-email',email);
   if(r.data.session)return enter(r.data.user);
   msg('Account created. Check your email to confirm it, then log in.');
  }
@@ -759,6 +790,8 @@ const CC=(function(){
   db=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
   $('authForm').addEventListener('submit',e=>{e.preventDefault();if(recovering)setNewPass();else sign(false);});
   $('authForgot').addEventListener('click',forgot);
+  $('authShow').addEventListener('click',()=>{const p=$('authPass'),show=p.type==='password';p.type=show?'text':'password';$('authShow').textContent=show?'Hide':'Show';});
+  {const e=lget('cc-email');if(e&&!$('authEmail').value){$('authEmail').value=e;}}   // remember who last signed in on this device
   $('authUp').addEventListener('click',()=>sign(true));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(dirty)push();}else checkOther();});
   window.addEventListener('pagehide',()=>{if(dirty)push();});
