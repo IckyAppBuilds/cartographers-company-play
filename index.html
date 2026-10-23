@@ -254,7 +254,7 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
  #app{gap:4px}
  .mc{min-height:46px}
 }
-#modal{position:fixed;inset:0;z-index:60;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
+#modal{position:fixed;inset:0;z-index:90;touch-action:manipulation;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
 #modal .mp{width:100%;max-width:440px;max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:20px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
 #modal h2{margin:0 0 10px;font:900 clamp(22px,6.5vw,30px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
 #modal p{margin:8px 0;line-height:1.45}
@@ -585,7 +585,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023002027';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023002432';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1272,7 +1272,9 @@ function fitRegion(){   // size the act title to the room it has: grow to a cap,
 }
 window.addEventListener('resize',()=>{if(typeof lastRegion!=='undefined')fitRegion();});
 if(window.ResizeObserver)new ResizeObserver(()=>{if(typeof lastRegion!=='undefined')fitRegion();}).observe($('top'));
+const modalQ=[];
 function showModal(title,html,btns){
+ if(!$('modal').hidden){modalQ.push([title,html,btns]);return;}   // one at a time; the rest wait their turn instead of replacing it
  $('mTitle').textContent=title;$('mBody').innerHTML=html;modalBtns=btns;
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
  $('modal').hidden=false;
@@ -1317,7 +1319,12 @@ const RCOL=[[154,138,106],[95,191,106],[90,160,255],[176,107,255],[255,176,46]];
 function lootRelic(r,how){const n=S.relics[r];loot({head:how||'Relic found!',icon:RELICS[r].ico||RELICS[r].i,name:RELICS[r].n,sub:n>1?'Relic · now ×'+n:'Relic · new!',desc:RELICS[r].d,rar:2,col:[255,176,46]});}
 function lootCard(k,head){const t=TILES[k],q=t.r||0;loot({head:head,icon:t.i,name:t.n+' tile',sub:RAR[q].n+' card',desc:t.d,rar:q,col:RCOL[q]});}
 function newCardPop(k,force){const sc=S.seen||(S.seen={}),first=!sc[k];sc[k]=1;if(first||force||(TILES[k].r||0)>=2)lootCard(k,first?'New card!':'Card added!');}
-function closeModal(i){const b=modalBtns[i];$('modal').hidden=true;modalBtns=[];if(b&&b.fn)b.fn();}
+function closeModal(i){const b=modalBtns[i];$('modal').hidden=true;modalBtns=[];try{if(b&&b.fn)b.fn();}catch(e){console.error(e);}if($('modal').hidden&&modalQ.length)showModal(...modalQ.shift());}
+setInterval(()=>{   // safety net: clear any celebration popup that outlived its timer so nothing can sit on top of the game
+ const now=Date.now();
+ if(lootEl){if(!lootEl.dataset.t)lootEl.dataset.t=now;else if(now-lootEl.dataset.t>9000){lootEl.remove();lootEl=null;lootQ.length=0;}}
+ document.querySelectorAll('#loot:not(.spoils)').forEach(x=>{if(x!==lootEl)x.remove();});
+},2000);
 document.addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(b)closeModal(+b.dataset.mb);});
 function showIntro(){
  showModal("The Cartographer's Oath",'<p>The <b>Unmapped</b> has swallowed the realm\'s roads, and a <b>Warden</b> guards every region it left behind. You are the Royal Cartographer. You do not swing a sword; you lay the tiles, and the Company marches where your map leads.</p><p>Win fights for gold, rest when you must, and defeat each Warden to <span class="gold">restore a piece of the map</span>. The Unmapped never stops spreading, so the road never ends.</p>',[{t:'Begin the journey',primary:1,fn:()=>{S.seenIntro=true;save();}}]);
