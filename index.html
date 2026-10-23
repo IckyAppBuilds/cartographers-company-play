@@ -127,6 +127,16 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 #sheet .sb{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(112px + env(safe-area-inset-top));max-width:min(92vw,520px);background:rgba(20,14,9,.96);border:1px solid var(--gold);padding:7px 12px;border-radius:10px;z-index:22;pointer-events:none;font-size:13px;opacity:0;transition:opacity .25s}
 #toast.show{opacity:1}
+#loot.spoils{cursor:default;z-index:75}
+#loot.spoils .lc{width:min(94vw,520px);padding:20px 12px 14px}
+#loot .sr{display:flex;gap:8px;margin-top:14px;justify-content:center}
+#loot .sk{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px 10px;border-radius:12px;cursor:pointer;color:#fff3c4;background:linear-gradient(180deg,rgba(var(--kc),.28),#1b130c 75%);border:2px solid rgb(var(--kc));box-shadow:0 0 16px rgba(var(--kc),.55);animation:skin .6s cubic-bezier(.2,1.4,.4,1) both;animation-delay:calc(var(--n)*.14s + .35s);font:inherit}
+#loot .sk:hover,#loot .sk:focus-visible{transform:translateY(-4px) scale(1.04);box-shadow:0 0 26px rgba(var(--kc),.95)}
+#loot .sk .i{font-size:42px;line-height:1}#loot .sk .i img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(var(--kc),.9))}
+#loot .sk b{font:800 14px/1.1 Cinzel,Georgia,serif}#loot .sk small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgb(var(--kc))}
+#loot .sk em{font-style:normal;font-size:11px;line-height:1.25;color:var(--dim,#cdbb9a)}
+@keyframes skin{0%{opacity:0;transform:translateY(40px) rotateY(80deg) scale(.6)}100%{opacity:1;transform:none}}
+#loot .later{margin-top:12px;background:none;border:0;color:var(--dim,#cdbb9a);text-decoration:underline;font-size:12px;cursor:pointer;min-height:0}
 #shopBody h3{margin:6px 0}
 .sc{display:flex;align-items:center;gap:10px;padding:8px;margin:6px 0;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:10px}
 .sc .si{font-size:30px;width:42px;text-align:center;flex:none}.sc .si img{width:36px;height:36px;object-fit:contain}
@@ -327,7 +337,7 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022205740';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022210209';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 /* ---------- version check: if the server has a newer build than the one running, load it (GitHub Pages and browsers cache aggressively) ---------- */
 (function(){
@@ -867,7 +877,7 @@ function build(){
    <div class="hint" style="margin-bottom:6px">Next Cartographer's Boon after Warden ${nm} (${nm-done} to go).${bl?' Boons: '+bl+'.':''}</div>${rows}`;}
  $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
  $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?(skr(i)<SK_MAX&&S.shards>=skCost(skr(i))):S.shards>=HCOST[i]));
- $('nav-deck').classList.toggle('dot',!!S.offer);$('spoils').hidden=!S.offer;
+ $('nav-deck').classList.toggle('dot',!!S.offer);syncSpoils();
  $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}"><div class="ic">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(SK_MAX-skr(i))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
  $('shd').textContent=S.shards||0;
  $('roster').innerHTML=HEROES.map((h,i)=>{const own=S.owned.includes(i),inP=S.order.includes(i),r=skr(i),mx=r>=SK_MAX,sc=skCost(r),can=own?(!mx&&S.shards>=sc):S.shards>=HCOST[i];
@@ -927,6 +937,27 @@ function showModal(title,html,btns){
  $('mTitle').textContent=title;$('mBody').innerHTML=html;modalBtns=btns;
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
  $('modal').hidden=false;
+}
+/* ---------- boss spoils: the three offered cards appear as a celebratory pick-one popup ---------- */
+let spoilsEl=null,spoilsKey='',spoilsLater=false;
+function syncSpoils(){
+ if(!S.offer){spoilsLater=false;if(spoilsEl){spoilsEl.remove();spoilsEl=null;spoilsKey='';}return;}
+ if(spoilsEl)spoilsEl.style.display=$('modal').hidden?'':'none';
+ if(spoilsLater||!$('modal').hidden){return;}
+ const key=S.offer.join()+'|'+pendingTake+'|'+S.deck.join();
+ if(spoilsEl&&key===spoilsKey)return;
+ spoilsKey=key;
+ const first=!spoilsEl;if(first){spoilsEl=document.createElement('div');spoilsEl.id='loot';spoilsEl.className='spoils';spoilsEl.style.setProperty('--lc','255,208,74');}
+ const best=Math.max(...S.offer.map(k=>TILES[k].r||0)),col=RCOL[best];spoilsEl.style.setProperty('--lc',col.join(','));
+ let body;
+ if(pendingTake){
+  const kinds=[...new Set(S.deck.map(kindOf))];
+  body='<div class="lk">Deck full ('+MAX_DECK+')</div><div class="ln" style="margin-top:10px">Replace which card with '+TILES[pendingTake].n+'?</div><div class="sr" style="flex-wrap:wrap">'+kinds.map((k,n)=>{const q=TILES[k].r||0;return '<button class="sk" style="--kc:'+RCOL[q].join(',')+';--n:'+n*.4+';flex:1 1 28%" data-replace="'+k+'"><span class="i">'+TILES[k].i+'</span><b>'+TILES[k].n+'</b><small>×'+countKind(k)+'</small></button>';}).join('')+'</div><button class="later" data-cancel-take>Back</button>';
+ }else{
+  body='<div class="lk">Boss spoils!</div><div class="ln" style="margin-top:10px">Choose a tile for your deck</div><div class="lr">Later bosses drop rarer tiles</div><div class="sr">'+S.offer.map((k,n)=>{const t=TILES[k],q=t.r||0;return '<button class="sk" style="--kc:'+RCOL[q].join(',')+';--n:'+n+'" data-offer="'+k+'"><span class="i">'+t.i+'</span><b>'+t.n+'</b><small>'+RAR[q].n+'</small><em>'+t.d+'</em></button>';}).join('')+'</div><button class="later" data-later>Decide later</button>';
+ }
+ spoilsEl.innerHTML='<div class="rays"></div><div class="lc">'+body+'</div>';
+ if(first){let ps='';const pal=['#ffd24a','#fff3c4','rgb('+col.join(',')+')','#fff'];for(let i=0;i<46;i++){const a=Math.random()*TAU,d=100+Math.random()*260;ps+='<i class="pt" style="--dx:'+(Math.cos(a)*d|0)+'px;--dy:'+(Math.sin(a)*d-30|0)+'px;--rt:'+(Math.random()*720-360|0)+'deg;--t:'+(.9+Math.random()*.9).toFixed(2)+'s;--dl:'+(Math.random()*.2).toFixed(2)+'s;--pc:'+pal[i%4]+'"></i>';}spoilsEl.insertAdjacentHTML('beforeend',ps);document.body.appendChild(spoilsEl);try{navigator.vibrate&&navigator.vibrate([40,40,90]);}catch(e){}}
 }
 /* ---------- loot popups: a celebration whenever a relic or a new card lands ---------- */
 const lootQ=[];let lootEl=null,lootTm=0;
@@ -1075,6 +1106,7 @@ document.addEventListener('click',e=>{
   else if(b.dataset.shop!==undefined){if(b.dataset.shop)shopBuy(b.dataset.shop);}
   else if(b.dataset.buy)buyTile(b.dataset.buy);
   else if(b.dataset.burn)burnCard(b.dataset.burn);
+  else if('later' in b.dataset){spoilsLater=true;if(spoilsEl){spoilsEl.remove();spoilsEl=null;spoilsKey='';}toast('Your spoils are waiting in the Deck menu.');}
   else if(b.dataset.offer)takeOffer(b.dataset.offer);
   else if(b.dataset.replace)replaceCard(b.dataset.replace);
   else if('skip' in b.dataset)skipOffer();
