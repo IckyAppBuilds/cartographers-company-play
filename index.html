@@ -337,7 +337,7 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022211732';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022211921';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 /* ---------- version check: if the server has a newer build than the one running, load it (GitHub Pages and browsers cache aggressively) ---------- */
 (function(){
@@ -634,7 +634,7 @@ function reshuffleAll(why){   // every card (hand, draw pile and spent pile) goe
 const active=()=>S.un.filter(Boolean).length;
 const slot=i=>S.order.filter(h=>S.un[h]).indexOf(i);   // battlefield position among recruited heroes, front first
 const fervor=()=>1+Math.min(1,(S.streak||0)*.2);   // +20% gold per consecutive fight, up to +100%
-const heroPx=i=>152+(active()-1-slot(i))*68;   // the front line stands nearest the enemies (rightmost)
+const heroPx=i=>(CW===600?392:352)-slot(i)*(CW===600?72:92);   // the front line stands nearest the enemies (rightmost)
 function resetHeroes(full){for(let i=0;i<HEROES.length;i++)S.hp[i]=S.order.includes(i)&&S.un[i]?(full?heroMax(i):S.hp[i]):0;}
 
 /* ---------- encounters ---------- */
@@ -1222,7 +1222,7 @@ function hpBar(x,y,w,f,col){
 const HH=[104,96,116,108,96,110,104,116];   // on-screen hero heights in world units
 function drawHeroImg(i,x,y){
  const im=IMG['hero'+i],h=H[i]||{lunge:0,flash:0},dead=S.hp[i]<=0,T=performance.now()/1000;
- const hh=HH[i],ww=hh*(im.naturalWidth||im.width)/(im.naturalHeight||im.height),walk=phase==='walk'&&!dead;
+ const hh=HH[i]*(CW===600?.78:active()>=4?.92:1),ww=hh*(im.naturalWidth||im.width)/(im.naturalHeight||im.height),walk=phase==='walk'&&!dead;
  const bob=walk?Math.abs(Math.sin(T*9+i))*5:0,breathe=1+Math.sin(T*2.4+i*1.7)*.014;
  g.save();
  g.fillStyle='rgba(0,0,0,.34)';g.beginPath();g.ellipse(x,y+1,ww*.4,6,0,0,TAU);g.fill();
