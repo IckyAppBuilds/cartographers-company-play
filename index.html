@@ -127,6 +127,20 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 #sheet .sb{overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 #toast{position:fixed;left:50%;transform:translateX(-50%);top:calc(112px + env(safe-area-inset-top));max-width:min(92vw,520px);background:rgba(20,14,9,.96);border:1px solid var(--gold);padding:7px 12px;border-radius:10px;z-index:22;pointer-events:none;font-size:13px;opacity:0;transition:opacity .25s}
 #toast.show{opacity:1}
+#evpop{position:fixed;inset:0;z-index:65;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(6,4,2,.6);animation:lootbg .25s ease-out}
+#evpop.out{animation:lootout .25s ease-in forwards}
+#evpop .evc{width:min(94vw,440px);border-radius:16px;overflow:hidden;border:2px solid var(--gold);background:linear-gradient(180deg,rgba(20,14,9,.55),rgba(20,14,9,.96) 55%),var(--evbg,none) center/cover,#1b130c;box-shadow:0 0 36px rgba(255,210,74,.35),0 20px 50px rgba(0,0,0,.7);animation:lootpop .45s cubic-bezier(.2,1.4,.4,1);padding:16px 14px 12px;text-align:center}
+#evpop .evh{height:64px;display:flex;align-items:center;justify-content:center}#evpop .evi{font-size:46px;line-height:1}#evpop .evi img,#evpop .evh img{width:52px;height:52px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(255,210,74,.9))}
+#evpop .evt{font:900 clamp(20px,6vw,26px)/1.1 Cinzel,Georgia,serif;color:#fff3c4;text-shadow:0 2px 0 #000}
+#evpop .evd{margin:4px 0 10px;font-size:13px;color:var(--dim)}
+#evpop .evo{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+#evpop .evo button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:10px 12px;border-radius:10px;border:1px solid var(--gold);background:rgba(255,210,74,.12);color:#fff3c4;cursor:pointer;min-height:48px}
+#evpop .evo button:first-child{background:rgba(255,210,74,.22)}
+#evpop .evo button:hover:not(:disabled),#evpop .evo button:focus-visible{background:rgba(255,210,74,.34);transform:translateY(-1px)}
+#evpop .evo button b{font-size:15px}#evpop .evo button small{font-size:12px;line-height:1.25;color:var(--dim)}
+#evpop .evo button .evi{font-size:30px;margin-bottom:2px}
+#evpop .evb{height:4px;margin-top:12px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}#evpop .evb i{display:block;height:100%;width:100%;background:var(--gold)}
+#evpop .evf{margin-top:6px;font-size:10px;opacity:.55}
 #loot.spoils{cursor:default;z-index:75}
 #loot.spoils .lc{width:min(94vw,520px);padding:20px 12px 14px}
 #loot .sr{display:flex;gap:8px;margin-top:14px;justify-content:center}
@@ -380,7 +394,7 @@ canvas.shake{animation:shake .6s}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022215641';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022215825';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
@@ -790,33 +804,78 @@ function win(){
  advance();
  if(t.boss){S.offer=makeOffer();pendingTake=null;reshuffleAll('The boss falls: every card returns to your deck.');say('Boss spoils! Pick a tile for your deck.');}
 }
+/* ---------- interactive tiles: event tiles stop the march and let you choose; the first option is the classic effect, and it is picked for you after a short wait ---------- */
+const EV_WAIT=14;
+const EVOPT={
+ village:[{n:'Rest',d:'Heal 60% and earn a little gold.'},{n:'Trade rumours',d:'Double the gold, but only heal 20%.'},{n:'Hold a feast',d:'Costs 15% of your gold: heal everyone fully and +30% damage for 2 fights.'}],
+ shrine:[{n:'Pray',d:'+30% damage for 3 fights.'},{n:'Make an offering',d:'Costs 12% of your gold: +30% damage for 6 fights and +1 redraw.'},{n:'Meditate',d:'+2 redraws and +30% damage for 2 fights.'}],
+ springs:[{n:'Soak',d:'Fully heal the whole company.'},{n:'Moonlit bathe',d:'Heal 60% and +30% damage for 3 fights.'},{n:'Bottle the water',d:'Heal 30% and gain 2 redraws.'}],
+ market:[{n:'Sell your loot',d:'The usual haul of gold.'},{n:'Buy supplies',d:'Half the gold, plus a random supply (heal, redraws or a battle tonic).'},{n:'Haggle',d:'A gamble: 50% chance of 2.6× gold, otherwise only 30%.'}],
+ treasury:[{n:'Take the gold',d:'The full stash of gold.'},{n:'Take a relic',d:'30% of the gold and a random relic.'}],
+ leyline:[{n:'Channel',d:'+30% damage for 5 fights.'},{n:'Focus',d:'+30% damage for 3 fights and +2 redraws.'}],
+ vault:[{n:'Smash it open',d:'Two random relics.'},{n:'Pick the lock',d:'Choose one relic from three.'}]
+};
+let evState=null,evEl=null;
 function event(){
  const k=S.road[0],t=TILES[k];
+ if(!EVOPT[t.ev]){resolveEvent(0);return;}
+ if(!evState){evState={k,t:0,stage:0,offer:null};renderEv();}
+}
+function evTick(dt){if(!evState)return;evState.t+=dt;const f=evEl&&evEl.querySelector('.evb i');if(f)f.style.width=Math.max(0,100*(1-evState.t/EV_WAIT))+'%';if(evState.t>=EV_WAIT)evChoose(0);}
+function evChoose(i,relic){
+ if(!evState)return;const k=evState.k;
+ if(TILES[k].ev==='vault'&&i===1&&!relic){   // second step: three relics to pick from
+  if(!evState.offer)evState.offer=shuffle(RK.slice()).slice(0,3);evState.stage=1;evState.t=0;renderEv();return;
+ }
+ const el=evEl;evState=null;evEl=null;if(el){el.classList.add('out');setTimeout(()=>el.remove(),250);}
+ resolveEvent(i,relic);
+}
+function renderEv(){
+ const k=evState.k,t=TILES[k],opts=EVOPT[t.ev];
+ if(!evEl){evEl=document.createElement('div');evEl.id='evpop';document.body.appendChild(evEl);}
+ const bg=BGB[k]?'assets/bg/'+k+'.jpg'+V:'';
+ let body;
+ if(evState.stage===1)body='<div class="evt">Choose a relic</div><div class="evo">'+evState.offer.map(r=>'<button data-evr="'+r+'"><span class="evi">'+(RELICS[r].ico||RELICS[r].i)+'</span><b>'+RELICS[r].n+'</b><small>'+RELICS[r].d+'</small></button>').join('')+'</div>';
+ else body='<div class="evt">'+t.n+'</div><div class="evd">'+t.d+'</div><div class="evo">'+opts.map((o,i)=>'<button data-evc="'+i+'"'+(evCost(k,i)>S.gold?' disabled':'')+'><b>'+o.n+'</b><small>'+o.d+'</small></button>').join('')+'</div>';
+ evEl.innerHTML='<div class="evc" style="'+(bg?'--evbg:url('+bg+')':'')+'"><div class="evh"><span class="evi">'+t.i+'</span></div>'+body+'<div class="evb"><i></i></div><div class="evf">The company waits... the first option is chosen automatically if you do not decide.</div></div>';
+}
+const evCost=(k,i)=>0;
+function resolveEvent(ch,relicPick){
+ const k=S.road[0],t=TILES[k];ch=ch||0;
  if(t.ev==='village'||t.ev==='springs'){if((S.streak||0)>=2)say('You rest. Battle Fervor fades.');S.streak=0;}
  if(t.ev==='village'){
-  const g=6*1.15**S.depth*1*rkM(curRank)*((curSyn&&curSyn.rew)||1)*modGold()*goldMul();
+  let g=6*1.15**S.depth*1*rkM(curRank)*((curSyn&&curSyn.rew)||1)*modGold()*goldMul(),heal=Math.min(1,.6+.2*(curRank-1));
+  if(ch===1){g*=2;heal=.2;}
+  if(ch===2){const fee=S.gold*.15;S.gold-=fee;heal=1;S.bless=Math.max(S.bless,2);g*=.5;say('The company feasts for '+fmt(fee)+' gold.');}
   S.gold+=g;gained+=g;
-  for(const i of S.order){if(!S.un[i])continue;S.hp[i]=Math.min(heroMax(i),Math.max(S.hp[i],0)+heroMax(i)*Math.min(1,.6+.2*(curRank-1)));S.hp[i]=Math.max(S.hp[i],heroMax(i)*.3);}
+  for(const i of S.order){if(!S.un[i])continue;S.hp[i]=Math.min(heroMax(i),Math.max(S.hp[i],0)+heroMax(i)*heal);S.hp[i]=Math.max(S.hp[i],heroMax(i)*Math.min(.3,heal));}
   if(curSyn&&curSyn.heal)for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
   floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
   if(curSyn)say('Combo: '+curSyn.n+'!');
  }else if(t.ev==='shrine'){
-  S.bless=3+2*(curRank-1);S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
-  say('The shrine blesses you: +30% damage for 3 fights.');
+  S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
+  if(ch===0){S.bless=3+2*(curRank-1);say('The shrine blesses you: +30% damage for '+S.bless+' fights.');}
+  else if(ch===1){const fee=S.gold*.12;S.gold-=fee;S.bless=6+2*(curRank-1);S.rd=Math.min(maxRd()+3,S.rd+1);say('Your offering of '+fmt(fee)+' gold pleases the shrine: +30% damage for '+S.bless+' fights and +1 redraw.');}
+  else{S.bless=Math.max(S.bless,2);S.rd=Math.min(maxRd()+3,S.rd+2);say('You meditate: +2 redraws and a short blessing.');}
  }else if(t.ev==='springs'){
-  for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
-  if(curRank>1)S.rd=Math.min(maxRd()+3,S.rd+curRank-1);
-  say('The hot springs restore the whole company.'+(curRank>1?' +'+(curRank-1)+' redraw'+(curRank>2?'s':'')+'.':''));
+  if(ch===0){for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);if(curRank>1)S.rd=Math.min(maxRd()+3,S.rd+curRank-1);say('The hot springs restore the whole company.'+(curRank>1?' +'+(curRank-1)+' redraw'+(curRank>2?'s':'')+'.':''));}
+  else if(ch===1){for(const i of S.order)if(S.un[i])healHero(i,heroMax(i)*.6,true);S.bless=Math.max(S.bless,3);say('A moonlit bathe: healed and blessed for 3 fights.');}
+  else{for(const i of S.order)if(S.un[i])healHero(i,heroMax(i)*.3,true);S.rd=Math.min(maxRd()+3,S.rd+2);say('You bottle the spring water: +2 redraws.');}
  }else if(t.ev==='market'||t.ev==='treasury'){
-  const g=6*1.15**S.depth*(t.ev==='market'?2:15)*rkM(curRank)*((curSyn&&curSyn.rew)||1)*modGold()*goldMul();
+  let g=6*1.15**S.depth*(t.ev==='market'?2:15)*rkM(curRank)*((curSyn&&curSyn.rew)||1)*modGold()*goldMul();
+  if(t.ev==='market'&&ch===1){g*=.5;const q=['potion','pages','tonic'][Math.random()*3|0];SUPPLIES[q].fn();say('You buy a '+SUPPLIES[q].n+' at the market.');}
+  if(t.ev==='market'&&ch===2){if(Math.random()<.5){g*=2.6;say('Your haggling pays off!');}else{g*=.3;say('The merchant will not budge.');}}
+  if(t.ev==='treasury'&&ch===1){g*=.3;const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;lootRelic(r,'Treasury relic!');}
   S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
   say(t.ev==='market'?'The market pays '+fmt(g)+' gold.':'The treasury yields '+fmt(g)+' gold!');
   if(curSyn)say('Combo: '+curSyn.n+'!');
  }else if(t.ev==='leyline'){
-  S.bless=5+2*(curRank-1);S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
-  say('Leyline surge: +30% damage for 5 fights.');
+  S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
+  if(ch===0){S.bless=5+2*(curRank-1);say('Leyline surge: +30% damage for '+S.bless+' fights.');}
+  else{S.bless=Math.max(S.bless,3);S.rd=Math.min(maxRd()+3,S.rd+2);say('You focus the leyline: +2 redraws and a short blessing.');}
  }else if(t.ev==='vault'){
-  for(let n=0;n<1+curRank;n++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Vault relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r,'Vault treasure!');}
+  if(ch===1&&relicPick){S.relics[relicPick]=(S.relics[relicPick]||0)+1;say('Vault relic: '+RELICS[relicPick].i+' '+RELICS[relicPick].n+'!');lootRelic(relicPick,'Vault treasure!');}
+  else for(let n=0;n<1+curRank;n++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Vault relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r,'Vault treasure!');}
  }
  modAfter();
  advance();
@@ -852,7 +911,7 @@ function step(dt){
   scroll+=dt*140;pt+=dt;
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
   if(pt>=1.0)startTile();
- }else if(phase==='event'){pt+=dt;if(pt>=1.3)event();}
+ }else if(phase==='event'){pt+=dt;if(pt>=1.3){if(evState)evTick(dt);else event();}}
  else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME)wipe();}
  else if(phase==='fight'){
   H.forEach((h,i)=>{
@@ -1197,6 +1256,8 @@ document.addEventListener('click',e=>{
   else if(b.id==='insbtn')startInscribe();
   else if(b.dataset.mod)applyInscribe(b.dataset.mod);
   else if('cancel' in b.dataset){inscribing=false;sig='';}
+  else if(b.dataset.evc!==undefined)evChoose(+b.dataset.evc);
+  else if(b.dataset.evr)evChoose(1,b.dataset.evr);
   else if(b.dataset.fuse)fuseCards(b.dataset.fuse);
   else if(b.dataset.prem)premBuy(b.dataset.prem);
   else if(b.dataset.eq)premEquip(b.dataset.eq);
