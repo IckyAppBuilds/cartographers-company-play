@@ -578,7 +578,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022230236';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022230742';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -1480,7 +1480,7 @@ function dropTargets(){return [...document.querySelectorAll('#road .tile')].filt
 document.addEventListener('pointerdown',e=>{
  if(e.button>0)return;
  const c=e.target.closest('#hand .hc');if(!c||sheet)return;
- drag={i:+c.dataset.h,el:c,x0:e.clientX,y0:e.clientY,active:false,id:e.pointerId,ghost:null,w:0,h:0,off:e.pointerType==='touch'?64:0};
+ drag={i:+c.dataset.h,el:c,x0:e.clientX,y0:e.clientY,active:false,id:e.pointerId,ghost:null,w:0,h:0,off:0,touch:e.pointerType!=='mouse',cx:0,cy:0,gx:0,gy:0,raf:0};
 });
 document.addEventListener('pointermove',e=>{
  if(!drag||e.pointerId!==drag.id)return;
@@ -1492,20 +1492,27 @@ document.addEventListener('pointermove',e=>{
   g.className='tile dragghost';g.style.setProperty('--rc',RAR[ct.r].c);g.style.width=r.width+'px';g.style.height=r.height+'px';
   g.innerHTML='<div class="i">'+ct.i+'</div><div class="n">'+ct.n+'</div>'+(cm?'<div class="md">✦ '+MODS[cm].n+'</div>':'');
   document.body.appendChild(g);drag.ghost=g;drag.w=r.width;drag.h=r.height;
+  drag.off=drag.touch?r.height/2+10:0;   // on touch the tile floats just above the fingertip so the finger never hides it
+  {const cr=drag.el.getBoundingClientRect();drag.cx=cr.left+cr.width/2;drag.cy=cr.top+cr.height/2;}   // start on the card and glide to the finger
+  g.style.transform='translate('+(drag.cx-drag.w/2)+'px,'+(drag.cy-drag.h/2)+'px)';
   drag.el.classList.add('dragging');dropTargets().forEach(t=>t.classList.add('can'));
  }
  e.preventDefault();
- const gx=e.clientX,gy=e.clientY-drag.off;   // ghost centre
- drag.ghost.style.transform='translate('+(gx-drag.w/2)+'px,'+(gy-drag.h/2)+'px)';
+ const gx=e.clientX,gy=e.clientY-drag.off;   // where the ghost should be (its centre)
+ drag.gx=gx;drag.gy=gy;if(dragStep(drag)&&!drag.raf)dragGlide(drag);
  const tile=tileAtPoint(gx,gy);
  document.querySelectorAll('#road .tile.drop').forEach(x=>x.classList.remove('drop'));
  if(tile&&tile.classList.contains('can'))tile.classList.add('drop');
 },{passive:false});
+function dragStep(d){const k=.55;d.cx+=(d.gx-d.cx)*k;d.cy+=(d.gy-d.cy)*k;d.ghost.style.transform='translate('+(d.cx-d.w/2)+'px,'+(d.cy-d.h/2)+'px)';return Math.abs(d.gx-d.cx)>.5||Math.abs(d.gy-d.cy)>.5;}
+function dragGlide(d){   // ease the ghost toward the finger so it never jumps
+ d.raf=requestAnimationFrame(()=>{d.raf=0;if(drag!==d||!d.ghost)return;if(dragStep(d))dragGlide(d);});
+}
 function tileAtPoint(x,y){   // road tile under a point (small tolerance covers the gaps between tiles)
  let best=null,bd=1e9;
  for(const t of document.querySelectorAll('#road .tile')){
   const r=t.getBoundingClientRect();
-  if(x>=r.left-4&&x<=r.right+4&&y>=r.top-4&&y<=r.bottom+4){const d=Math.abs(x-(r.left+r.width/2));if(d<bd){bd=d;best=t;}}
+  if(x>=r.left-6&&x<=r.right+6&&y>=r.top-8&&y<=r.bottom+8){const d=Math.abs(x-(r.left+r.width/2));if(d<bd){bd=d;best=t;}}
  }
  return best;
 }
