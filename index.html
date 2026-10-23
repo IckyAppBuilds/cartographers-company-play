@@ -1214,7 +1214,20 @@ function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S
 if(!S.road||S.road.length!==7)buildRoad();
 fillHand();
 if(S.hp.every(h=>!h))resetHeroes(true);
-{const secs=Math.min(7200,(Date.now()-S.saved)/1000);if(secs>60&&S.rate>0){const gg=S.rate*secs*.5;S.gold+=gg;say('Welcome back! The company earned '+fmt(gg)+' gold while you were away.');}}
+/* ---------- away gains: the company keeps marching while you are gone (8h cap, half your live income, a shard per 2h, and a full rest) ---------- */
+const AFK_CAP=8*3600;
+function claimAway(raw){
+ const secs=Math.min(AFK_CAP,raw);if(secs<60||!(S.rate>0)||!S.seenIntro)return;
+ const gg=S.rate*secs*.5,sh=Math.min(4,Math.floor(secs/7200));
+ S.gold+=gg;gained+=gg;if(sh)S.shards=(S.shards||0)+sh;
+ for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
+ const t=secs>=3600?Math.floor(secs/3600)+'h '+Math.floor(secs%3600/60)+'m':Math.floor(secs/60)+' min';
+ showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?' &nbsp; <b style="color:#8fd8ff">+'+sh+' ◆</b>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}]);
+ say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
+}
+claimAway((Date.now()-S.saved)/1000);
+let hidAt=0;
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){hidAt=Date.now();save();}else if(hidAt){const d=(Date.now()-hidAt)/1000;hidAt=0;claimAway(d);}});
 if(!S.road.length)buildRoad();
 say('The company sets out from the village...');
 if(!S.seenIntro)setTimeout(showIntro,700);
