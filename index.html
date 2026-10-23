@@ -662,7 +662,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023160919';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023162925';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1116,8 +1116,8 @@ const HSK=[   // one skill per hero; each shard rank (max 5) makes it stronger
  {n:'Second Chance',d:r=>'Once per fight, revives a fallen ally at '+(30+5*r)+'% HP. Also mends every 4th action.'}
 ];
 const HACT=[1,1,1,1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,18,20];   // the act you must reach before this hero can be unlocked
-const SK_PER_STAR=5,STAR_MAX=3,UNLOCK_BY_RAR=[0,15,25,40,60],HCOST=HEROES.map((h,i)=>i<4?0:UNLOCK_BY_RAR[h.q]);   // unlock price in that hero's own shards
-const rarF=i=>[1,1.2,1.5,1.9,2.4][HEROES[i].q];
+const SK_PER_STAR=5,STAR_MAX=3,UNLOCK_COST=20,HCOST=HEROES.map((h,i)=>i<4?0:UNLOCK_COST);   // every hero costs the same number of their own shards; a rarer hero is harder to unlock only because their shards drop less often
+const rarF=i=>1;   // prices do not depend on rarity: the rarity of the shard (its drop rate) does that job
 const skCost=(r,i)=>Math.round(3*(r+1)**1.4*rarF(i)),starCost=(s,i)=>Math.round(40*(s+1)**1.4*rarF(i));   // shard prices for this hero: skill rank r→r+1, and a champion star
 const star=i=>(S.star&&S.star[i])||0,skMax=i=>SK_PER_STAR*(1+star(i)),SK_MAX=SK_PER_STAR;
 const skr=i=>(S.sk&&S.sk[i])||0;
@@ -1170,7 +1170,7 @@ const actReached=()=>Math.floor(Math.max(S.best||0,S.depth||0)/10)+1;
 const actOK=i=>actReached()>=HACT[i];
 function shardTarget(){   // every shard is a random hero's: any hero whose act you have reached can drop, and rarer heroes drop less often
  const act=actReached(),w=[];
- for(let i=0;i<HEROES.length;i++)if(HACT[i]<=act)w.push([i,[10,9,8,7,6][HEROES[i].q]]);
+ for(let i=0;i<HEROES.length;i++)if(HACT[i]<=act)w.push([i,[10,7,4,2,1][HEROES[i].q]]);
  let t=Math.random()*w.reduce((a,x)=>a+x[1],0);for(const x of w){t-=x[1];if(t<=0)return x[0];}return w[0][0];
 }
 function addShards(n,hero){const hs=S.hs||(S.hs={}),per={};addShards._last=per;{const l=S.life||(S.life={});l.shGot=(l.shGot||0)+n;}for(let k=0;k<n;k++){const i=hero!=null?hero:shardTarget();hs[i]=(hs[i]||0)+1;per[i]=(per[i]||0)+1;}return per;}
