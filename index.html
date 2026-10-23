@@ -590,12 +590,13 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  <input id="authEmail" type="email" placeholder="Email" autocomplete="email" required>
  <input id="authPass" type="password" placeholder="Password (6+ characters)" autocomplete="current-password" minlength="6" required>
  <div class="row"><button type="submit" class="prim" id="authIn">Log in</button><button type="button" id="authUp">Create account</button></div>
+ <p class="legal"><a href="#" id="authForgot">Forgot your password?</a></p>
  <p class="legal">By creating an account you agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
 </form></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023093250';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023094702';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
@@ -625,7 +626,7 @@ try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=
 const CC=(function(){
  const KEY='cartographer-v3',$=id=>document.getElementById(id);
  const dev=(()=>{try{let d=localStorage.getItem('cc-dev');if(!d){d=Math.random().toString(36).slice(2,10);localStorage.setItem('cc-dev',d);}return d;}catch(e){return 'x';}})();
- let db=null,user=null,started=false,lastPush=0,lastSync=0,pushing=false,dirty=false,t=null;
+ let recovering=/type=recovery/.test(location.hash)||/[?&]type=recovery/.test(location.search),db=null,user=null,started=false,lastPush=0,lastSync=0,pushing=false,dirty=false,t=null;
  const msg=(m,bad)=>{const e=$('authMsg');e.textContent=m;e.className=bad?'bad':'';};
  const lget=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
  const lset=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
@@ -671,6 +672,25 @@ const CC=(function(){
   try{await pull();}catch(e){msg('Could not reach your cloud save. Check your connection and reload.',1);$('auth').hidden=false;return;}
   start();
  }
+ function recoveryUI(on){   // reuse the sign-in card as a "choose a new password" screen
+  $('authEmail').hidden=on;$('authUp').hidden=on;$('authForgot').parentElement.hidden=on;
+  $('authIn').textContent=on?'Save new password':'Log in';$('authPass').placeholder=on?'New password (6+ characters)':'Password (6+ characters)';$('authPass').autocomplete=on?'new-password':'current-password';$('authPass').value='';
+  $('authEmail').required=!on;
+ }
+ async function forgot(e){
+  e.preventDefault();const email=$('authEmail').value.trim();
+  if(!email)return msg('Type your email above first, then tap Forgot your password.',1);
+  msg('Sending a reset link...');
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  msg(error?error.message:'If that email has an account, a reset link is on its way. Check your inbox and spam.',!!error);
+ }
+ async function setNewPass(){
+  const password=$('authPass').value;if(password.length<6)return msg('Choose a password of at least 6 characters.',1);
+  msg('Saving...');
+  const {data,error}=await db.auth.updateUser({password});
+  if(error)return msg(error.message,1);
+  recovering=false;recoveryUI(false);history.replaceState(null,'',location.pathname);enter(data.user);
+ }
  async function sign(up){
   const email=$('authEmail').value.trim(),password=$('authPass').value;
   if(!email||password.length<6)return msg('Enter an email and a password of at least 6 characters.',1);
@@ -696,11 +716,16 @@ const CC=(function(){
   $('auth').hidden=false;
   if(!window.supabase||SB_URL.startsWith('__')){msg(SB_URL.startsWith('__')?'Cloud saves are not configured yet.':'Could not load the sign-in service. Check your connection and reload.',1);return;}
   db=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-  $('authForm').addEventListener('submit',e=>{e.preventDefault();sign(false);});
+  $('authForm').addEventListener('submit',e=>{e.preventDefault();if(recovering)setNewPass();else sign(false);});
+  $('authForgot').addEventListener('click',forgot);
   $('authUp').addEventListener('click',()=>sign(true));
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(dirty)push();}else checkOther();});
   window.addEventListener('pagehide',()=>{if(dirty)push();});
+  db.auth.onAuthStateChange(ev=>{if(ev==='PASSWORD_RECOVERY'){recovering=true;recoveryUI(true);msg('Choose a new password for your account.');}});
+  if(recovering){recoveryUI(true);msg('Choose a new password for your account.');}
   const {data}=await db.auth.getSession();
+  if(recovering&&data.session)return;   // wait for the new password before entering the game
+  if(recovering){recovering=false;recoveryUI(false);msg('That reset link has expired. Tap Forgot your password to get a new one.',1);return;}
   if(data.session)enter(data.session.user);else msg('Sign in to chart the realm. Your progress follows you to every device.');
  }
  document.addEventListener('DOMContentLoaded',init);
