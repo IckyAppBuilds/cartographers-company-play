@@ -385,6 +385,17 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #log div{font-size:13.5px}
 .hc,.tile{text-shadow:none}
 .reg,#top .reg,#auth h2,#splash .sn{text-shadow:none!important}
+
+/* ---------- graphic labels: road ribbon, boss plate, deck counters ---------- */
+#roadw .rl{align-items:center;margin:0 0 4px}
+#roadw .rl b{font:900 12px Cinzel,Georgia,serif;letter-spacing:.14em;text-transform:uppercase;color:#f4ecff;text-shadow:0 1px 1px rgba(0,0,0,.8);border:0 solid transparent;border-width:0 24px;border-image:var(--ui-ribbonb) 0 70 fill/0 24px stretch;padding:4px 8px 6px;line-height:1.1}
+#roadw .rl span{font:700 11px Cinzel,Georgia,serif;letter-spacing:.06em;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.8);border:7px solid transparent;border-image:var(--ui-red) 24 fill/7px stretch;padding:0 8px;line-height:1.5}
+#roadw .rl span em{color:#ffe27a;font-weight:900}
+#piles{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:0 0 5px}
+#piles .bd{font:700 11px Cinzel,Georgia,serif;letter-spacing:.05em;color:#d9c79b;border:7px solid transparent;border-image:var(--ui-tab) 24 fill/7px stretch;padding:0 7px;line-height:1.45;text-shadow:0 1px 1px rgba(0,0,0,.8)}
+#piles .bd b{color:#ffd24a;font-weight:900;margin-left:2px}
+#piles .bh{margin-left:auto;font:italic 12px Alegreya,Georgia,serif;color:var(--dim)}
+@media (max-width:640px){#piles .bh{display:none}}
 </style>
 </head>
 <body>
@@ -464,9 +475,9 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261022221919';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261022222104';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
-try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
+try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
  const el=document.getElementById('icky');if(!el)return;
@@ -1055,7 +1066,7 @@ function build(){
  const ip=$('inscribe');ip.hidden=!(inscribing&&S.hand[selCard]);
  if(!ip.hidden){const ik=kindOf(S.hand[selCard]);ip.innerHTML=`<h3>Etch a glyph onto ${TILES[ik].n} (${fmt(icost)} gold)</h3><div class="row">${inscribeOpts.map(m=>`<button data-mod="${m}"><b>${MODS[m].n}</b><br><small>${MODS[m].d}</small></button>`).join('')}<button data-cancel>Cancel</button></div>`;}
  {const g={};for(const c of S.deck)if(modOf(c)){const n=TILES[kindOf(c)].n+' ('+MODS[modOf(c)].n+')';g[n]=(g[n]||0)+1;}const ks=Object.keys(g);$('insum').textContent=ks.length?'Inscribed: '+ks.map(n=>n+(g[n]>1?' x'+g[n]:'')).join(', '):'Select a card in your hand and Inscribe it to etch a permanent glyph.';}
- $('piles').textContent='Draw '+S.draw.length+' · Spent '+S.disc.length+' · Deck '+S.deck.length+'/'+MAX_DECK+' · drag a card onto the road';
+ $('piles').innerHTML='<span class="bd">Draw <b>'+S.draw.length+'</b></span><span class="bd">Spent <b>'+S.disc.length+'</b></span><span class="bd">Deck <b>'+S.deck.length+'/'+MAX_DECK+'</b></span><span class="bh">drag a card onto the road</span>';
  {const loc=[];S.hand.forEach(c=>loc.push([c,'hand']));S.draw.forEach(c=>loc.push([c,'draw']));S.disc.forEach(c=>loc.push([c,'disc']));
   loc.sort((a,b)=>KINDS.indexOf(kindOf(a[0]))-KINDS.indexOf(kindOf(b[0]))||(modOf(a[0])||'').localeCompare(modOf(b[0])||''));
   const LBL={hand:'In hand',draw:'Draw pile',disc:'Spent'},bc=burnCost(),canBurn=S.deck.length>MIN_DECK,full=S.deck.length>=MAX_DECK;
@@ -1304,7 +1315,7 @@ function hud(){
  for(const i of S.order){const f=$('hb'+i),t=$('ht'+i);if(!f)continue;const m=heroMax(i);f.style.width=100*Math.max(0,S.hp[i])/m+'%';t.textContent=S.hp[i]<=0?'Fallen':Math.ceil(S.hp[i])+' / '+Math.ceil(m);}
  if(sheet==='stats'){const h=statsRender();if(h!==shopHTML.s){shopHTML.s=h;$('statsBody').innerHTML=h;}}
  if(sheet==='shop'){const h=shopRender();if(h!==shopHTML.v){shopHTML.v=h;$('shopBody').innerHTML=h;}}
- {const left=9-(S.depth%10),bn=RG(region(S.depth))[2],t=left<=0?'<em>Boss fight</em>':'Boss in <em>'+left+'</em>';if(t!==lastRsub){lastRsub=t;$('rsub').innerHTML=t;}}
+ {const left=9-(S.depth%10),bn=RG(region(S.depth))[2],t=left<=0?'☠ Boss fight':'☠ Boss in <em>'+left+'</em>';if(t!==lastRsub){lastRsub=t;$('rsub').innerHTML=t;}}
  $('log').innerHTML=log.map(l=>'<div>'+l+'</div>').join('');
  for(const i of S.order){const m=$('mb'+i);if(m){m.style.width=100*Math.max(0,S.hp[i])/heroMax(i)+'%';m.parentElement.parentElement.classList.toggle('down',S.hp[i]<=0);}}
  if(log[0]!==lastLog)lastLog=log[0];   // log lines live in the Journal; no more text toasts
