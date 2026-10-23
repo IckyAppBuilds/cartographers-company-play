@@ -36,10 +36,10 @@ button.on{border-color:var(--gold);color:var(--gold)}
 #top{grid-area:top;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px 7px;border:1px solid rgba(var(--acc),.55);border-radius:12px;
  background:radial-gradient(130% 160% at 0% 0%,rgba(var(--acc),.28),transparent 62%),linear-gradient(180deg,rgba(255,255,255,.05),transparent 40%),var(--panel);
  box-shadow:inset 0 0 0 1px rgba(255,210,74,.1),0 0 18px rgba(var(--acc),.18)}
-#top .ttl{min-width:0;flex:1}
+#top .ttl{min-width:0;flex:1 1 0;overflow:visible}#top .r{flex:none;max-width:46%}
 #top .pr .sub{overflow:hidden;text-overflow:ellipsis}
 .act{font:700 11px Cinzel,Georgia,serif;letter-spacing:.38em;color:rgb(var(--acc));text-transform:uppercase}
-.reg{font:900 clamp(26px,8.4vw,40px)/1.02 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;
+.reg{font:900 28px/1.1 Cinzel,Georgia,serif;letter-spacing:.04em;padding-right:.1em;display:inline-block;max-width:100%;text-transform:uppercase;white-space:nowrap;
  background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent;
  filter:drop-shadow(0 2px 0 rgba(0,0,0,.65)) drop-shadow(0 0 12px rgba(var(--acc),.5))}
 .pr{display:flex;align-items:center;gap:8px;margin-top:5px}
@@ -58,7 +58,7 @@ button.on{border-color:var(--gold);color:var(--gold)}
 @keyframes splash{0%{opacity:0;transform:scale(1.4)}14%{opacity:1;transform:scale(1)}72%{opacity:1}100%{opacity:0;transform:scale(.97)}}
 @keyframes splashfade{0%,100%{opacity:0}15%,75%{opacity:1}}
 @media (prefers-reduced-motion:reduce){#splash{animation:splashfade 2.8s}.p.cur{animation:none}}
-@media (orientation:landscape){.reg{font-size:clamp(20px,7vh,30px)}.act{font-size:10px}#top{padding:5px 10px}.pr{margin-top:3px}}
+@media (orientation:landscape){.act{font-size:10px}#top{padding:5px 10px}.pr{margin-top:3px}}
 /* road */
 #top .big{font-size:clamp(16px,4.6vw,20px);font-weight:700;line-height:1.15}
 #top .r{text-align:right}
@@ -207,7 +207,7 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 #spoils .ico{width:26px;height:26px;margin-right:4px}
 /* short landscape phones: give the battle as much height as possible */
 @media (orientation:landscape) and (max-height:480px){
- #top{padding:3px 10px}.act{display:none}.pr{margin-top:1px}.reg{font-size:22px}#top .big{font-size:16px}
+ #top{padding:3px 10px}.act{display:none}.pr{margin-top:1px}#top .big{font-size:16px}
  #roadw{padding:3px}.tile{height:50px;padding:2px}.tile .i{font-size:22px}.tile .n{font-size:9px}.chip{display:none}
  #ctrl{grid-template-columns:1fr 1.5fr;align-items:center;padding:4px}.bar{height:16px}
  #app{gap:4px}
@@ -225,7 +225,7 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 .ob{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #3a2c20}.ob:last-child{border:0}
 .ob .st{text-align:center;font-size:18px}.ob.done .st{color:var(--green)}.ob.cur{background:rgba(255,210,74,.08);border-radius:8px}.ob.cur .st{color:var(--gold)}.ob.lock{opacity:.55}
 .ob .nm{font-weight:700}
-.reg.long{font-size:clamp(19px,6.2vw,30px)}
+
 #auth{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#3a2a1c,#120c07);display:flex;align-items:center;justify-content:center;padding:16px}
 #auth[hidden]{display:none}
 #auth .ap{width:100%;max-width:380px;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:22px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
@@ -888,11 +888,15 @@ function showBoon(){
  showModal("Cartographer's Boon",'<p>A Warden falls and the map grows. Choose a permanent boon. It stays with you, even when you retire.</p>',
   pool.map(k=>({t:ic(BOONS[k].ic)+' <b>'+BOONS[k].n+'</b><br><small>'+BOONS[k].d+'</small>',primary:0,fn:()=>{S.boons[k]=(S.boons[k]||0)+1;say('Boon gained: '+BOONS[k].n+'.');sig='';save();}})));
 }
-function fitRegion(){   // shrink the act title until the whole name fits
- const el=$('region');el.style.fontSize='';let fs=parseFloat(getComputedStyle(el).fontSize),w=el.parentElement.clientWidth;
- while(w>0&&el.scrollWidth>w&&fs>13){fs-=1;el.style.fontSize=fs+'px';}
+function fitRegion(){   // size the act title to the room it has: grow to a cap, shrink until the whole name shows
+ const el=$('region'),box=el.parentElement;if(!box||!box.clientWidth)return;
+ const cap=document.body.clientHeight<460?24:Math.min(44,Math.max(22,innerWidth*.09));
+ let fs=cap;el.style.fontSize=fs+'px';
+ const room=()=>box.clientWidth-6;   // slack for letter-spacing and the glow
+ while(el.scrollWidth>room()&&fs>9){fs-=.5;el.style.fontSize=fs+'px';}
 }
 window.addEventListener('resize',()=>{if(typeof lastRegion!=='undefined')fitRegion();});
+if(window.ResizeObserver)new ResizeObserver(()=>{if(typeof lastRegion!=='undefined')fitRegion();}).observe($('top'));
 function showModal(title,html,btns){
  $('mTitle').textContent=title;$('mBody').innerHTML=html;modalBtns=btns;
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
