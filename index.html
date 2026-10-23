@@ -218,6 +218,8 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 .mc .ic{position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 50% 40%,#5a4630,#1f1710);box-shadow:inset 0 0 0 1px #6b5236}
 .pt{width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;padding:2px}
 .ic{position:relative}
+.shard{display:inline-block;vertical-align:middle;filter:drop-shadow(0 1px 2px rgba(0,0,0,.65))}
+.shmix{display:inline-flex;align-items:center}.shmix .shard+.shard{margin-left:-7px}
 .ic.rq1{box-shadow:inset 0 0 0 2px #5fbf6a,0 0 6px rgba(95,191,106,.5)!important}
 .ic.rq2{box-shadow:inset 0 0 0 2px #5aa0ff,0 0 8px rgba(90,160,255,.7)!important;animation:rqb 2.6s ease-in-out infinite}
 .ic.rq3{box-shadow:inset 0 0 0 2px #b06bff,0 0 10px rgba(176,107,255,.8)!important;animation:rqe 2s ease-in-out infinite}
@@ -586,7 +588,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
   <div class="sh"><h3 id="sheetTitle"></h3><button data-close aria-label="Close menu">✕ Close</button></div>
   <div class="sb">
    <div class="pane" data-pane="party" hidden><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div><div id="synergy" style="margin-top:14px"></div>
-    <h3 style="margin-top:16px">Roster · Hero shards ◆ <span id="shd"></span></h3><div class="hint" style="margin-bottom:6px">Bosses drop hero shards (elite fights sometimes do). Every shard belongs to a random hero, and rarer heroes drop less often. Collect enough of a hero's own shards to unlock them (once you reach their act) and to rank up their skill. Skills, unlocked heroes and your party all stay when you retire. Tap Swap in on a hero, then choose which party slot they replace.</div><div id="roster"></div></div>
+    <h3 style="margin-top:16px">Roster · Hero shards <span id="shd"></span></h3><div class="hint" style="margin-bottom:6px">Bosses drop hero shards (elite fights sometimes do). Every shard belongs to a random hero, and rarer heroes drop less often. Collect enough of a hero's own shards to unlock them (once you reach their act) and to rank up their skill. Skills, unlocked heroes and your party all stay when you retire. Tap Swap in on a hero, then choose which party slot they replace.</div><div id="roster"></div></div>
    <div class="pane" data-pane="deck" hidden>
     <div id="offer" hidden></div><div id="deck"></div><div class="pile" id="insum" style="margin-top:8px"></div>
     <div class="hint" style="margin-top:6px">Your deck holds up to 10 cards and each card can be played once. Every card returns when you beat a boss or die. Buy common and uncommon tiles; rare, epic and legendary tiles drop only from bosses. Burn weak cards so better ones come up (deck keeps at least 5). Echo-glyph cards go back into the draw pile when played.</div>
@@ -645,7 +647,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023142259';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023142905';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1156,7 +1158,7 @@ function shardTarget(){   // every shard is a random hero's: any hero whose act 
  for(let i=0;i<HEROES.length;i++)if(HACT[i]<=act)w.push([i,[10,9,8,7,6][HEROES[i].q]]);
  let t=Math.random()*w.reduce((a,x)=>a+x[1],0);for(const x of w){t-=x[1];if(t<=0)return x[0];}return w[0][0];
 }
-function addShards(n,hero){const hs=S.hs||(S.hs={}),per={};{const l=S.life||(S.life={});l.shGot=(l.shGot||0)+n;}for(let k=0;k<n;k++){const i=hero!=null?hero:shardTarget();hs[i]=(hs[i]||0)+1;per[i]=(per[i]||0)+1;}return per;}
+function addShards(n,hero){const hs=S.hs||(S.hs={}),per={};addShards._last=per;{const l=S.life||(S.life={});l.shGot=(l.shGot||0)+n;}for(let k=0;k<n;k++){const i=hero!=null?hero:shardTarget();hs[i]=(hs[i]||0)+1;per[i]=(per[i]||0)+1;}return per;}
 const shardMsg=per=>Object.keys(per).map(i=>'+'+per[i]+' '+HEROES[i].n+' shard'+(per[i]>1?'s':'')).join(', ');
 function grantHero(i){if(S.owned.includes(i))return;S.owned.push(i);say(HEROES[i].n+' the '+HEROES[i].c+' can now join your party!');sig='';save();}   // also the hook for buying a hero in the store later
 const BONUSES=[
@@ -1177,6 +1179,23 @@ const ACTTRAIT=[['',''],['spectral',''],['armored',''],['armored','airborne'],['
 function pickTrait(r,boss){const T=ACTTRAIT[r%20]||['',''];if(boss)return T[0];const x=Math.random();return x<.6?T[0]:x<.85?T[1]:'';}
 const KINDN={melee:'melee',ranged:'ranged',arcane:'arcane',holy:'holy'};
 const traitText=t=>TRAITN[t]+' foes: '+Object.keys(TRAIT[t]).filter(k=>TRAIT[t][k]!==1).map(k=>KINDN[k]+' '+(TRAIT[t][k]>1?'+':'−')+Math.round(Math.abs(TRAIT[t][k]-1)*100)+'%').join(', ');
+let _shn=0;
+function shardSVG(i,sz){   // a faceted crystal tinted in the hero's colour, with their portrait inside and a rarity-coloured edge
+ const h=HEROES[i],c=RARCOL[h.q],id='sh'+i+'_'+(++_shn),pts='20,2 34,12 37,30 20,46 3,30 6,12';
+ return '<svg class="shard" width="'+Math.round(sz*.84)+'" height="'+sz+'" viewBox="0 0 40 48" aria-hidden="true"><defs><clipPath id="'+id+'"><polygon points="'+pts+'"/></clipPath><linearGradient id="'+id+'g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+h.col+'"/><stop offset="1" stop-color="#140c10"/></linearGradient></defs>'
+  +'<g clip-path="url(#'+id+')"><rect width="40" height="48" fill="url(#'+id+'g)"/><image href="assets/heroes/'+HID[i]+'_p.png'+V+'" x="3" y="8" width="34" height="34" preserveAspectRatio="xMidYMid slice" opacity=".92"/><polygon points="20,2 34,12 20,23 6,12" fill="#fff" opacity=".3"/><polygon points="20,23 34,12 37,30 20,46" fill="#000" opacity=".25"/></g>'
+  +'<path d="M20 2V23M6 12L20 23L34 12M3 30L20 23L37 30" stroke="#fff" stroke-opacity=".4" stroke-width="1" fill="none"/><polygon points="'+pts+'" fill="none" stroke="'+c+'" stroke-width="2.4" stroke-linejoin="round"/></svg>';
+}
+function shardMix(sz){return '<span class="shmix">'+shardSVG(1,sz)+shardSVG(10,sz)+shardSVG(17,sz)+'</span>';}   // a few different shards for places that mean "a random hero's"
+function drawShardCanvas(i,x,y,sz,a){
+ const h=HEROES[i],c=RARCOL[h.q],im=IMG['hero'+i];g.save();g.translate(x,y);g.scale(sz/40,sz/40);g.globalAlpha=a;
+ const P=()=>{g.beginPath();g.moveTo(0,-24);g.lineTo(14,-14);g.lineTo(17,4);g.lineTo(0,22);g.lineTo(-17,4);g.lineTo(-14,-14);g.closePath();};
+ P();g.fillStyle=h.col;g.fill();g.save();P();g.clip();
+ if(im){const iw=im.naturalWidth||im.width;g.globalAlpha=a*.9;g.drawImage(im,iw*.1,0,iw*.8,iw*.8,-17,-18,34,34);g.globalAlpha=a;}
+ g.fillStyle='rgba(255,255,255,.3)';g.beginPath();g.moveTo(0,-24);g.lineTo(14,-14);g.lineTo(0,-2);g.lineTo(-14,-14);g.fill();
+ g.fillStyle='rgba(0,0,0,.25)';g.beginPath();g.moveTo(0,-2);g.lineTo(14,-14);g.lineTo(17,4);g.lineTo(0,22);g.fill();
+ g.restore();P();g.strokeStyle=c;g.lineWidth=3;g.lineJoin='round';g.stroke();g.restore();
+}
 const rarTag=i=>'<span style="color:'+RARCOL[HEROES[i].q]+';font-weight:700">'+RAR[HEROES[i].q].n+(HEROES[i].q?' +'+Math.round((RARM[HEROES[i].q]-1)*100)+'% stats':'')+'</span>';
 function synergyHTML(){
  const c=roleCounts(),on=partyBonus().on;
@@ -1193,7 +1212,7 @@ function rosterHTML(){
   const status=inP?' · in party':own?'':ok?' · locked':' · unlocks at Act '+roman(HACT[i]);
   const need=own?(fin?'':' / '+sc):(ok?' / '+HCOST[i]+' to unlock':'');
   const col=RARCOL[h.q];
-  return `<div class="hero ${own?'':'locked'}" style="border-left:4px solid ${col};padding-left:6px"><div class="ic rq${h.q}">${heroIcon(i)}</div><div><div class="nm">${h.n}${stv?' <span class="gold">'+'★'.repeat(stv)+'</span>':''} <small>${h.c} · ${h.r} · ${rarTag(i)}${status}</small></div><small>${HSK[i].n} ${'●'.repeat(r)}${'○'.repeat(sm-r)}: ${HSK[i].d(r)}${own&&!mx?'<br>Next rank: '+HSK[i].d(r+1):''}${own&&mx&&!fin?'<br><b>Rank limit reached.</b> Star up for +12% stats and 5 more ranks.':''}<br>◆ ${have}${need}<br>${own&&!inP?`<button class="mini" data-pick="${i}">${swapId===i?'Cancel':'Swap in'}</button>`:''}</small></div><button ${own?(mx&&!fin?'data-star':'data-sk'):'data-unlock'}="${i}" ${can?'':'disabled'}>${own?(fin?'Max ★':mx?'Star up ★<br>◆ '+sc:'Skill ↑<br>◆ '+sc):ok?'Unlock<br>◆ '+HCOST[i]:'Act '+roman(HACT[i])}</button></div>`;}).join('');
+  return `<div class="hero ${own?'':'locked'}" style="border-left:4px solid ${col};padding-left:6px"><div class="ic rq${h.q}">${heroIcon(i)}</div><div><div class="nm">${h.n}${stv?' <span class="gold">'+'★'.repeat(stv)+'</span>':''} <small>${h.c} · ${h.r} · ${rarTag(i)}${status}</small></div><small>${HSK[i].n} ${'●'.repeat(r)}${'○'.repeat(sm-r)}: ${HSK[i].d(r)}${own&&!mx?'<br>Next rank: '+HSK[i].d(r+1):''}${own&&mx&&!fin?'<br><b>Rank limit reached.</b> Star up for +12% stats and 5 more ranks.':''}<br>${shardSVG(i,17)} <b>${have}</b>${need}<br>${own&&!inP?`<button class="mini" data-pick="${i}">${swapId===i?'Cancel':'Swap in'}</button>`:''}</small></div><button ${own?(mx&&!fin?'data-star':'data-sk'):'data-unlock'}="${i}" ${can?'':'disabled'}>${own?(fin?'Max ★':mx?'Star up ★<br>'+shardSVG(i,14)+' '+sc:'Skill ↑<br>'+shardSVG(i,14)+' '+sc):ok?'Unlock<br>'+shardSVG(i,14)+' '+HCOST[i]:'Act '+roman(HACT[i])}</button></div>`;}).join('');
 }
 function drawTrait(f){const t=TRAITN[f.tr].toUpperCase();g.save();g.font='700 10px Cinzel,Georgia,serif';g.textAlign='center';g.textBaseline='middle';const w=g.measureText(t).width+10,x=f.x,y=f.y+12;g.fillStyle='rgba(15,10,6,.78)';g.beginPath();g.roundRect(x-w/2,y-7,w,14,7);g.fill();g.strokeStyle=TRAITC[f.tr];g.lineWidth=1;g.stroke();g.fillStyle=TRAITC[f.tr];g.fillText(t,x,y+.5);g.restore();}
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
@@ -1410,7 +1429,7 @@ function win(){
  let rew=((curSyn&&curSyn.rew)||1)*modGold();
  let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
  S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;st('fights');{const l=S.life;if(S.streak>(l.bstreak||0))l.bstreak=S.streak;}
- {const sh=t.boss?4+2*region(S.depth):(Math.random()<(t.gold>=2.5?.15:.05)+.03*(curRank-1)?1:0);if(sh){say('Found '+shardMsg(addShards(sh))+'!');floatTxt('+'+sh+' ◆',330,150,'#8fd8ff');}}
+ {const sh=t.boss?4+2*region(S.depth):(Math.random()<(t.gold>=2.5?.15:.05)+.03*(curRank-1)?1:0);if(sh){say('Found '+shardMsg(addShards(sh))+'!');{const per=addShards._last||{};Object.keys(per).forEach((k,m)=>FXS({k:'shardicon',hero:+k,n:per[k],x:230+m*90,y:170,dur:1500,delay:m*140}));}}}
  let rc=t.relic+.05*(curRank-1)+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
  if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r);}
  // revive fallen at 30%, small heal
@@ -1829,10 +1848,10 @@ function premCard(sku){
 function shopRender(){
  const st=shopState(),g=S.gold;
  const card=(id,ico,name,desc,price,extra,dis)=>'<div class="sc'+(dis?' off':'')+'"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-shop="'+id+'"'+(dis||g<price?' disabled':'')+'>'+(dis||(extra||'')+ic('coin','coin')+' '+fmt(price))+'</button></div>';
- let h='<div class="hint" style="margin-bottom:8px">Stock refreshes every act and prices climb as you buy. You have '+ic('coin','coin')+' <b>'+fmt(g)+'</b> and ◆ <b>'+shardTot()+'</b> hero shards.</div>';
+ let h='<div class="hint" style="margin-bottom:8px">Stock refreshes every act and prices climb as you buy. You have '+ic('coin','coin')+' <b>'+fmt(g)+'</b> and <b>'+shardTot()+'</b> hero shards (each belongs to one hero).</div>';
  h+='<h3>Supplies</h3>'+Object.keys(SUPPLIES).map(k=>card(k,SUPPLIES[k].ic,SUPPLIES[k].n,SUPPLIES[k].d,supPrice(k))).join('');
  h+='<h3 style="margin-top:14px">Relics</h3>'+st.rel.map((x,i)=>x.sold?card('',RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,0,'','Sold'):card('r_'+i,RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,relPrice())).join('');
- h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard','◆','Hero Shard','A shard for a random hero. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
+ h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard',shardMix(24),'Hero Shard','A shard for a random hero. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
  if(ADS.ok()){const full=(S.boostT||0)>=BOOST_CAP-60,bl=full?1:adLeft('boost'),sl=adLeft('shard'),cl=adLeft('chest'),mm=longTxt;
   const ac=(id,ico,name,desc,left,lbl)=>'<div class="sc"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-ad="'+id+'"'+(left>0?' disabled':'')+'>'+(left>0?(lbl||mm(left)):'▶ Watch')+'</button></div>';
   h+='<h3 style="margin-top:14px">Free rewards</h3>'+ac('chest','🎁','Free Chest','A random reward: gold, a relic or hero shards. Ready every 4 hours.',cl)+ac('boost',ic('coin','coin'),'Gold x2','Each ad adds 30 minutes of double gold, stacking up to 4 hours.'+(S.boostT>0?' Stored: '+boostTxt(S.boostT)+'.':''),bl,full?'Full':null)+ac('shard','◆','Hero Shard','One free shard.',sl);}
@@ -1852,7 +1871,7 @@ function statsRender(){
  const act=Math.floor(Math.max(S.best||0,S.depth)/10)+1;
  let h=sec('This run').replace('margin:14px','margin:2px')+'<div class="stg">'+tile('Act '+roman(region(S.depth)+1),'current act')+tile((S.depth%10+1)+' / 10','tile')+tile(fmt(S.gold),'gold')+tile('≈ '+fmt(S.rate)+'/s','income')+tile(fmtT(S.playSec||0),'time this run')+tile(S.deaths||0,'falls this run')+'</div>';
  h+=sec('Progress')+'<div class="stg">'+tile('Act '+roman(act),'furthest act')+tile(S.legend,'Legend')+tile(l.retires||0,'retirements')+tile(Object.values(S.boons||{}).reduce((a,b)=>a+b,0),'boons')+tile(Object.values(S.relics).reduce((a,b)=>a+b,0),'relics held')+tile(S.owned.length+' / '+HEROES.length,'heroes unlocked')+'</div>';
- h+=sec('Lifetime')+'<div class="stg">'+tile(fmt(l.gold||0),'gold earned')+tile(fmt(l.kills||0),'enemies slain')+tile(l.wardens||0,'wardens felled')+tile(fmt(l.fights||0),'fights won')+tile(l.falls||0,'falls')+tile(fmt(l.tiles||0),'tiles placed')+tile(fmt(l.dmg||0),'damage dealt')+tile(fmt(l.taken||0),'damage taken')+tile(fmt(l.maxHit||0),'biggest hit')+tile('×'+(l.bstreak||0),'best Fervor streak')+tile(shardTot(),'◆ shards')+tile(fmtT(l.sec||0),'time played')+'</div>';
+ h+=sec('Lifetime')+'<div class="stg">'+tile(fmt(l.gold||0),'gold earned')+tile(fmt(l.kills||0),'enemies slain')+tile(l.wardens||0,'wardens felled')+tile(fmt(l.fights||0),'fights won')+tile(l.falls||0,'falls')+tile(fmt(l.tiles||0),'tiles placed')+tile(fmt(l.dmg||0),'damage dealt')+tile(fmt(l.taken||0),'damage taken')+tile(fmt(l.maxHit||0),'biggest hit')+tile('×'+(l.bstreak||0),'best Fervor streak')+tile(shardTot(),'hero shards')+tile(fmtT(l.sec||0),'time played')+'</div>';
  const tot=Object.values(l.hd||{}).reduce((a,b)=>a+b,0)||1,heroes=[...new Set(S.order.concat(S.owned))];
  h+=sec('Heroes')+heroes.map(i=>{const d=(l.hd||{})[i]||0,pc=Math.round(100*d/tot);return '<div class="sc"><div class="si">'+heroIcon(i)+'</div><div class="sd"><b>'+HEROES[i].n+' <small style="font-weight:400;opacity:.7">· '+HEROES[i].c+' · Lv '+S.lv[i]+(S.order.includes(i)?'':' · reserve')+'</small></b><small>Max HP '+fmt(heroMax(i))+' · Attack '+fmt(heroAtk(i))+' · '+fmt(d)+' damage ('+pc+'%)</small><div class="bar" style="height:6px;margin-top:4px"><i style="width:'+pc+'%;background:'+HEROES[i].col+'"></i></div></div></div>';}).join('');
  h+=sec('Bonuses')+'<div class="stg">'+tile('×'+(goldMul()).toFixed(2),'gold')+tile('+'+Math.round(100*(S.legend*.12+.15*((S.boons||{}).dmg||0)+.12*(S.relics.whet||0)))+'%','damage')+tile('+'+Math.round(100*(S.legend*.12+.15*((S.boons||{}).hp||0)+.12*(S.relics.oak||0)))+'%','max HP')+tile(maxRd(),'redraws / deck')+tile(MAX_DECK,'deck slots')+tile(S.fort>0||S.bless>0?(S.bless>0?'✨'+S.bless:'')+(S.fort>0?' 🍀'+S.fort:''):'—','buffs (fights left)')+'</div>';
@@ -2128,6 +2147,7 @@ function drawFxS(){
    for(const pass of [[9,o.c],[3,'#ffffff']]){g.strokeStyle=pass[1];g.lineWidth=pass[0];g.beginPath();g.moveTo(o.x,o.y);for(let k=1;k<segs;k++){const t=k/segs,j=Math.sin((k+o.seed)*12.9898+Math.floor(p*8)*3.1)*16;g.lineTo(o.x+dx*t+nx*j,o.y+dy*t+ny*j);}g.lineTo(o.x2,o.y2);g.stroke();}break;}
   case 'rise':{g.font='700 18px Georgia,serif';g.textAlign='center';g.textBaseline='middle';for(let k=0;k<(o.n||5);k++){const px=o.x+((k*53)%44)-22,py=o.y-fxe(p)*70-((k*17)%24);g.globalAlpha=Math.min(1,a*1.6);g.fillStyle=o.c;if(o.glyph)g.fillText(o.glyph,px,py);else{g.beginPath();g.arc(px,py,3,0,TAU);g.fill();}}break;}
   case 'pillar':{const w=34*(1-p*.4),gr=g.createLinearGradient(0,o.y-190,0,o.y);gr.addColorStop(0,rgba(o.c,0));gr.addColorStop(.7,rgba(o.c,.55));gr.addColorStop(1,rgba(o.c,.9));g.globalAlpha=a;g.fillStyle=gr;g.fillRect(o.x-w/2,o.y-190,w,190);glow(o.x,o.y,40,rgba(o.c,.8),rgba(o.c,0));break;}
+  case 'shardicon':{const q=fxe(p),al=1-Math.max(0,(p-.65)/.35);drawShardCanvas(o.hero,o.x,o.y-q*46,26+10*Math.min(1,p*5),al);g.globalAlpha=al;g.font='700 16px Georgia,serif';g.textAlign='left';g.textBaseline='middle';g.lineWidth=4;g.strokeStyle='#150f0a';g.fillStyle=RARCOL[HEROES[o.hero].q];g.strokeText('+'+o.n,o.x+16,o.y-q*46);g.fillText('+'+o.n,o.x+16,o.y-q*46);break;}
   case 'dome':{const r=fxl(30,64,fxe(p));g.globalAlpha=a*.9;g.strokeStyle=o.c;g.lineWidth=4;g.beginPath();g.arc(o.x,o.y+20,r,Math.PI,0);g.stroke();g.globalAlpha=a*.25;g.fillStyle=o.c;g.beginPath();g.arc(o.x,o.y+20,r,Math.PI,0);g.fill();break;}
   }
   g.restore();
@@ -2380,7 +2400,7 @@ async function adReward(k){
  const ok=await ADS.show();if(!ok){toast('No reward: the ad was not finished.');return;}
  if(k==='boost'){S.boostT=Math.min(BOOST_CAP,(S.boostT||0)+BOOST_ADD);(S.adT||(S.adT={})).boost=Date.now()/1000;toast('+30 min gold x2 ('+boostTxt(S.boostT)+' stored)');say('Ad bonus: +30 minutes of gold x2, '+boostTxt(S.boostT)+' stored.');}
  else if(k==='chest'){(S.adT||(S.adT={})).chest=Date.now()/1000;const q=Math.random();const txt=q<.5?gGold(1.5,1):q<.7?gRelic(1,1):q<.9?gShard(3,1):gRelic(1,1)+', '+gShard(3,1)+' and '+gGold(2,1);toast('Chest: '+txt);say('Free chest: '+txt+'.');}
- else if(k==='shard'){addShards(1);(S.adT||(S.adT={})).shard=Date.now()/1000;toast('+1 hero shard');say('Ad bonus: +1 hero shard.');loot({head:'Ad bonus',icon:'◆',name:'Hero Shard',sub:'+1',desc:'Spend shards on skills and heroes.',rar:2,col:[143,216,255]});}
+ else if(k==='shard'){const per=addShards(1),hi=+Object.keys(per)[0];(S.adT||(S.adT={})).shard=Date.now()/1000;toast('+1 '+HEROES[hi].n+' shard');say('Ad bonus: +1 '+HEROES[hi].n+' shard.');loot({head:'Ad bonus',icon:shardSVG(hi,70),name:HEROES[hi].n+' Shard',sub:'+1',desc:'Spend shards on skills and heroes.',rar:2,col:[143,216,255]});}
  sig='';save();
 }
 /* ---------- away gains: the company keeps marching while you are gone (8h cap, half your live income, a shard per 2h, and a full rest) ---------- */
@@ -2391,7 +2411,7 @@ function claimAway(raw){
  S.gold+=gg;gained+=gg;if(sh)addShards(sh);
  for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
  const t=secs>=3600?Math.floor(secs/3600)+'h '+Math.floor(secs%3600/60)+'m':Math.floor(secs/60)+' min';
- showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?' &nbsp; <b style="color:#8fd8ff">+'+sh+' ◆</b>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)addShards(sh);toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' ◆':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
+ showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?' &nbsp; <b style="color:#8fd8ff">+'+sh+' shards</b>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)addShards(sh);toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' ◆':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
  say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
 }
 claimAway((Date.now()-S.saved)/1000);
@@ -2406,7 +2426,7 @@ const gBoost=(min,m)=>{S.boostT=Math.max(S.boostT||0,min*60*m);return 'Gold x2 f
 const gRedraw=(n,m)=>{n=Math.round(n*m);S.rd=Math.min(maxRd()+n,S.rd+n);return '+'+n+' redraws';};
 const DAILY_R=[   // [short label, icon, long label, give(multiplier)]
  ['1h gold','🪙','1 hour of income',m=>gGold(1,m)],
- ['2 shards','◆','2 hero shards',m=>gShard(2,m)],
+ ['2 shards',()=>shardMix(17),'2 hero shards',m=>gShard(2,m)],
  ['2h gold','🪙','2 hours of income and 3 redraws',m=>gGold(2,m)+' and '+gRedraw(3,m)],
  ['x2 boost','⚡','A 30-minute gold x2 boost and 2 shards',m=>gBoost(30,m)+' and '+gShard(2,m)],
  ['Relic','🗝️','A random relic and 3 shards',m=>gRelic(1,m)+' and '+gShard(3,m)],
@@ -2422,7 +2442,7 @@ function dailyCheck(){
  const streak=gap<=2?d.streak+1:1;   // missing a single day keeps the streak
  const day=(streak-1)%7,week=Math.floor((streak-1)/7),bonus=1+.25*Math.min(4,week);   // +25% per completed week, up to +100%
  dailyOpen=true;
- const strip=DAILY_R.map((r,i)=>'<div style="flex:1;min-width:0;padding:5px 1px;border-radius:8px;border:1px solid '+(i===day?'var(--gold)':'rgba(255,255,255,.15)')+';background:'+(i===day?'rgba(255,210,74,.2)':i<day?'rgba(255,255,255,.08)':'none')+';opacity:'+(i<day?.55:1)+'"><small style="display:block;opacity:.7;font-size:10px">Day '+(i+1)+'</small><span style="font-size:17px">'+(i<day?'✓':r[1])+'</span><small style="display:block;font-size:9px;line-height:1.1;opacity:.85">'+r[0]+'</small></div>').join('');
+ const strip=DAILY_R.map((r,i)=>'<div style="flex:1;min-width:0;padding:5px 1px;border-radius:8px;border:1px solid '+(i===day?'var(--gold)':'rgba(255,255,255,.15)')+';background:'+(i===day?'rgba(255,210,74,.2)':i<day?'rgba(255,255,255,.08)':'none')+';opacity:'+(i<day?.55:1)+'"><small style="display:block;opacity:.7;font-size:10px">Day '+(i+1)+'</small><span style="font-size:17px">'+(i<day?'✓':(typeof r[1]==='function'?r[1]():r[1]))+'</span><small style="display:block;font-size:9px;line-height:1.1;opacity:.85">'+r[0]+'</small></div>').join('');
  const claim=m=>{d.last=today;d.streak=streak;const txt=DAILY_R[day][3](m*bonus);dailyOpen=false;say('Daily reward (day '+(day+1)+', streak '+streak+'): '+txt+'.');toast('Daily reward: '+txt);sig='';save();};
  const next=DAILY_R[(day+1)%7];
  showModal('Daily reward','<p style="margin:0">🔥 <b>'+streak+'-day streak</b>'+(week?' · +'+Math.round((bonus-1)*100)+'% weekly bonus':'')+'</p><div style="display:flex;gap:3px;margin:10px 0">'+strip+'</div><p style="font-size:17px;margin:6px 0"><b>'+DAILY_R[day][2]+'</b></p><p class="hint" style="margin:4px 0">Tomorrow: '+next[2]+'. Miss a day and the streak holds; miss two and it restarts. Each full week adds a permanent +25% to the rewards, up to +100%.</p>',
