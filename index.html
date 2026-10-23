@@ -238,6 +238,22 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 .clmsg{padding:5px 8px;margin:3px 0;border-radius:10px;background:rgba(255,255,255,.04);cursor:pointer}.clmsg.self{background:rgba(255,210,74,.08)}.clmsg.sel{outline:1px solid #ffd24a}
 .clmsg small{color:var(--dim);margin-left:6px}.clmsg .t{word-break:break-word;color:#efe3c4}
 .cla{margin-top:2px}
+.cbarena{position:relative;height:200px;border-radius:14px;overflow:hidden;background:#150f0a center/cover;border:1px solid #5a4430;margin:6px 0}
+.cbarena::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.45));pointer-events:none}
+.cbboss{position:absolute;right:3%;bottom:4px;height:88%;max-width:60%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.6));transform-origin:50% 100%;animation:cbidle 3s ease-in-out infinite}.cbboss.flip{transform:scaleX(-1)}
+.cbheroes{position:absolute;left:2%;bottom:6px;display:flex;gap:0;align-items:flex-end;z-index:2}.cbheroes img{height:92px;width:auto;margin-right:-14px;filter:drop-shadow(0 4px 4px rgba(0,0,0,.7))}
+.cbheroes img.lunge{animation:cblunge .38s ease-out}
+.cbboss.cbhit{animation:cbshake .2s linear,cbflash .2s linear}
+.cbnum{position:absolute;z-index:3;font:900 22px Cinzel,Georgia,serif;color:#fff3c4;text-shadow:0 2px 0 #5a2a00,0 0 8px #ff9a1f;pointer-events:none;animation:cbfloat 1.1s ease-out forwards}.cbnum.big{font-size:32px;color:#ffd24a}
+@keyframes cbfloat{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1;transform:translateY(-8px) scale(1.1)}100%{transform:translateY(-70px) scale(1);opacity:0}}
+@keyframes cblunge{0%{transform:translateX(0)}40%{transform:translateX(34px) rotate(4deg)}100%{transform:translateX(0)}}
+@keyframes cbshake{0%{translate:0 0}25%{translate:-6px 2px}50%{translate:5px -2px}75%{translate:-4px 1px}100%{translate:0 0}}
+@keyframes cbflash{0%{filter:brightness(2.2) drop-shadow(0 6px 8px rgba(0,0,0,.6))}100%{filter:brightness(1) drop-shadow(0 6px 8px rgba(0,0,0,.6))}}
+@keyframes cbidle{0%,100%{scale:1}50%{scale:1.025}}
+.cbboss.flip.cbhit{animation:cbshake .2s linear,cbflash .2s linear}
+#cbLeft{display:block;margin:8px 0 2px;text-align:center}#cbStrike{width:100%}
+.cbname{font:900 20px Cinzel,Georgia,serif;color:#ffe9a0;text-align:center;margin-top:4px}.cbtrait{text-align:center;font-size:13px;margin:2px 0 6px}
+.cbbar{position:relative;height:26px;border-radius:13px;background:#150f0a;border:2px solid #ffd24a;overflow:hidden}.cbbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(180deg,#ff7a5a,#b3200f);transition:width .6s}.cbbar b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;text-shadow:0 1px 2px #000}
 .clerr{color:#ff8a7a;min-height:18px;margin-top:4px;font-size:14px}
 .clchk{display:flex;align-items:center;gap:8px;margin:6px 0;color:var(--dim)}.clchk input{width:20px;height:20px}
 #modal.actdone .mp{border:3px solid #e2a92f;border-image:none;border-radius:20px;padding:20px 14px 16px;background:radial-gradient(ellipse at 50% 0,rgba(255,200,80,.16),rgba(255,200,80,0) 60%),linear-gradient(180deg,#3d2c1c,#1b120b);box-shadow:inset 0 0 0 3px #2a1a0c,inset 0 0 0 5px rgba(255,214,110,.45),0 0 44px rgba(255,200,70,.4),0 22px 50px rgba(0,0,0,.75);filter:none}
@@ -680,7 +696,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023172056';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023173938';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1224,7 +1240,7 @@ const CLAN=(()=>{
  async function refresh(){   // everything for the open clan screen
   try{
    await loadMe();
-   if(st.info){await Promise.all([loadMsgs(),rpc('clan_roster').then(r=>{st.roster=r||[];})]);rpc('sync_clan_stats',{p_act:Math.floor(Math.max(S.best,S.depth)/10)+1,p_legend:S.legend}).catch(()=>{});}
+   if(st.info){await Promise.all([loadMsgs(),rpc('clan_roster').then(r=>{st.roster=r||[];})]);syncStats();}
   }catch(e){say2(e.message||'Could not reach the clan service.');}
   if(st.open)render();
  }
@@ -1251,13 +1267,15 @@ const CLAN=(()=>{
   }
   const i=st.info,mine=i.role;
   el.innerHTML='<div class="clhead"><b>['+cesc(i.tag)+'] '+cesc(i.name)+'</b><small>'+i.members+'/'+MAXM+' members · you are '+roleName(mine).toLowerCase()+' · gold bonus +'+Math.round(bonus()*100)+'%</small>'+(i.description?'<small>'+cesc(i.description)+'</small>':'')+'</div>'
-   +'<div class="cltabs"><button class="'+(st.tab==='chat'?'on':'')+'" data-cl="tab:chat">Chat</button><button class="'+(st.tab==='members'?'on':'')+'" data-cl="tab:members">Members</button><button class="'+(st.tab==='manage'?'on':'')+'" data-cl="tab:manage">Clan</button></div>'
+   +'<div class="cltabs"><button class="'+(st.tab==='chat'?'on':'')+'" data-cl="tab:chat">Chat</button><button class="'+(st.tab==='members'?'on':'')+'" data-cl="tab:members">Members</button><button class="'+(st.tab==='boss'?'on':'')+'" data-cl="tab:boss">Boss'+(st.bossDot?' ●':'')+'</button><button class="'+(st.tab==='manage'?'on':'')+'" data-cl="tab:manage">Clan</button></div>'
    +'<div id="clTab"></div><div class="clerr" id="clanErr">'+cesc(st.err)+'</div>';
   const tb=$('clTab');
   if(st.tab==='chat'){
    tb.innerHTML='<div id="clMsgs" class="clmsgs"></div><div class="clrow"><input id="clIn" class="clin" maxlength="200" placeholder="Say something kind…" autocomplete="off"><button class="clbtn gold" data-cl="send">Send</button></div><div class="hint" style="margin-top:4px">Be kind. Tap a message to report it, mute that player or (for officers) delete it. Chat is kept for 14 days.</div>';
    drawMsgs(true);
    const inp=$('clIn');inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
+  }else if(st.tab==='boss'){
+   renderBoss();loadBoss();
   }else if(st.tab==='members'){
    tb.innerHTML=st.roster.map(m=>{
     const self=m.user_id===uid();let acts='';
@@ -1299,6 +1317,8 @@ const CLAN=(()=>{
   else if(k==='create'){const n=$('clcName').value,t=$('clcTag').value,d=$('clcDesc').value,o=$('clcOpen').checked;await act(async()=>{await rpc('create_clan',{p_name:n,p_tag:t,p_desc:d,p_open:o});},()=>{st.tab='chat';return refresh();});}
   else if(k==='join'){await act(async()=>{await rpc('join_clan',{p_clan:x});},()=>{st.tab='chat';return refresh();});}
   else if(k==='tab'){st.tab=x;st.sel=null;if(x==='chat')st.unread=0;render();if(x==='members'||x==='chat')refresh();}
+  else if(k==='strike'){strike();}
+  else if(k==='claim'){claim(x);}
   else if(k==='sel'){st.sel=st.sel===+x?null:+x;drawMsgs(false);}
   else if(k==='send'){send();}
   else if(k==='report'){await act(async()=>{await rpc('report_clan_message',{p_id:+x,p_reason:'chat'});toast('Reported. Thank you.');st.sel=null;});drawMsgs(false);}
@@ -1309,9 +1329,83 @@ const CLAN=(()=>{
   else if(k==='save'){const d=$('clDesc').value,o=$('clOpen').checked;await act(async()=>{await rpc('update_clan',{p_desc:d,p_open:o});toast('Clan updated.');},refresh);}
   else if(k==='leave'){showModal('Leave your clan?','<p>You will lose the clan gold bonus and chat.</p>',[{t:'Leave',primary:true,fn:()=>act(async()=>{await rpc('leave_clan');st.info=null;unsubscribe();st.msgs=[];st.roster=[];st.list=null;},()=>{st.find='';render();doBrowse('');})},{t:'Stay'}]);}
  }
+ /* ----- clan boss: one shared health pool per clan; every member gets 3 strikes a day; far too big for any one player ----- */
+ const STRIKES=3;
+ const strikeBase=()=>S.order.reduce((a,i)=>S.un[i]?a+heroAtk(i)*HEROES[i].spd*spdMul()*20:a,0);   // what the party deals in a 20-second strike
+ const strikeVs=tr=>S.order.reduce((a,i)=>S.un[i]?a+heroAtk(i)*HEROES[i].spd*spdMul()*20*((TRAIT[tr]||{})[HEROES[i].k]||1):a,0);
+ const syncStats=()=>rpc('sync_clan_stats',{p_act:Math.floor(Math.max(S.best,S.depth)/10)+1,p_legend:S.legend,p_power:Math.floor(strikeBase())}).catch(()=>{});
+ st.boss=null;st.striking=false;
+ const bossName=idx=>'Colossal '+RG(idx%20)[2];
+ async function loadBoss(){
+  if(!st.info)return;
+  try{await syncStats();st.boss=await rpc('clan_boss_state');}catch(e){say2(e.message||'Could not load the boss.');}
+  st.bossDot=!!(st.boss&&st.boss.pending);
+  if(st.open&&st.tab==='boss'&&!st.striking)renderBoss();
+ }
+ function renderBoss(){
+  const tb=$('clTab');if(!tb)return;
+  const R=st.boss;if(!R){tb.innerHTML='<div class="hint">Loading the boss…</div>';return;}
+  const B=R.boss,me=R.me||{};let h='';
+  if(R.pending)h+='<div class="clcard" style="border:1px solid #ffd24a;border-radius:12px;padding:8px 10px;margin-bottom:8px"><div><b style="color:#ffe9a0">Your clan beat the boss!</b><small>Claim your share of the spoils.</small></div><button class="clbtn gold" data-cl="claim:'+R.pending.boss_id+'">Claim</button></div>';
+  if(!B){
+   const when=R.next_at?Math.max(0,(Date.parse(R.next_at)-Date.now())/1000):0;
+   h+='<div class="hint" style="padding:10px 2px">'+(R.reason==='members'?'A clan boss wakes once your clan has <b>3 or more members</b>. Recruit some friends! Each member strikes up to '+STRIKES+' times a day, and the boss is far too big for any one player.':R.reason==='cooldown'?'The next clan boss arrives in <b>'+fmtT(when)+'</b>.'+(R.last_defeated_tier!=null?' The last one fell, so the next is stronger.':''):'No boss right now.')+'</div>';
+   tb.innerHTML=h;return;
+  }
+  const pct=Math.max(0,Math.min(100,100*B.hp/B.max_hp)),left=Math.max(0,(Date.parse(B.ends_at)-Date.now())/1000),n=S.order.filter(i=>S.un[i]),est=strikeVs(B.trait);
+  const bimg='assets/enemies/boss'+BOSS_ART[B.idx%20]+'.png'+V,bg='assets/bg/lair'+(B.idx%20)+'.jpg'+V;
+  h+='<div class="cbarena" id="cbArena" style="background-image:url('+bg+')"><img id="cbBoss" class="cbboss'+(FACES_RIGHT.has('boss'+BOSS_ART[B.idx%20])?' flip':'')+'" src="'+bimg+'" alt=""><div class="cbheroes">'+n.map(i=>'<img src="assets/heroes/'+HID[i]+'.png'+V+'" alt="" data-h="'+i+'">').join('')+'</div></div>'
+   +'<div class="cbname">'+cesc(bossName(B.idx))+'</div><div class="cbtrait" style="color:'+TRAITC[B.trait]+'">'+cesc(traitText(B.trait))+'</div>'
+   +'<div class="cbbar"><i id="cbFill" style="width:'+pct+'%"></i><b id="cbHp">'+fmt(B.hp)+' / '+fmt(B.max_hp)+'</b></div>'
+   +'<small class="hint" id="cbLeft">Tier '+(B.tier+1)+' · retreats in '+fmtT(left)+' · defeat it together for a big reward</small>'
+   +'<button class="clbtn gold" id="cbStrike" data-cl="strike" '+(me.strikes_left>0?'':'disabled')+'>⚔ Strike · '+me.strikes_left+' of '+STRIKES+' left today<br><small style="font-size:12px">Your party deals about '+fmt(est)+'</small></button>'
+   +'<h3 style="margin-top:12px">Top damage</h3><div id="cbBoard">'+((R.board||[]).map((m,k)=>'<div class="clmem"><div><b style="color:'+(m.user_id===uid()?'#ffd24a':'#efe3c4')+'">'+(k+1)+'. '+cesc(m.name)+(m.user_id===uid()?' (you)':'')+'</b><small>'+m.hits+' strike'+(m.hits===1?'':'s')+'</small></div><div><b>'+fmt(m.damage)+'</b></div></div>').join('')||'<div class="hint">No strikes yet. Be the first!</div>')+'</div>'
+   +'<div class="hint" style="margin-top:6px">Your total: <b>'+fmt(me.damage||0)+'</b> in '+(me.hits||0)+' strike'+((me.hits||0)===1?'':'s')+'. Everyone who hits it shares the reward, and the top damage dealers and the final blow earn extra.</div>';
+  tb.innerHTML=h;
+ }
+ function animateStrike(dmg){
+  return new Promise(res=>{
+   const ar=$('cbArena'),boss=$('cbBoss');if(!ar||!boss){res();return;}
+   const heroes=[...ar.querySelectorAll('.cbheroes img')],ticks=9;let k=0;
+   const iv=setInterval(()=>{
+    k++;const hi=heroes[k%Math.max(1,heroes.length)];
+    if(hi){hi.classList.remove('lunge');void hi.offsetWidth;hi.classList.add('lunge');SND.hit(+hi.dataset.h);}
+    boss.classList.remove('cbhit');void boss.offsetWidth;boss.classList.add('cbhit');
+    const f=document.createElement('div');f.className='cbnum'+(k===ticks?' big':'');f.textContent=fmt(dmg/ticks*(k===ticks?1.6:.7+Math.random()*.6));f.style.left=(48+Math.random()*34)+'%';f.style.top=(20+Math.random()*40)+'%';ar.appendChild(f);setTimeout(()=>f.remove(),1100);
+    if(k>=ticks){clearInterval(iv);setTimeout(res,700);}
+   },380);
+  });
+ }
+ async function strike(){
+  if(st.striking||!st.boss||!st.boss.boss||st.boss.me.strikes_left<=0)return;
+  st.striking=true;say2('');const btn=$('cbStrike');if(btn)btn.disabled=true;
+  const dmg=Math.floor(strikeVs(st.boss.boss.trait)*(.92+Math.random()*.16));
+  let res=null,err=null;
+  const call=rpc('clan_boss_strike',{p_damage:dmg}).then(r=>{res=r;}).catch(e=>{err=e;});
+  await Promise.all([animateStrike(dmg),call]);
+  st.striking=false;
+  if(err){say2(err.message||'The strike failed.');await loadBoss();return;}
+  st.boss=res;st.bossDot=!!res.pending;
+  if(st.open&&st.tab==='boss')renderBoss();
+  if(res.defeated){SND.play('bossWin');showModal('The boss falls!','<p>Your final blow felled the clan boss. Claim your reward!</p>',[{t:'Claim reward',primary:true,fn:()=>{if(res.pending)claim(res.pending.boss_id);}}]);}
+ }
+ function relicsGive(n){const names=[];for(let i=0;i<n;i++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;names.push(RELICS[r].i+' '+RELICS[r].n);}return names;}
+ async function claim(id){
+  if(st.busy)return;st.busy=true;
+  try{
+   const r=await rpc('claim_boss_reward',{p_boss:id}),t=r.tier,big=r.share>=.05,top=r.rank<=3;
+   const g=hrGold((6+(big?4:0))*(1+.25*t),1);S.gold+=g;gained+=g;
+   const rel=relicsGive(1+(big?1:0)+(top?1:0)+(r.last_hit?1:0));
+   const per=addShards(8+3*t+(top?10:0));
+   save();sig='';
+   showModal('Clan boss reward','<p>You were <b>#'+r.rank+'</b> in damage ('+Math.round(r.share*1000)/10+'% of the boss)'+(r.last_hit?' and landed the final blow':'')+'.</p><div class="actst"><div><b>+'+fmt(g)+'</b><small>gold</small></div><div><b>'+rel.length+'</b><small>relics</small></div></div><p style="margin:6px 0">'+rel.map(cesc).join('<br>')+'</p><p class="hint" style="margin:6px 0">'+Object.keys(per).map(i=>shardSVG(i,22,'cb'+i)+' '+cesc(HEROES[i].n)+' ×'+per[i]).join(' &nbsp; ')+'</p>',[{t:'Excellent!',primary:true}]);
+   SND.play('bossWin');
+  }catch(e){say2(e.message||'Could not claim.');}
+  st.busy=false;await loadBoss();
+ }
  return{
   st,bonus,
-  init(){loadMe().catch(()=>{});setInterval(()=>{if(st.info&&!document.hidden)loadMe().catch(()=>{});},120000);setInterval(()=>{if(st.open&&st.info&&!st.live&&st.tab==='chat'){loadMsgs().then(()=>drawMsgs(true)).catch(()=>{});}},8000);},
+  init(){loadMe().catch(()=>{});setInterval(()=>{if(st.info&&!document.hidden){loadMe().catch(()=>{});loadBoss();}},120000);setInterval(()=>{if(st.open&&st.tab==='boss'&&st.info&&!st.striking&&!document.hidden)loadBoss();},20000);setInterval(()=>{if(st.open&&st.info&&!st.live&&st.tab==='chat'){loadMsgs().then(()=>drawMsgs(true)).catch(()=>{});}},8000);},
   open(){st.open=true;st.unread=0;st.err='';render();refresh().then(()=>{if(!st.info&&st.profile&&st.list==null)doBrowse('');});},
   close(){st.open=false;},
   click
@@ -1870,7 +1964,7 @@ function build(){
  $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic rq${h.q}">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
  $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?((skr(i)<skMax(i)&&hsh(i)>=skCost(skr(i),i))||(skr(i)>=skMax(i)&&star(i)<STAR_MAX&&hsh(i)>=starCost(star(i),i))):(actOK(i)&&hsh(i)>=HCOST[i])));
  $('nav-deck').classList.toggle('dot',!!S.offer);syncSpoils();
- $('nav-clan').classList.toggle('dot',CLAN.st.unread>0);
+ $('nav-clan').classList.toggle('dot',CLAN.st.unread>0||!!CLAN.st.bossDot);
  $('nav-shop').classList.toggle('dot',ADS.ok()&&adLeft('chest')===0);   // the free chest is ready
  $('party').innerHTML=S.order.map((i,pos)=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i),first=un&&S.order.filter(x=>S.un[x])[0]===i;return `<div class="hero ${un?'':'locked'}" style="border-left:4px solid ${RARCOL[h.q]};padding-left:6px"><div class="ic rq${h.q}">${heroIcon(i)}</div><div><div class="nm">${h.n} <small>${h.c} · ${h.r} · ${rarTag(i)}${un?' · Lv'+S.lv[i]:' · not recruited'}${first?' · front line':''}</small></div>${un?`<div class="bar" style="margin:3px 0"><i id="hb${i}" style="background:#4caf6a"></i><b id="ht${i}"></b></div>`:''}<small>${HSK[i].n} ${'●'.repeat(skr(i))}${'○'.repeat(Math.max(0,skMax(i)-skr(i)))}: ${HSK[i].d(skr(i))}</small></div>${swapId!==null?`<div class="mv"><button data-swap="${pos}">Swap in ${HEROES[swapId].n}</button></div>`:`<div class="mv"><button data-move="${pos}:-1" ${pos===0?'disabled':''} aria-label="Move up">▲</button><button data-move="${pos}:1" ${pos===3?'disabled':''} aria-label="Move down">▼</button></div>`}<button data-lv="${i}" ${S.gold<c?'disabled':''}>${un?'Lv↑':'Recruit'}<br><span class="gold">${fmt(c)}</span></button></div>`;}).join('');
  $('shd').textContent=shardTot();$('synergy').innerHTML=synergyHTML();
