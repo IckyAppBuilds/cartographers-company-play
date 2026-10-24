@@ -794,7 +794,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024130335';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024155856';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2342,9 +2342,9 @@ function advance(){
 const DEATH_TIME=2.6;
 function startDeath(){
  plResult(false);phase='dead';pt=0;say('The company has fallen...');SND.play('defeat');
- cv.classList.remove('shake');void cv.offsetWidth;cv.classList.add('shake');setTimeout(()=>cv.classList.remove('shake'),700);
+ if(!AWAYSIM){cv.classList.remove('shake');void cv.offsetWidth;cv.classList.add('shake');setTimeout(()=>cv.classList.remove('shake'),700);}
 }
-function replay(el,cls,ms){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms);}
+function replay(el,cls,ms){if(AWAYSIM)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms);}
 let reviveAsked=false,reviveWait=false;
 function offerRevive(){
  reviveAsked=true;reviveWait=true;
@@ -3342,8 +3342,8 @@ const AFK_CAP=8*3600;
 const AWAY_MIN=45;   // shorter trips (switching apps) just pause the game as before
 function awayMakeRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
 function awayCanMarch(){return !!S.seenIntro&&S.road[0]!=='empty'&&!evState&&!zoneFreeze&&!actPending&&$('modal').hidden&&!lootEl&&!lootQ.length&&!ARENA.live()&&!reviveWait;}
-function awaySnap(){return {S,phase,pt,foes,H,curSyn,curBoss,curMod,curRank,bossM,bossCurse,winLock,zoneFreeze,actPending,evState,scroll,gained,selCard,log:log.slice(),reviveAsked,reviveWait,lootQ:lootQ.slice(),lootHold,pendingTake,inscribing,fx:fxT.slice()};}
-function awayRestore(z){S=z.S;({phase,pt,foes,H,curSyn,curBoss,curMod,curRank,bossM,bossCurse,winLock,zoneFreeze,actPending,evState,scroll,gained,selCard,reviveAsked,reviveWait,lootHold,pendingTake,inscribing}=z);log=z.log;lootQ.length=0;lootQ.push(...z.lootQ);fxT.length=0;fxT.push(...z.fx);sig='';}
+function awaySnap(){return {FL,S,phase,pt,foes,H,curSyn,curBoss,curMod,curRank,bossM,bossCurse,winLock,zoneFreeze,actPending,evState,scroll,gained,selCard,log:log.slice(),reviveAsked,reviveWait,lootQ:lootQ.slice(),lootHold,pendingTake,inscribing,fx:fxT.slice()};}
+function awayRestore(z){S=z.S;FL=z.FL;({phase,pt,foes,H,curSyn,curBoss,curMod,curRank,bossM,bossCurse,winLock,zoneFreeze,actPending,evState,scroll,gained,selCard,reviveAsked,reviveWait,lootHold,pendingTake,inscribing}=z);log=z.log;lootQ.length=0;lootQ.push(...z.lootQ);fxT.length=0;fxT.push(...z.fx);sig='';}
 // starts the fight from the beginning of the current tile with the same seed every time, so the dry run and the real run play out identically
 function awayBegin(seed){
  const keep={st:window.setTimeout,rnd:Math.random,play:SND.play,adok:ADS.ok,ac:actComplete,bb:showBoon};
@@ -3352,7 +3352,8 @@ function awayBegin(seed){
  phase='walk';pt=0;foes=[];evState=null;winLock=false;bossCurse=0;reviveAsked=false;reviveWait=false;
  return {keep,cap,d0:S.deaths||0,fights0:(S.life&&S.life.fights)||0,kills0:(S.life&&S.life.kills)||0,gold0:S.gold,relics0:Object.values(S.relics).reduce((a,b)=>a+b,0),shards0:shardTot(),depth0:S.depth,t0:S.playSec||0};
 }
-function awayEnd(r){AWAYSIM=false;window.setTimeout=r.keep.st;Math.random=r.keep.rnd;SND.play=r.keep.play;ADS.ok=r.keep.adok;actComplete=r.keep.ac;showBoon=r.keep.bb;}
+function awayEnd(r){{const h=$('hand'),p=$('piles');if(h)h.classList.remove('reshuf');if(p)p.classList.remove('flash');if(typeof cv!=='undefined')cv.classList.remove('shake');}
+ AWAYSIM=false;window.setTimeout=r.keep.st;Math.random=r.keep.rnd;SND.play=r.keep.play;ADS.ok=r.keep.adok;actComplete=r.keep.ac;showBoon=r.keep.bb;}
 // advances the march by up to maxSteps; returns the stop reason once there is one ('act' Warden fell, 'fell' company routed, 'time') or null to keep going
 function awayAdvance(r,maxSteps,limit){
  for(let n=0;n<maxSteps;n++){
@@ -3487,7 +3488,7 @@ document.addEventListener('visibilitychange',holdStop);
 document.addEventListener('click',e=>{if(holdFired){e.stopPropagation();e.preventDefault();holdFired=false;}},true);   // the click that ends a hold must not buy one extra
 document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hero],button[data-lv],button[data-sk]'))e.preventDefault();});
 
-const popupOpen=()=>!!zoneFreeze||!!lootEl||(lootQ.length>0&&!sheet&&!lootBlocked())||!$('modal').hidden||!!document.getElementById('adtest')||!!document.getElementById('arbat');
+const popupOpen=()=>awayBusy||!!zoneFreeze||!!lootEl||(lootQ.length>0&&!sheet&&!lootBlocked())||!$('modal').hidden||!!document.getElementById('adtest')||!!document.getElementById('arbat');
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
  if(!lootEl&&lootQ.length&&!sheet&&!lootBlocked())nextLoot();   // popups held back during a fight come up now
