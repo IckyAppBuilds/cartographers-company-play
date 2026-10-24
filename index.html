@@ -774,7 +774,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024003422';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024005358';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1150,6 +1150,7 @@ const RECRUIT=[0,40,200,800];
 
 /* ---------- data ---------- */
 const TILES={
+ empty:{n:'Empty',i:'＋',foes:['🐗'],cnt:1,pow:1,gold:0,relic:0,d:'Nothing laid here yet: the company waits.',bg:['#8ed0ff','#6ea85c'],sc:'＋',r:0},
  wilds:{n:'Wilds',i:'🌾',foes:['🐗','🦊','🦇'],cnt:2,pow:1,gold:1,relic:.03,d:'Easy beasts.',bg:['#8ed0ff','#6ea85c'],sc:'🌾',r:0},
  forest:{n:'Forest',i:'🌲',foes:['🐺','🕷️','🐻'],cnt:3,pow:1.15,gold:1.2,relic:.05,d:'Packs of beasts. Herbs heal 15%.',bg:['#5e8f6e','#2f6b3a'],sc:'🌲',heal:.15,r:0},
  ruins:{n:'Ruins',i:'🏛️',foes:['💀','🧟','👻'],cnt:3,pow:1.3,gold:1,relic:.25,d:'Undead. High relic chance.',bg:['#6b6a85','#4b4a5e'],sc:'🏛️',r:1},
@@ -1274,16 +1275,19 @@ function fresh(keep){
  if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest','menuSeen','menuInit'])if(keep[k]!==undefined)S[k]=keep[k];
  return S;
 }
-function starterDeck(){return ['forest','forest','forest','forest','forest','village','village','village'];}   // Wilds is the free default road tile, never a card
+function starterDeck(){return ['wilds','wilds','wilds','wilds','wilds','wilds','forest','forest','village'];}   // Wilds is the free default road tile, never a card
 let S=fresh();
 S.draw=shuffle(S.deck.slice());
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(fresh(),JSON.parse(r));}catch(e){}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 
-for(const p of ['deck','draw','disc','hand'])S[p]=(S[p]||[]).filter(k=>kindOf(k)!=='wilds');
 if(!S.rmod||S.rmod.length!==S.road.length)S.rmod=S.road.map(()=>null);
 if(!S.rrank||S.rrank.length!==S.road.length)S.rrank=S.road.map(()=>1);
 if(!S.boons)S.boons={};
+if(!S.emptyV){   // saves from before Wilds became a card: empty road slots were stored as 'wilds'; an untouched starter deck becomes the new one (mostly Wilds)
+ S.emptyV=1;S.road=S.road.map(k=>k==='wilds'?'empty':k);
+ if(S.deck.slice().sort().join()==='forest,forest,forest,forest,forest,village,village,village'){S.deck=starterDeck();S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}
+}
 if(S.rd==null)S.rd=3;delete S.ink;
 {const sc=S.seen||(S.seen={});S.deck.forEach(k=>sc[k]=1);}
 for(const p of ['un','hp','lv'])while(S[p].length<HEROES.length)S[p].push(p==='un'?false:p==='lv'?1:0);
@@ -1794,8 +1798,8 @@ function synFor(p,k){return SYN[p+'>'+k]||null;}
 const AUTO_REPLAY=true;   // acts you have already cleared in an earlier run build themselves from your deck's fighting tiles, so retiring does not mean laying hundreds of tiles again
 function kindAt(d){
  if(d%10===9)return 'lair';
- if(AUTO_REPLAY&&S&&S.deck&&region(d)<region(S.best||0)){const f=S.deck.map(kindOf).filter(k=>TILES[k]&&!TILES[k].ev&&!TILES[k].boss&&k!=='wilds');return f.length?f[(d*5+3)%f.length]:'forest';}
- return 'wilds';   // an empty slot: the company waits here until a tile is laid
+ if(AUTO_REPLAY&&S&&S.deck&&region(d)<region(S.best||0)){const f=S.deck.map(kindOf).filter(k=>TILES[k]&&!TILES[k].ev&&!TILES[k].boss&&k!=='empty');return f.length?f[(d*5+3)%f.length]:'wilds';}
+ return 'empty';   // an empty slot: the company waits here until a tile is laid
 }
 function buildRoad(){S.road=[];S.rmod=[];S.rrank=[];for(let j=0;j<7;j++){S.road.push(kindAt(S.depth+j));S.rmod.push(null);S.rrank.push(1);}}
 /* ---- tile deck: draw pile -> hand -> discard, reshuffle when the draw pile is empty ---- */
@@ -1851,11 +1855,11 @@ function drawCard(){
  return S.draw.length?S.draw.pop():null;
 }
 function fillHand(){while(S.hand.length<3){const c=drawCard();if(!c)break;S.hand.push(c);}}
-function addCard(k){if(kindOf(k)==='wilds')return;S.deck.push(k);S.draw.splice(Math.random()*(S.draw.length+1)|0,0,k);}
+function addCard(k){S.deck.push(k);S.draw.splice(Math.random()*(S.draw.length+1)|0,0,k);}
 function buyTile(k){const c=cardCost(k);if(!buyable(k)||S.gold<c||S.deck.length>=MAX_DECK)return;S.gold-=c;addCard(k);newCardPop(k);say('Added '+TILES[k].n+' to your deck.');sig='';}
 const fuseCost=c=>Math.round(gpt()*5*rankOf(c));
 function fuseCards(c){   // two identical cards in the deck become one card a rank higher (max 3 stars)
- if(kindOf(c)==='wilds')return;   // Wilds is only the empty-slot marker, never a card, so it can never be fused
+ if(kindOf(c)==='wilds')return;   // Wilds is the plain filler tile and never fuses
  const r=rankOf(c);if(r>=3||S.deck.filter(x=>x===c).length<2||S.gold<fuseCost(c))return;
  S.gold-=fuseCost(c);
  for(let n=0;n<2;n++){removeExact(S.deck,c);for(const pile of [S.disc,S.draw,S.hand])if(removeExact(pile,c))break;}
@@ -2310,7 +2314,7 @@ function step(dt){
  if(S.boostT>0)S.boostT=Math.max(0,S.boostT-dt);
  S.playSec=(S.playSec||0)+dt;st('sec',dt);
  if(phase==='walk'){
-  const wait=S.road[0]==='wilds';   // an empty slot: the company stops and waits for a tile
+  const wait=S.road[0]==='empty';   // an empty slot: the company stops and waits for a tile
   if(!wait){scroll+=dt*140;pt+=dt;}
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
   if(!wait&&pt>=1.0)startTile();
@@ -2340,7 +2344,7 @@ function step(dt){
 /* ---------- actions ---------- */
 const echoLeft=c=>((S.echoed||{})[c]||0)<S.deck.filter(x=>x===c).length;   // Echo returns each copy to the draw pile once per deck; the next boss kill or wipe resets it
 function placeTile(j){st('tiles');
- if(selCard<0||j<0||(j===0&&!(S.road[0]==='wilds'&&phase==='walk')))return;
+ if(selCard<0||j<0||(j===0&&!(S.road[0]==='empty'&&phase==='walk')))return;
  if((S.depth+j)%10===9)return;
   const c=S.hand[selCard];if(!c)return;
  if(S.road[j]===kindOf(c)&&(S.rmod[j]||null)===modOf(c)&&(S.rrank[j]||1)===rankOf(c))return;
@@ -2398,8 +2402,8 @@ function build(){
  // road
  $('road').innerHTML=S.road.map((k,j)=>{
   const t=TILES[k],pk=j===0?S.prev:S.road[j-1],sy=(j===0&&phase==='walk')||j>0?synFor(pk,k):null;
-  const can=selCard>=0&&(j>=1||(j===0&&k==='wilds'&&phase==='walk'))&&k!=='lair'&&(S.depth+j)%10!==9;
-  if(k==='wilds'&&!S.rmod[j])return `<div class="tile empty ${j===0?'cur':''} ${can?'can':''}" data-j="${j}" title="Empty: lay a tile here"><div class="i">＋</div><div class="n">Empty</div></div>`;
+  const can=selCard>=0&&(j>=1||(j===0&&k==='empty'&&phase==='walk'))&&k!=='lair'&&(S.depth+j)%10!==9;
+  if(k==='empty')return `<div class="tile empty ${j===0?'cur':''} ${can?'can':''}" data-j="${j}" title="Empty: lay a tile here"><div class="i">＋</div><div class="n">Empty</div></div>`;
   return `<div class="tile ${j===0?'cur':''} ${can?'can':''} ${k==='lair'?'lair':''}" data-j="${j}" title="${t.d}" ${k==='lair'?'':`style="--rc:${RAR[t.r].c}"`}><div class="i">${t.i}</div><div class="n">${TSHORT[k]||t.n}</div>${(S.rrank[j]||1)>1?'<div class="rk">★'+S.rrank[j]+'</div>':''}<div class="s">tile ${S.depth+j+1}</div>${S.rmod[j]?`<div class="md" title="${MODS[S.rmod[j]].n}: ${MODS[S.rmod[j]].d}">✦ ${MODS[S.rmod[j]].n}</div>`:''}${sy?`<div class="chip" title="${sy.d}">★ ${sy.n}</div>`:''}</div>`;
  }).join('');
  fitTileNames();
@@ -2630,7 +2634,7 @@ function shopRender(){
 }
 function fuseHTML(){
  const g={};for(const c of S.deck)g[c]=(g[c]||0)+1;
- const rows=Object.keys(g).filter(c=>g[c]>=2&&rankOf(c)<3).sort((a,b)=>KINDS.indexOf(kindOf(a))-KINDS.indexOf(kindOf(b))).map(c=>{const t=TILES[kindOf(c)],m=modOf(c),r=rankOf(c),cost=fuseCost(c);
+ const rows=Object.keys(g).filter(c=>g[c]>=2&&rankOf(c)<3&&kindOf(c)!=='wilds').sort((a,b)=>KINDS.indexOf(kindOf(a))-KINDS.indexOf(kindOf(b))).map(c=>{const t=TILES[kindOf(c)],m=modOf(c),r=rankOf(c),cost=fuseCost(c);
   return '<div class="sc"><div class="si">'+t.i+'</div><div class="sd"><b>'+t.n+(r>1?' ★'+r:'')+(m?' · '+MODS[m].n:'')+' → ★'+(r+1)+'</b><small>Fuse 2 of your '+g[c]+' copies into one. '+rankDesc(kindOf(c),r+1)+'</small></div><button data-fuse="'+c+'"'+(S.gold<cost?' disabled':'')+'>Fuse '+fmt(cost)+'</button></div>';}).join('');
  return '<h3 style="margin-top:16px">Fusion</h3><div class="pile">Two identical tiles (same glyph, same rank) fuse into one stronger tile and free a deck slot. Up to 3 stars.</div>'+(rows||'<div class="hint" style="margin:6px 0">Collect two identical tiles to fuse them.</div>');
 }
@@ -2700,7 +2704,7 @@ function hud(){
  const ti=S.depth%10;   // tile within the region (the 10th is the boss)
  if(r!==lastRegion&&!zoneFreeze){document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
- {const gm=gateMul(region(S.depth)),sh=(S.road[0]==='wilds'&&phase==='walk'?'🧭 Lay a tile · ':'')+(gm>1?'🔒 Needs Legend '+legReq(region(S.depth))+' · ':'')+((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
+ {const gm=gateMul(region(S.depth)),sh=(S.road[0]==='empty'&&phase==='walk'?'🧭 Lay a tile · ':'')+(gm>1?'🔒 Needs Legend '+legReq(region(S.depth))+' · ':'')+((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
  $('rate').textContent='≈ '+fmt(S.rate)+' gold/s'+(S.boostT>0?' · ⚡x2 '+boostTxt(S.boostT):'');
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
@@ -2757,7 +2761,7 @@ document.addEventListener('click',e=>{
 
 /* ---------- drag a hand card onto the road (touch + mouse); a plain tap still selects ---------- */
 let drag=null,noClickUntil=0;
-function dropTargets(){return [...document.querySelectorAll('#road .tile')].filter(t=>{const j=+t.dataset.j;return (j>=1||(j===0&&S.road[0]==='wilds'&&phase==='walk'))&&S.road[j]!=='lair'&&(S.depth+j)%10!==9;});}
+function dropTargets(){return [...document.querySelectorAll('#road .tile')].filter(t=>{const j=+t.dataset.j;return (j>=1||(j===0&&S.road[0]==='empty'&&phase==='walk'))&&S.road[j]!=='lair'&&(S.depth+j)%10!==9;});}
 document.addEventListener('pointerdown',e=>{
  if(e.button>0)return;
  const c=e.target.closest('#hand .hc');if(!c||sheet)return;
@@ -3236,7 +3240,7 @@ const AFK_CAP=8*3600;
    When you come back the very same fight is played for however long you were gone (up to 8 hours), so what happens matches what you were told. */
 const AWAY_MIN=45;   // shorter trips (switching apps) just pause the game as before
 function awayMakeRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
-function awayCanMarch(){return !!S.seenIntro&&S.road[0]!=='wilds'&&!evState&&!zoneFreeze&&!actPending&&$('modal').hidden&&!lootEl&&!lootQ.length&&!ARENA.live()&&!reviveWait;}
+function awayCanMarch(){return !!S.seenIntro&&S.road[0]!=='empty'&&!evState&&!zoneFreeze&&!actPending&&$('modal').hidden&&!lootEl&&!lootQ.length&&!ARENA.live()&&!reviveWait;}
 function awaySnap(){return {S,phase,pt,foes,H,curSyn,curBoss,curMod,curRank,bossM,bossCurse,winLock,zoneFreeze,actPending,evState,scroll,gained,selCard,log:log.slice(),reviveAsked,reviveWait,lootQ:lootQ.slice(),lootHold,pendingTake,inscribing,fx:fxT.slice()};}
 function awayRestore(z){S=z.S;({phase,pt,foes,H,curSyn,curBoss,curMod,curRank,bossM,bossCurse,winLock,zoneFreeze,actPending,evState,scroll,gained,selCard,reviveAsked,reviveWait,lootHold,pendingTake,inscribing}=z);log=z.log;lootQ.length=0;lootQ.push(...z.lootQ);fxT.length=0;fxT.push(...z.fx);sig='';}
 // starts the fight from the beginning of the current tile with the same seed every time, so the dry run and the real run play out identically
@@ -3254,7 +3258,7 @@ function awayAdvance(r,maxSteps,limit){
   step(.05);
   if(phase==='event'&&evState){for(let k=0;k<4&&evState;k++)evChoose(0);}
   if(zoneFreeze)return 'act';
-  if(phase==='walk'&&S.road[0]==='wilds')return 'wait';   // the road built so far has run out
+  if(phase==='walk'&&S.road[0]==='empty')return 'wait';   // the road built so far has run out
   if((S.deaths||0)>r.d0)return 'fell';
   if((S.playSec||0)-r.t0>=limit)return 'time';
  }
