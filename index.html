@@ -751,7 +751,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023220514';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023220909';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2213,7 +2213,7 @@ function actComplete(cr,first,old){
  actPending=true;   // the popup appears at the end of every act, first clear or not
  const tile=(v,t)=>'<div><b>'+v+'</b><small>'+t+'</small></div>';
  let h='<p style="margin:0 0 4px"><b>'+RG(cr)[2]+'</b> is slain and a piece of the map is restored.</p>';
- if(d)h+='<h3 style="margin:10px 0 2px">Your run through the act</h3><div class="actst">'+tile(fmtT(d.sec),'time')+tile(fmt(d.fights),'fights won')+tile(fmt(d.kills),'foes slain')+tile(fmt(d.gold),'gold earned')+tile(d.rel,'relics found')+tile(d.sh,'hero shards')+(d.falls?tile(d.falls,'falls'):'')+'</div>';
+ if(d)h+='<h3 style="margin:10px 0 2px">Your run through the act</h3><div class="actst">'+tile(fmtT(d.sec),'game time')+tile(fmt(d.fights),'fights won')+tile(fmt(d.kills),'foes slain')+tile(fmt(d.gold),'gold earned')+tile(d.rel,'relics found')+tile(d.sh,'hero shards')+(d.falls?tile(d.falls,'falls'):'')+'</div>';
  const T=(ACTTRAIT[nr%20]||['','']).filter(Boolean),newH=HEROES.map((x,i)=>i).filter(i=>HACT[i]===nn&&!S.owned.includes(i)),wardn=RG(nr);
  h+='<h3 style="margin:10px 0 2px">Next: Act '+roman(nn)+' · '+wardn[0]+'</h3><p style="margin:0 0 4px">Warden: <b>'+wardn[2]+'</b>.</p>';
  {const ab=BOSSAB[nr%20],A=ABIL[ab[0]];h+='<div class="syn"><b style="color:'+A.c+'">'+A.g+' '+ab[1]+'</b> '+A.d+'</div>';}
@@ -2226,7 +2226,7 @@ function actComplete(cr,first,old){
  let shown=false;
  const show=async()=>{if(shown)return;if(sheet||lootEl||lootQ.length){setTimeout(show,400);return;}shown=true;
   const r=await rec,mine=ab[cr]||(r&&r.mine);let f='';
-  if(r&&r.best){const me=r.is_me;f='<div class="actrec"><small>Fastest clear of Act '+roman(cr+1)+'</small><b>'+fmtT(r.best)+'</b><span>'+(me?'You hold the record!':'held by <em>'+String(r.name).replace(/[<>&]/g,'')+'</em>')+'</span>'+(mine&&!me?'<small>Your best: <b>'+fmtT(mine)+'</b></small>':'')+'</div>';}
+  if(r&&r.best){const me=r.is_me;f='<div class="actrec"><small>Fastest clear of Act '+roman(cr+1)+' · game time</small><b>'+fmtT(r.best)+'</b><span>'+(me?'You hold the record!':'held by <em>'+String(r.name).replace(/[<>&]/g,'')+'</em>')+'</span>'+(mine&&!me?'<small>Your best: <b>'+fmtT(mine)+'</b></small>':'')+'</div>';}
   else if(mine)f='<div class="actrec"><small>Your fastest clear</small><b>'+fmtT(mine)+'</b></div>';
   if(isPB&&f)f=f.replace('<div class="actrec">','<div class="actrec new"><i>New personal best!</i>');
   SND.play('act');showModal('Act '+roman(cr+1)+' complete',h.replace('<h3 style="margin:10px 0 2px">Next:',f+'<h3 style="margin:10px 0 2px">Next:'),[{t:'Onward to Act '+roman(nn),primary:true}]);actPending=false;save();};
