@@ -794,7 +794,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024155856';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024160419';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1307,8 +1307,9 @@ if(!S.rrank||S.rrank.length!==S.road.length)S.rrank=S.road.map(()=>1);
 if(!S.boons)S.boons={};
 try{S.wipeEpoch=localStorage.getItem('cc-epoch')||'2026-10-24e';}catch(e){S.wipeEpoch='2026-10-24e';}   // stamped on every save; the server refuses saves from a wiped account that lack it (a stale open session cannot bring an old save back)
 if(!S.emptyV){   // saves from before Wilds became a card: empty road slots were stored as 'wilds'; an untouched starter deck becomes the new one (mostly Wilds)
- S.emptyV=1;S.road=S.road.map(k=>k==='wilds'?'empty':k);
- if(S.deck.slice().sort().join()==='forest,forest,forest,forest,forest,village,village,village'){S.deck=starterDeck();S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}
+ S.emptyV=1;
+ // only a save that still has the untouched old starter deck predates the change; its 'wilds' road slots were empty markers. Any other save keeps its Wilds tiles exactly as laid (this used to wipe them whenever a save lacked the stamp)
+ if(S.deck.slice().sort().join()==='forest,forest,forest,forest,forest,village,village,village'){S.road=S.road.map(k=>k==='wilds'?'empty':k);S.deck=starterDeck();S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}
 }
 if(S.rd==null)S.rd=3;delete S.ink;
 {const sc=S.seen||(S.seen={});S.deck.forEach(k=>sc[k]=1);}
@@ -1957,6 +1958,7 @@ const ABIL={
 };
 const BOSSAB=[['gore','Tusk Charge'],['venom','Bog Venom'],['inferno','Cinder Sting'],['freeze','Frost Bite'],['drain','Blood Drain'],['breath','Dragon Breath'],['curse','Unmapping Curse'],['tide','Crashing Tide'],['roar','Riddle of Rage'],['quake','Thunder Clap'],['barrier','Crystal Shell'],['summon','Deploy Drones'],['venom','Spore Burst'],['mend','Heartwood Mending'],['inferno','Meteor Shower'],['gore','Jaguar Pounce'],['drain','Crimson Feast'],['curse','Inkblot Curse'],['quake','Labyrinth Slam'],['breath','Void Beam']];
 const bossAbility=(r,j)=>{const e=BOSSAB[(j===0?r:r+(j===1?7:13))%20];return{key:e[0],n:e[1]};};
+let actShowFn=null,actShowT=0,awayPump=null;
 let zoneFreeze=null,actPending=false;   // after a Warden falls the game stays on that battlefield until every popup is cleared
 let winLock=false;   // a fight pays out exactly once
 let bossCurse=0,bossM={hpM:1,atk:1,r:0};
@@ -2319,15 +2321,18 @@ function actComplete(cr,first,old){
  const lg=legGain();if(lg)h+='<p class="hint" style="margin:8px 0 0">Retiring the company now would grant +'+lg+' Legend.</p>';
  const secs=d&&d.sec>0?Math.max(1,Math.round(d.sec)):null,ab=S.actBest||(S.actBest={});
  const isPB=!!secs&&(!ab[cr]||secs<ab[cr]);if(isPB)ab[cr]=secs;
- const rec=(async()=>{try{const r=await Promise.race([CC.db.rpc('act_record',{p_act:cr+1,p_secs:secs}),new Promise(r=>setTimeout(()=>r(null),3500))]);return r&&r.data||null;}catch(e){return null;}})();
- let shown=false;
- const show=async()=>{if(shown)return;if(sheet||lootEl||lootQ.length){setTimeout(show,400);return;}shown=true;
-  const r=await rec,mine=ab[cr]||(r&&r.mine);let f='';
+ let recData=null,shown=false;
+ const recHTML=()=>{const r=recData,mine=ab[cr]||(r&&r.mine);let f='';
   if(r&&r.best){const me=r.is_me;f='<div class="actrec"><small>Fastest clear of Act '+roman(cr+1)+' · game time</small><b>'+fmtT(r.best)+'</b><span>'+(me?'You hold the record!':'held by <em>'+String(r.name).replace(/[<>&]/g,'')+'</em>')+'</span>'+(mine&&!me?'<small>Your best: <b>'+fmtT(mine)+'</b></small>':'')+'</div>';}
   else if(mine)f='<div class="actrec"><small>Your fastest clear</small><b>'+fmtT(mine)+'</b></div>';
   if(isPB&&f)f=f.replace('<div class="actrec">','<div class="actrec new"><i>New personal best!</i>');
-  SND.play('act');showModal('Act '+roman(cr+1)+' complete',h.replace('<h3 style="margin:10px 0 2px">Next:',f+'<h3 style="margin:10px 0 2px">Next:'),[{t:'Onward to Act '+roman(nn),primary:true}]);actPending=false;save();};
- setTimeout(show,500);
+  return f;};
+ try{CC.db.rpc('act_record',{p_act:cr+1,p_secs:secs}).then(r=>{recData=r&&r.data||null;if(shown){const slot=document.getElementById('actrecSlot');if(slot)slot.innerHTML=recHTML();}}).catch(()=>{});}catch(e){}
+ // the popup comes up from the frame loop as soon as nothing else is on screen; the record fills in when the server answers
+ actShowT=performance.now()+500;
+ actShowFn=()=>{if(shown||performance.now()<actShowT)return;if(sheet||lootEl||lootQ.length)return;shown=true;actShowFn=null;
+  SND.play('act');showModal('Act '+roman(cr+1)+' complete',h.replace('<h3 style="margin:10px 0 2px">Next:','<div id="actrecSlot">'+recHTML()+'</div><h3 style="margin:10px 0 2px">Next:'),[{t:'Onward to Act '+roman(nn),primary:true}]);actPending=false;save();};
+ setTimeout(()=>{if(actShowFn)actShowFn();},550);
 }
 function advance(){
  S.prev=S.road[0];
@@ -3406,9 +3411,9 @@ function awayReturn(){   // the app is back: play out the same fight for the tim
   if(reason==='act'&&act)actComplete(act[0],act[1],act[2]);
   sig='';save();
  };
- const chunk=()=>{let reason=null;try{reason=awayAdvance(r,6000,limit);}catch(e){reason='time';}
-  if(reason)fin(reason);else realST(chunk,0);};
- realST(chunk,30);
+ const run=()=>{if(!awayPump)return true;let reason=null;try{reason=awayAdvance(r,6000,limit);}catch(e){reason='time';}
+  if(reason){awayPump=null;fin(reason);return true;}return false;};
+ awayPump=run;const tick=()=>{if(!run())realST(tick,0);};realST(tick,30);
  return true;
 }
 document.addEventListener('visibilitychange',()=>{if(document.hidden){save();awayLeave();}else awayReturn();});
@@ -3491,6 +3496,8 @@ document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hero],but
 const popupOpen=()=>awayBusy||!!zoneFreeze||!!lootEl||(lootQ.length>0&&!sheet&&!lootBlocked())||!$('modal').hidden||!!document.getElementById('adtest')||!!document.getElementById('arbat');
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
+ if(actShowFn)actShowFn();
+ if(awayPump)awayPump();
  if(!lootEl&&lootQ.length&&!sheet&&!lootBlocked())nextLoot();   // popups held back during a fight come up now
  if(zoneFreeze){const w=performance.now()-zoneFreeze.t0;if(w>1500&&!lootEl&&!lootQ.length&&$('modal').hidden&&!actPending&&(!S.offer||spoilsLater)||w>180000)zoneFreeze=null;}   // everything cleared: on to the next zone
  let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
