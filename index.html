@@ -775,7 +775,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024082038';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024082644';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1991,6 +1991,9 @@ const legReq=A=>{if(A<GATE.from)return 0;if(!LR.length)LR[GATE.from-1]=0;for(let
 const gateAct=()=>{for(let j=GATE.from;j<400;j++)if(legReq(j)>(S.legend||0))return j;return 999;};   // the first act you are not yet strong enough for; retires pay as if you got no further than this
 const gateMul=r=>{if(r<GATE.from)return 1;const q=(1+.12*legReq(r))/(1+.12*(S.legend||0));return q>1?GATE.wall*q**GATE.p:1;};   // short of the act's Legend the enemies are out of reach, however strong the company is
 const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
+/* Wardens are sized against the company that faces them: however strong the party, a Warden holds out about BOSS.t seconds and would take about BOSS.dmg of the party's health in that time */
+const BOSS={t:36,dmg:1.4};
+function bossPower(){let dps=0,hp=0;for(const i of S.order){if(!S.un[i])continue;dps+=heroAtk(i)*HEROES[i].spd*spdMul();hp+=heroMax(i);}return {dps,hp};}
 const WALL={from:6,hp:1.1,atk:1.03,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
 function startTile(){
  const k=S.road[0],t=TILES[k];
@@ -2005,11 +2008,13 @@ function startTile(){
  const multi=t.boss?(r>=TRIPLE_REGION?3:r>=DUAL_REGION?2:1):1;   // after the ten normal acts the Warden brings a second guardian; from Act XXI, two more
  const dual=multi>1;
  const n=t.boss?multi:Math.max(1,Math.min(t.cnt,active()+1));   // small parties face smaller packs
+ const bp=t.boss?bossPower():null;
  for(let j=0;j<n;j++){
   const boss=t.boss;
-  const hp=hpM*t.pow*synF*(S.weak>0?.75:1)*(boss?(multi===3?3.4:dual?3.5:7):1)*(.85+.3*Math.random());
+  let hp=hpM*t.pow*synF*(S.weak>0?.75:1)*(boss?(multi===3?3.4:dual?3.5:7):1)*(.85+.3*Math.random());
+  if(boss)hp=Math.max(hp,bp.dps*BOSS.t/multi*(.9+.2*Math.random())*(S.weak>0?.75:1));
   foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],tr:pickTrait(r,boss),
-   hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.15:1.8):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
+   hp,max:hp,atk:Math.max(atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.15:1.8):1),boss?BOSS.dmg*bp.hp/(.75*BOSS.t)/multi:0)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
    boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(multi===3?.42:dual?.6:1)*rkM(curRank),art:boss?(j>0?'a'+(r%ART_ACTS)+'_'+j:'boss'+bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%ART_ACTS)+'_'+(Math.random()*3|0):null)});
  }
  if(t.boss){bossM={hpM,atk,r};let bi=0;for(const f of foes){f.ab=bossAbility(r,bi++);f.ch=.2;f.cast=0;f.rage=0;f.shield=0;f.abm=(multi>1?.75:1)*.6;}}   // each Warden gets an ability with its own charge bar
