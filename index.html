@@ -379,6 +379,7 @@ button.swc{cursor:pointer;min-height:0}button.swc:active{transform:scale(.98);fi
 @keyframes unbob{50%{transform:translateX(-50%) translateY(-7px)}}
 @media (prefers-reduced-motion:reduce){.unic,.unr,.uns,.unring,.unar{animation:none}.unic{opacity:1}}
 #awayveil{position:fixed;inset:0;z-index:120;background:rgba(6,4,2,.88);display:flex;align-items:center;justify-content:center;text-align:center;color:#ffe9a8;font:700 20px Cinzel,Georgia,serif}#awayveil small{display:block;margin-top:8px;font:400 14px Alegreya,Georgia,serif;opacity:.8}
+#modal .unic .tuti{display:block;width:auto;height:112px;max-width:150px;object-fit:contain}
 #modal.tutm{align-items:flex-start;padding-top:max(14px,env(safe-area-inset-top));background:rgba(6,4,2,.45)}
 #resetRun{border-image-source:var(--ui-red)!important}
 #modal{position:fixed;inset:0;z-index:90;touch-action:manipulation;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
@@ -776,7 +777,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024122132';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024123031';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2725,15 +2726,15 @@ function unlockShow(k){   // animated reveal: a glowing icon, what the menu does
 }
 /* ---------- first-time tutorial: how to build the road with tiles (same animated style as a menu unlock, pointing at the real thing) ---------- */
 const TUT=[
- {sel:'#road',label:'The road',icon:'🛣️',title:'Build the road',text:'The company only marches along tiles <b>you</b> lay. Every empty <b>＋</b> slot stops them until it is filled. Fill nine slots and the act\'s Warden waits at the end.'},
- {sel:'#hand',label:'Your tiles',icon:'🃏',title:'Your tiles',text:'These are the tiles you can lay. <b>Tap one, then tap an empty slot</b> on the road, or drag it there. Wilds are plain fights; Forests and Villages pay better, and more tiles come as you play.'},
- {sel:'#road .tile',label:'Lay one here',icon:'👇',title:'Lay your first tile',text:'Pick any tile and put it on the first slot. Tiles you have used come round again when your pile runs out, and some neighbours make bonus combos.'}
+ {sel:'#road',label:'The road',icon:'tut_road',title:'Build the road',text:'The company only marches along tiles <b>you</b> lay. Every empty <b>＋</b> slot stops them until it is filled. Fill nine slots and the act\'s Warden waits at the end.'},
+ {sel:'#hand',label:'Your tiles',icon:'tut_tiles',title:'Your tiles',text:'These are the tiles you can lay. <b>Tap one, then tap an empty slot</b> on the road, or drag it there. Wilds are plain fights; Forests and Villages pay better, and more tiles come as you play.'},
+ {sel:'#road .tile',label:'Lay one here',icon:'tut_place',title:'Lay your first tile',text:'Pick any tile and put it on the first slot. Tiles you have used come round again when your pile runs out, and some neighbours make bonus combos.'}
 ];
 function tutShow(i){
  const st=TUT[i];if(!st){S.tutDone=1;save();return;}
  const el0=document.querySelector(st.sel);
  window.__tutM=true;SND.play('act');
- showModal(st.title,'<div class="unl"><span class="unr"></span><span class="unr r2"></span><span class="unr r3"></span><span class="unic" style="font-size:56px">'+st.icon+'</span>'+['a','b','c','d','e','f'].map(c=>'<i class="uns '+c+'"></i>').join('')+'</div><p class="unt">'+st.text+'</p><p class="hint">'+(i+1)+' of '+TUT.length+'</p>',
+ showModal(st.title,'<div class="unl"><span class="unr"></span><span class="unr r2"></span><span class="unr r3"></span><span class="unic"><img class="tuti" src="assets/icons/'+st.icon+'.png'+V+'" alt="" draggable="false"></span>'+['a','b','c','d','e','f'].map(c=>'<i class="uns '+c+'"></i>').join('')+'</div><p class="unt">'+st.text+'</p><p class="hint">'+(i+1)+' of '+TUT.length+'</p>',
   [{t:i<TUT.length-1?'Next':'Let\'s build',primary:true,fn:()=>{if(i<TUT.length-1)setTimeout(()=>tutShow(i+1),60);else{S.tutDone=1;save();}}}]);
  window.__tutM=false;
  if(el0){const r=el0.getBoundingClientRect(),el=document.createElement('div');el.className='unp';
