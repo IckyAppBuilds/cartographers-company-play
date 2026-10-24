@@ -735,7 +735,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023211504';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023212933';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2286,6 +2286,11 @@ function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[
 function recruit(i){if(S.un[i])return;if(S.gold<recruitCost(i)){SND.play('nope');return;}S.gold-=recruitCost(i);SND.play('recruit');S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
 function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c){SND.play('nope');return;}S.gold-=c;SND.play('level');const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
 let swapId=null;
+function pickReplace(nid){   // a popup asks which party member the newcomer replaces
+ if(!S.owned.includes(nid)||S.order.includes(nid))return;
+ showModal('Swap in '+HEROES[nid].n,'<p>Who should '+HEROES[nid].n+' the '+HEROES[nid].c+' replace?</p>',
+  S.order.map((o,pos)=>({t:HEROES[o].n+' · '+HEROES[o].c+' · Lv'+S.lv[o]+(pos===0?' (front)':''),fn:()=>swapHero(pos,nid)})).concat([{t:'Cancel'}]));
+}
 function starUp(i){   // after the last skill rank of the current star, a champion can ascend: +5 more ranks and +12% stats
  const s=star(i);if(!S.owned.includes(i)||skr(i)<skMax(i)||s>=STAR_MAX||hsh(i)<starCost(s,i))return;
  S.hs[i]-=starCost(s,i);S.star[i]=s+1;sig='';save();
@@ -2627,7 +2632,7 @@ document.addEventListener('click',e=>{
   else if(b.dataset.star!==undefined)starUp(+b.dataset.star);
   else if(b.dataset.sk!==undefined)upSkill(+b.dataset.sk);
   else if(b.dataset.unlock!==undefined)unlockHero(+b.dataset.unlock);
-  else if(b.dataset.pick!==undefined){const i=+b.dataset.pick;swapId=swapId===i?null:i;sig='';}
+  else if(b.dataset.pick!==undefined)pickReplace(+b.dataset.pick);
   else if(b.dataset.swap!==undefined)swapHero(+b.dataset.swap,swapId);
   else if(b.id==='insbtn')startInscribe();
   else if(b.dataset.mod)applyInscribe(b.dataset.mod);
