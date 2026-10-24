@@ -378,6 +378,7 @@ button.swc{cursor:pointer;min-height:0}button.swc:active{transform:scale(.98);fi
 @keyframes unpulse{50%{transform:translate(-50%,0) scale(1.1);opacity:.7}}
 @keyframes unbob{50%{transform:translateX(-50%) translateY(-7px)}}
 @media (prefers-reduced-motion:reduce){.unic,.unr,.uns,.unring,.unar{animation:none}.unic{opacity:1}}
+#awayveil{position:fixed;inset:0;z-index:120;background:rgba(6,4,2,.88);display:flex;align-items:center;justify-content:center;text-align:center;color:#ffe9a8;font:700 20px Cinzel,Georgia,serif}#awayveil small{display:block;margin-top:8px;font:400 14px Alegreya,Georgia,serif;opacity:.8}
 #modal{position:fixed;inset:0;z-index:90;touch-action:manipulation;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
 #modal .mp{width:100%;max-width:440px;max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:20px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
 #modal h2{text-shadow:none!important;filter:drop-shadow(0 2px 0 rgba(70,35,0,.95)) drop-shadow(0 0 8px rgba(255,200,70,.3));margin:0 0 10px;font:900 clamp(22px,6.5vw,30px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -773,7 +774,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023232219';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023235157';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2145,7 +2146,7 @@ function evChoose(i,relic){
  const el=evEl;evState=null;evEl=null;if(el){el.classList.add('out');setTimeout(()=>el.remove(),250);}
  resolveEvent(i,relic);
 }
-function renderEv(){
+function renderEv(){if(AWAYSIM)return;
  const k=evState.k,t=TILES[k],opts=EVOPT[t.ev];
  if(!evEl){evEl=document.createElement('div');evEl.id='evpop';document.body.appendChild(evEl);SND.play('popup');}
  const bg=BGB[k]?'assets/bg/'+k+'.jpg'+V:'';
@@ -2486,6 +2487,7 @@ window.addEventListener('resize',()=>{if(typeof lastRegion!=='undefined')fitRegi
 if(window.ResizeObserver)new ResizeObserver(()=>{if(typeof lastRegion!=='undefined')fitRegion();}).observe($('top'));
 const modalQ=[];
 function showModal(title,html,btns){
+ if(AWAYSIM)return;
  if(!$('modal').hidden){modalQ.push([title,html,btns]);return;}   // one at a time; the rest wait their turn instead of replacing it
  $('mTitle').textContent=title;$('modal').classList.toggle('swapm',/^Swap in /.test(title));$('modal').classList.toggle('actdone',/ complete$/i.test(title));$('mBody').innerHTML=html;modalBtns=btns;
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
@@ -2516,7 +2518,7 @@ function syncSpoils(){
 const lootQ=[];let lootEl=null,lootTm=0;
 let lootHold=0;const lootBlocked=()=>phase==='fight'||performance.now()<lootHold;   // no reward popups while a fight is going on
 let lootNow=false;   // true while applying a reward the player just asked for inside a menu (an ad, a purchase): those show at once
-function loot(o){o.now=o.now||lootNow;if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now)&&(o.now||!lootBlocked()))nextLoot();}
+function loot(o){if(AWAYSIM)return;o.now=o.now||lootNow;if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now)&&(o.now||!lootBlocked()))nextLoot();}
 function nextLoot(){
  const ix=sheet?lootQ.findIndex(x=>x.now):0;   // in a menu, only popups for what you just did in it come up; the rest wait
  const o=ix<0?null:lootQ.splice(ix,1)[0];if(!o){lootEl=null;return;}
@@ -2681,7 +2683,7 @@ function showSheet(n){
  if(sheet&&$('nav-'+sheet))$('nav-'+sheet).classList.remove('nw');
  if(!sheet){if(!lootEl&&lootQ.length)nextLoot();setTimeout(dailyCheck,300);}
 }
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
+function toast(m){if(AWAYSIM)return;const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')showSheet(null);});
 function hud(){
  const r=region(S.depth);
@@ -3167,7 +3169,8 @@ function draw(dt){
 }
 
 /* ---------- loop ---------- */
-function save(){S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}CC.queue();}
+let AWAYSIM=false;   // true while the company fights offscreen (away march): no sound, popups, saves or timers
+function save(){if(AWAYSIM)return;S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}CC.queue();}
 if(!S.road||S.road.length!==7)buildRoad();
 fillHand();
 if(S.hp.every(h=>!h))resetHeroes(true);
@@ -3218,6 +3221,80 @@ async function adReward(k){
 }
 /* ---------- away gains: the company keeps marching while you are gone (8h cap, half your live income, a shard per 2h, and a full rest) ---------- */
 const AFK_CAP=8*3600;
+/* ---------- away march: the company keeps fighting while the app is closed or in the background ----------
+   When the app goes to the background the game works out ahead, with a fixed random seed, when the company would finish the act or fall, and asks the phone to send a notification then.
+   When you come back the very same fight is played for however long you were gone (up to 8 hours), so what happens matches what you were told. */
+const AWAY_MIN=45;   // shorter trips (switching apps) just pause the game as before
+function awayMakeRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
+function awayCanMarch(){return !!S.seenIntro&&!evState&&!zoneFreeze&&!actPending&&$('modal').hidden&&!lootEl&&!lootQ.length&&!ARENA.live()&&!reviveWait;}
+function awaySnap(){return {S,phase,pt,foes,H,curSyn,curBoss,curMod,curRank,bossM,bossCurse,winLock,zoneFreeze,actPending,evState,scroll,gained,selCard,log:log.slice(),reviveAsked,reviveWait,lootQ:lootQ.slice(),lootHold,pendingTake,inscribing,fx:fxT.slice()};}
+function awayRestore(z){S=z.S;({phase,pt,foes,H,curSyn,curBoss,curMod,curRank,bossM,bossCurse,winLock,zoneFreeze,actPending,evState,scroll,gained,selCard,reviveAsked,reviveWait,lootHold,pendingTake,inscribing}=z);log=z.log;lootQ.length=0;lootQ.push(...z.lootQ);fxT.length=0;fxT.push(...z.fx);sig='';}
+// starts the fight from the beginning of the current tile with the same seed every time, so the dry run and the real run play out identically
+function awayBegin(seed){
+ const keep={st:window.setTimeout,rnd:Math.random,play:SND.play,adok:ADS.ok,ac:actComplete,bb:showBoon};
+ AWAYSIM=true;window.setTimeout=()=>0;Math.random=awayMakeRng(seed);SND.play=()=>{};ADS.ok=()=>false;
+ const cap={act:null};actComplete=(a,b,c)=>{cap.act=[a,b,c];};showBoon=()=>{};
+ phase='walk';pt=0;foes=[];evState=null;winLock=false;bossCurse=0;reviveAsked=false;reviveWait=false;
+ return {keep,cap,d0:S.deaths||0,fights0:(S.life&&S.life.fights)||0,kills0:(S.life&&S.life.kills)||0,gold0:S.gold,relics0:Object.values(S.relics).reduce((a,b)=>a+b,0),shards0:shardTot(),depth0:S.depth,t0:S.playSec||0};
+}
+function awayEnd(r){AWAYSIM=false;window.setTimeout=r.keep.st;Math.random=r.keep.rnd;SND.play=r.keep.play;ADS.ok=r.keep.adok;actComplete=r.keep.ac;showBoon=r.keep.bb;}
+// advances the march by up to maxSteps; returns the stop reason once there is one ('act' Warden fell, 'fell' company routed, 'time') or null to keep going
+function awayAdvance(r,maxSteps,limit){
+ for(let n=0;n<maxSteps;n++){
+  step(.05);
+  if(phase==='event'&&evState){for(let k=0;k<4&&evState;k++)evChoose(0);}
+  if(zoneFreeze)return 'act';
+  if((S.deaths||0)>r.d0)return 'fell';
+  if((S.playSec||0)-r.t0>=limit)return 'time';
+ }
+ return null;
+}
+function awayPredict(budgetMs){   // dry run on a copy: how many seconds until the act is cleared or the company falls (reason null if neither within the budget)
+ const z=awaySnap(),seed=(Math.random()*4e9)>>>0,t0=performance.now();let reason=null,r=null,secs=0,act=0;
+ try{S=JSON.parse(JSON.stringify(z.S));r=awayBegin(seed);
+  while(!reason&&performance.now()-t0<budgetMs){reason=awayAdvance(r,4000,AFK_CAP);}
+  secs=(S.playSec||0)-r.t0;act=reason==='act'?region(S.depth-1):region(S.depth);
+ }catch(e){reason=null;}
+ if(r)awayEnd(r);awayRestore(z);
+ return {seed,secs,act,reason:reason==='time'?null:reason};
+}
+function awayNative(m){try{if(window.ReactNativeWebView)window.ReactNativeWebView.postMessage(JSON.stringify(m));}catch(e){}}
+function awayLeave(){   // the app is going to the background
+ if(!awayCanMarch()){S.awaySeed=0;awayNative({t:'awayCancel'});return;}
+ const p=awayPredict(1500);
+ S.awaySeed=p.seed;S.awayAt=Date.now();save();
+ if(p.reason&&p.secs<AFK_CAP){
+  const A='Act '+roman(p.act+1);
+  awayNative({t:'away',at:Date.now()+Math.round(p.secs*1000),title:p.reason==='act'?A+' cleared!':'Your company has fallen',body:p.reason==='act'?'The Warden is down. Come back to collect the spoils and march on.':'They were routed in '+A+'. Come back, regroup and try again.'});
+ }else awayNative({t:'awayCancel'});
+}
+let awayBusy=false;
+function awayReturn(){   // the app is back: play out the same fight for the time you were gone
+ awayNative({t:'awayCancel'});
+ if(!S.awaySeed||awayBusy)return false;
+ const raw=(Date.now()-S.awayAt)/1000,seed=S.awaySeed;S.awaySeed=0;
+ if(raw<AWAY_MIN||!awayCanMarch())return false;
+ awayBusy=true;
+ const limit=Math.min(AFK_CAP,raw),veil=document.createElement('div'),realST=window.setTimeout.bind(window);
+ veil.id='awayveil';veil.innerHTML='<div><b>Your company returns…</b><small>Resolving the battles fought while you were away</small></div>';document.body.appendChild(veil);
+ let r;try{r=awayBegin(seed);}catch(e){awayBusy=false;veil.remove();return false;}
+ const fin=reason=>{
+  const act=r.cap.act;awayEnd(r);veil.remove();awayBusy=false;
+  if(reason==='time')for(const i of S.order)if(S.un[i])S.hp[i]=Math.max(S.hp[i],heroMax(i)*.5);
+  const L=S.life||{},fights=(L.fights||0)-r.fights0,kills=(L.kills||0)-r.kills0,gg=S.gold-r.gold0,rel=Object.values(S.relics).reduce((a,b)=>a+b,0)-r.relics0,sh=shardTot()-r.shards0;
+  const secs=(S.playSec||0)-r.t0,t=secs>=3600?Math.floor(secs/3600)+'h '+Math.floor(secs%3600/60)+'m':Math.max(1,Math.floor(secs/60))+' min';
+  const why=reason==='act'?'<p><b style="color:#8fe39a">The Warden fell and the act is cleared!</b> The company stopped on the battlefield to wait for you.</p>':reason==='fell'?'<p><b style="color:#ff9a8a">The company was routed</b> and retreated to the start of the act. They stopped there to wait for your orders.</p>':'<p class="hint">The company marched for the full time away (8 hours at most) without finishing the act.</p>';
+  const tile=(v,x)=>'<div><b>'+v+'</b><small>'+x+'</small></div>';
+  showModal('While you were away','<p>For <b>'+t+'</b> the company fought on.</p>'+why+'<div class="actst">'+tile(fmt(fights),'battles won')+tile(fmt(kills),'foes slain')+tile('+'+fmt(Math.max(0,gg)),'gold')+tile(rel,'relics found')+tile(sh,'hero shards')+tile((S.deaths||0)-r.d0,'falls')+'</div>',[{t:'Continue',primary:true}]);
+  if(reason==='act'&&act)actComplete(act[0],act[1],act[2]);
+  sig='';save();
+ };
+ const chunk=()=>{let reason=null;try{reason=awayAdvance(r,6000,limit);}catch(e){reason='time';}
+  if(reason)fin(reason);else realST(chunk,0);};
+ realST(chunk,30);
+ return true;
+}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)awayLeave();else awayReturn();});
 function claimAway(raw){
  const secs=Math.min(AFK_CAP,raw);if(secs<60||!(S.rate>0)||!S.seenIntro)return;
  const gg=S.rate*secs*.5,sh=Math.min(4,Math.floor(secs/7200));
@@ -3227,7 +3304,7 @@ function claimAway(raw){
  showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?'<br><small style="color:#8fd8ff;font-size:14px">'+shardMsg(perA)+'</small>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)shardPopup(addShards(sh),'Welcome back');toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' ◆':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
  say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
 }
-claimAway((Date.now()-S.saved)/1000);
+if(!(S.awaySeed&&awayReturn()))claimAway((Date.now()-(S.awayAt||S.saved))/1000);
 /* ---------- daily login reward: a 7-day streak that grows each week; one missed day is forgiven ---------- */
 const dayKey=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const dayNum=k=>{const [y,m,d]=k.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/86400000);};
