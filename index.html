@@ -794,7 +794,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024125252';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024125626';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2404,6 +2404,7 @@ function placeTile(j){st('tiles');
  S.road[j]=kindOf(c);S.rmod[j]=modOf(c);S.rrank[j]=rankOf(c);SND.play('place');
  if(modOf(c)==='echo'&&echoLeft(c)){const u=S.echoed||(S.echoed={});u[c]=(u[c]||0)+1;S.draw.splice(Math.random()*(S.draw.length+1)|0,0,c);say('Echo: the tile is shuffled back into your pile (once per round).');}else S.disc.push(c);
  S.hand.splice(selCard,1);selCard=-1;inscribing=false;fillHand();sig='';
+ save();   // the road you build is part of the saved run (and goes up to the account with it), so store it the moment a tile is laid
 }
 function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[j]]=[S.order[j],S.order[pos]];sig='';}
 function recruit(i){if(S.un[i])return;if(S.gold<recruitCost(i)){SND.play('nope');return;}S.gold-=recruitCost(i);SND.play('recruit');S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
@@ -3402,7 +3403,8 @@ function awayReturn(){   // the app is back: play out the same fight for the tim
  realST(chunk,30);
  return true;
 }
-document.addEventListener('visibilitychange',()=>{if(document.hidden)awayLeave();else awayReturn();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){save();awayLeave();}else awayReturn();});
+addEventListener('pagehide',()=>save());
 function claimAway(raw){
  const secs=Math.min(AFK_CAP,raw);if(secs<60||!(S.rate>0)||!S.seenIntro)return;
  const gg=S.rate*secs*.5,sh=Math.min(4,Math.floor(secs/7200));
