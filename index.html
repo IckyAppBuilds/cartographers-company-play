@@ -773,7 +773,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023225808';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023230847';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1967,7 +1967,9 @@ function bossCast(f){
 }
 /* ---------- encounters ---------- */
 const PACE={};
-const WALL={from:6,hp:2.2,atk:1.25,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
+const GROW={from:80,k:.6};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
+const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
+const WALL={from:6,hp:1.1,atk:1.03,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
 function startTile(){
  const k=S.road[0],t=TILES[k];
  curSyn=synFor(S.prev,k);curBoss=!!t.boss;curMod=S.rmod[0]||null;curRank=S.rrank[0]||1;
@@ -1976,7 +1978,7 @@ function startTile(){
  if(t.ev){phase='event';return;}
  const d=S.depth,r=region(d);
  const wl=Math.max(0,(WALL.step?Math.floor(d/10):d)-WALL.from),pm=PACE[r]||1;   // past WALL.from enemies outgrow a single run, so the company has to retire for Legend to get further
- const hpM=22*1.16**d*pm*WALL.hp**wl,atk=3.2*1.13**d*Math.sqrt(pm)*WALL.atk**wl;
+ const de=effD(d),hpM=22*1.16**de*pm*WALL.hp**wl,atk=3.2*1.13**de*Math.sqrt(pm)*WALL.atk**wl;
  const synF=curSyn&&curSyn.foe||1;
  const multi=t.boss?(r>=TRIPLE_REGION?3:r>=DUAL_REGION?2:1):1;   // after the ten normal acts the Warden brings a second guardian; from Act XXI, two more
  const dual=multi>1;
