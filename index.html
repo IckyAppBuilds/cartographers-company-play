@@ -749,7 +749,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023213238';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023213616';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2208,8 +2208,7 @@ function actSnap(r){const l=S.life||{};return{a:r,sec:S.playSec||0,fights:l.figh
 function actComplete(cr,first,old){
  const sn=old&&old.a===cr?old:null,l=S.life||{},nr=cr+1,nn=nr+1;
  const d=sn?{sec:(S.playSec||0)-sn.sec,fights:(l.fights||0)-sn.fights,kills:(l.kills||0)-sn.kills,gold:(l.gold||0)+gained-sn.gold,falls:(l.falls||0)-sn.falls,sh:(l.shGot||0)-sn.sh,rel:relicCount()-sn.rel}:null;
- if(first)actPending=true;
- if(!first){toast('Act '+roman(cr+1)+' cleared'+(d?' in '+fmtT(d.sec):'')+'.');return;}
+ actPending=true;   // the popup appears at the end of every act, first clear or not
  const tile=(v,t)=>'<div><b>'+v+'</b><small>'+t+'</small></div>';
  let h='<p style="margin:0 0 4px"><b>'+RG(cr)[2]+'</b> is slain and a piece of the map is restored.</p>';
  if(d)h+='<h3 style="margin:10px 0 2px">Your run through the act</h3><div class="actst">'+tile(fmtT(d.sec),'time')+tile(fmt(d.fights),'fights won')+tile(fmt(d.kills),'foes slain')+tile(fmt(d.gold),'gold earned')+tile(d.rel,'relics found')+tile(d.sh,'hero shards')+(d.falls?tile(d.falls,'falls'):'')+'</div>';
