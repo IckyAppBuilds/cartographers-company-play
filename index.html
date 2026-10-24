@@ -732,7 +732,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  <div class="sp" role="dialog" aria-modal="true">
   <div class="sh"><h3 id="sheetTitle"></h3><button data-close aria-label="Close menu">✕ Close</button></div>
   <div class="sb">
-   <div class="pane" data-pane="party" hidden><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div><div id="synergy" style="margin-top:14px"></div>
+   <div class="pane" data-pane="party" hidden><div class="row" style="justify-content:center;margin:0 0 8px"><button id="autoLv" type="button" style="min-width:230px">⚡ Auto level up: off</button></div><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div><div id="synergy" style="margin-top:14px"></div>
     <h3 style="margin-top:16px">Roster · Hero shards <span id="shd"></span></h3><div class="hint" style="margin-bottom:6px">Bosses drop hero shards (elite fights sometimes do). Every shard belongs to a random hero, and rarer heroes drop less often. Collect enough of a hero's own shards to unlock them (once you reach their act) and to rank up their skill. Skills, unlocked heroes and your party all stay when you retire. Tap Swap in on a hero, then choose which party slot they replace.</div><div id="roster"></div></div>
    <div class="pane" data-pane="deck" hidden>
     <div id="offer" hidden></div><div id="deck"></div><div class="pile" id="insum" style="margin-top:8px"></div>
@@ -794,7 +794,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024125626';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024130335';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1293,7 +1293,7 @@ function fresh(keep){
   lv:HEROES.map(()=>1),un:HEROES.map(()=>false),hp:HEROES.map(()=>0),relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},hs:keep?Object.assign({},keep.hs):{},streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  S.un[S.order[0]]=true;
- if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest','menuSeen','menuInit'])if(keep[k]!==undefined)S[k]=keep[k];
+ if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest','menuSeen','menuInit','autoLv'])if(keep[k]!==undefined)S[k]=keep[k];
  return S;
 }
 function starterDeck(){return ['wilds','wilds','wilds','wilds','wilds','wilds','forest','forest','village'];}   // Wilds is the free default road tile, never a card
@@ -2408,7 +2408,12 @@ function placeTile(j){st('tiles');
 }
 function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[j]]=[S.order[j],S.order[pos]];sig='';}
 function recruit(i){if(S.un[i])return;if(S.gold<recruitCost(i)){SND.play('nope');return;}S.gold-=recruitCost(i);SND.play('recruit');S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
-function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c){SND.play('nope');return;}S.gold-=c;SND.play('level');const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
+function levelUp(i,quiet){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c){if(!quiet)SND.play('nope');return;}S.gold-=c;if(!quiet)SND.play('level');const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
+function autoLevel(){   // the Auto level up switch: whoever is cheapest to raise next gets the gold, again and again while it lasts
+ let n=0;while(n++<25){let best=-1,bc=1e99;for(const i of S.order){if(!S.un[i])continue;const c=lvCost(i);if(c<bc){bc=c;best=i;}}if(best<0||S.gold<bc)break;levelUp(best,1);}
+ if(n>1)sig='';
+}
+let autoT=0;
 let swapId=null;
 function pickReplace(nid){   // a popup shows the newcomer and the party; tap the hero who steps out
  if(!S.owned.includes(nid)||S.order.includes(nid))return;
@@ -2441,7 +2446,7 @@ function retire(){
 function doRetire(){
  const g=legGain();if(!g)return;
  plog({t:'retire',gain:g,act:region(S.depth)+1,party:plParty()});
- const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest,menuSeen:S.menuSeen,menuInit:S.menuInit};   // account-level things that must survive a retire, or the daily reward would come back the same day
+ const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest,menuSeen:S.menuSeen,menuInit:S.menuInit,autoLv:S.autoLv};   // account-level things that must survive a retire, or the daily reward would come back the same day
  S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
@@ -2778,6 +2783,7 @@ async function resetRunDo(){
  }catch(e){resetting=false;toast('Reset failed: '+(e&&e.message||e));}
 }
 function showSheet(n){
+ {const ab=$('autoLv');if(ab)ab.textContent='⚡ Auto level up: '+(S.autoLv?'ON':'off');}
  {const rb=$('resetRun');if(rb)rb.hidden=!(typeof CC!=='undefined'&&CC.user&&PLAYLOG_USERS.includes(CC.user.id));}
  if(n&&NAVU[n]!==undefined&&!navOpen(n))return;
  sheet=(!n||sheet===n)?null:n;
@@ -2842,6 +2848,7 @@ document.addEventListener('click',e=>{
   else if(b.dataset.replace)replaceCard(b.dataset.replace);
   else if('skip' in b.dataset)skipOffer();
   else if('cancelTake' in b.dataset){pendingTake=null;sig='';}
+  else if(b.id==='autoLv'){S.autoLv=!S.autoLv;if(S.autoLv)autoLevel();b.textContent='⚡ Auto level up: '+(S.autoLv?'ON':'off');save();sig='';}
   else if(b.id==='resetRun')resetRunAsk();
   else if(b.dataset.s)speed=+b.dataset.s,sig='';
   else if(b.id==='reroll')reroll();
@@ -3487,6 +3494,7 @@ function frame(now){
  if(zoneFreeze){const w=performance.now()-zoneFreeze.t0;if(w>1500&&!lootEl&&!lootQ.length&&$('modal').hidden&&!actPending&&(!S.offer||spoilsLater)||w>180000)zoneFreeze=null;}   // everything cleared: on to the next zone
  let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
  while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
+ if(S.autoLv&&(autoT+=dt)>.35){autoT=0;autoLevel();}
  saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(gained/saveT);st('gold',gained);gained=0;saveT=0;save();}
  if((fitN=(fitN||0)+1)%20===0){fit();navSync();}   // keep the canvas matched to its box
  if(!(drag&&drag.active))build();
