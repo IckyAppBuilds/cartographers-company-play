@@ -729,7 +729,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
    <div class="pane" data-pane="shop" hidden><div id="shopBody"></div></div>
    <div class="pane" data-pane="arena" hidden><div id="arenaBody"></div></div>
    <div class="pane" data-pane="clan" hidden><div id="clanBody"></div></div>
-   <div class="pane" data-pane="stats" hidden><div id="statsBody"></div></div>
+   <div class="pane" data-pane="stats" hidden><div id="statsBody"></div><p class="hint" id="buildTag" style="text-align:center;opacity:.6"></p></div>
    <div class="pane" data-pane="log" hidden>
     <div id="objective"></div><h3 style="margin-top:14px">Journal</h3><div id="log"></div>
     <div class="hint" style="margin-top:10px">How to play: drag a tile card from your hand onto a tile on the road (or tap the card, then tap the tile) to replace it. Cards are single-use until the next boss or a wipe. Fights pay far more gold than rest tiles and build Battle Fervor: +20% gold per consecutive fight (up to +100%), lost when you rest at a Village or Springs or fall. Chain fights, then rest. Tap a hero icon under the battle to level them up; open Company to reorder the formation. Neighbouring tiles can make <span class="gold">combos</span> (gold chip under the tile). Select a card and tap Inscribe to etch a permanent glyph onto it.</div>
@@ -775,7 +775,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024080905';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024081447';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -834,8 +834,8 @@ try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=
  async function latest(){try{const r=await fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'});const m=/const BUILD='([^']+)'/.exec(await r.text());return m&&m[1]!==BUILD?m[1]:null;}catch(e){return null;}}
  function banner(){if(document.getElementById('updbar'))return;const b=document.createElement('button');b.id='updbar';b.textContent='A new version is ready · tap to update';b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:99;padding:10px 16px;border-radius:999px;border:2px solid #ffd24a;background:#4a2a96;color:#fff3c4;font:700 14px Georgia,serif;box-shadow:0 4px 20px rgba(0,0,0,.6)';b.onclick=()=>location.replace(location.pathname+'?b='+Date.now());document.body.appendChild(b);}
  (async()=>{const n=await latest();if(!n)return;let tried=null;try{tried=sessionStorage.getItem('cc-upd');}catch(e){}
-  if(tried===n){banner();return;}   // already tried once this session: do not loop
-  try{sessionStorage.setItem('cc-upd',n);}catch(e){}location.replace(location.pathname+'?b='+n);})();
+  const [tn,tt]=(tried||'').split('|');if(tn===n&&Date.now()-(+tt||0)<90000){banner();return;}   // just tried this build: do not loop, offer the button instead
+  try{sessionStorage.setItem('cc-upd',n+'|'+Date.now());}catch(e){}location.replace(location.pathname+'?b='+n+'&t='+Date.now());})();
  document.addEventListener('visibilitychange',async()=>{if(document.visibilityState==='visible'&&await latest())banner();});
  setInterval(async()=>{if(await latest())banner();},10*60*1000);
 })();
@@ -967,6 +967,7 @@ const CC=(function(){
 </script>
 <script type="text/plain" id="game">
 const $=id=>document.getElementById(id),TAU=Math.PI*2;
+{const bt=document.getElementById('buildTag');if(bt)bt.textContent='Version '+BUILD;}
 const V=BUILD==='dev'?'':'?v='+BUILD;   // cache-busting suffix for art
 const KEY='cartographer-v3';
 /* ---------- sound: everything is synthesised with Web Audio, so there are no audio files to download ---------- */
