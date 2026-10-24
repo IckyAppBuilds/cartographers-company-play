@@ -343,6 +343,20 @@ body.arfight #stage{align-self:start}
  #app{gap:4px}
  .mc{min-height:46px}
 }
+#modal.swapm #mBtns button:not(:last-child){display:none}
+.swc{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:8px 10px;margin:0 0 8px;border:1px solid rgba(255,214,110,.35);border-radius:12px;background:linear-gradient(180deg,rgba(255,236,190,.08),rgba(0,0,0,.25));color:#fff;font:inherit}
+button.swc{cursor:pointer;min-height:0}button.swc:active{transform:scale(.98);filter:brightness(1.2)}
+#modal .mp button.swc{border-image:none;border:1px solid rgba(255,214,110,.35);border-radius:12px;background:linear-gradient(180deg,rgba(255,236,190,.08),rgba(0,0,0,.25));padding:8px 10px;min-height:0;color:#fff}
+.swc .ic{position:relative;flex:0 0 64px;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle,#4a3826,#1d150e);display:block;overflow:visible}
+.swc .ic .pt{width:100%;height:100%;padding:3px}
+.swi{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.swi b{font:700 16px/1.1 Cinzel,Georgia,serif;color:#ffe9a8}
+.swi small{font-size:12px;opacity:.85}
+.sws{display:flex;flex-wrap:wrap;gap:5px}
+.sws em{font-style:normal;font-size:12px;font-weight:700;padding:2px 7px;border-radius:8px;background:rgba(0,0,0,.4);border:1px solid rgba(255,214,110,.25)}
+.swn .swc{border-color:#ffd24a;box-shadow:0 0 14px rgba(255,210,74,.35)}
+.swh{font-size:13px;opacity:.8;margin:2px 0 8px!important}
+.swl{display:flex;flex-direction:column}
 #modal{position:fixed;inset:0;z-index:90;touch-action:manipulation;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
 #modal .mp{width:100%;max-width:440px;max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:20px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
 #modal h2{text-shadow:none!important;filter:drop-shadow(0 2px 0 rgba(70,35,0,.95)) drop-shadow(0 0 8px rgba(255,200,70,.3));margin:0 0 10px;font:900 clamp(22px,6.5vw,30px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -735,7 +749,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023212933';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023213238';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2286,10 +2300,12 @@ function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[
 function recruit(i){if(S.un[i])return;if(S.gold<recruitCost(i)){SND.play('nope');return;}S.gold-=recruitCost(i);SND.play('recruit');S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
 function levelUp(i){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c){SND.play('nope');return;}S.gold-=c;SND.play('level');const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
 let swapId=null;
-function pickReplace(nid){   // a popup asks which party member the newcomer replaces
+function pickReplace(nid){   // a popup shows the newcomer and the party; tap the hero who steps out
  if(!S.owned.includes(nid)||S.order.includes(nid))return;
- showModal('Swap in '+HEROES[nid].n,'<p>Who should '+HEROES[nid].n+' the '+HEROES[nid].c+' replace?</p>',
-  S.order.map((o,pos)=>({t:HEROES[o].n+' · '+HEROES[o].c+' · Lv'+S.lv[o]+(pos===0?' (front)':''),fn:()=>swapHero(pos,nid)})).concat([{t:'Cancel'}]));
+ const card=(i,pos)=>{const h=HEROES[i],pc=pos===undefined?'':Math.round(100*Math.max(0,S.hp[i])/heroMax(i));
+  return '<'+(pos===undefined?'div':'button')+' class="swc rq'+h.q+'"'+(pos===undefined?'':' data-mb="'+pos+'"')+'><span class="ic rq'+h.q+'">'+heroIcon(i)+'</span><span class="swi"><b>'+h.n+'</b><small>'+h.c+' · Lv'+S.lv[i]+(star(i)?' · '+'★'.repeat(star(i)):'')+(pos===0?' · front':'')+'</small><span class="sws"><em>❤ '+fmt(heroMax(i))+'</em><em>⚔ '+fmt(heroAtk(i))+'</em>'+(pc===''?'':'<em>'+(S.un[i]?pc+'% hp':'resting')+'</em>')+'</span></span></'+(pos===undefined?'div':'button')+'>';};
+ showModal('Swap in '+HEROES[nid].n,'<div class="swn">'+card(nid)+'</div><p class="swh">Tap the hero who steps out</p><div class="swl">'+S.order.map((o,pos)=>card(o,pos)).join('')+'</div>',
+  S.order.map((o,pos)=>({t:'',fn:()=>swapHero(pos,nid)})).concat([{t:'Cancel'}]));
 }
 function starUp(i){   // after the last skill rank of the current star, a champion can ascend: +5 more ranks and +12% stats
  const s=star(i);if(!S.owned.includes(i)||skr(i)<skMax(i)||s>=STAR_MAX||hsh(i)<starCost(s,i))return;
@@ -2429,7 +2445,7 @@ if(window.ResizeObserver)new ResizeObserver(()=>{if(typeof lastRegion!=='undefin
 const modalQ=[];
 function showModal(title,html,btns){
  if(!$('modal').hidden){modalQ.push([title,html,btns]);return;}   // one at a time; the rest wait their turn instead of replacing it
- $('mTitle').textContent=title;$('modal').classList.toggle('actdone',/ complete$/i.test(title));$('mBody').innerHTML=html;modalBtns=btns;
+ $('mTitle').textContent=title;$('modal').classList.toggle('swapm',/^Swap in /.test(title));$('modal').classList.toggle('actdone',/ complete$/i.test(title));$('mBody').innerHTML=html;modalBtns=btns;
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
  $('modal').hidden=false;SND.play('popup');
 }
