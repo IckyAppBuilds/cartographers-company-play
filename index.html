@@ -690,6 +690,11 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #road .tile.empty .n{color:#e9dcae}
 #road .tile.can .i{outline:2px dashed #fff;outline-offset:-3px;border-radius:8px}
 #road .tile.drop{transform:scale(1.08)}
+/* the hand: tiles as painted stone plaques, rarity shown by the rim (square-proportioned art drawn at its own shape, never stretched) */
+#hand .hc{border:0!important;border-image:none!important;border-radius:0;background:var(--ui-hc0) center/100% 100% no-repeat!important;aspect-ratio:210/150;height:auto!important;max-height:none!important;align-self:center;padding:7% 9% 6%!important;color:#3a2a18;box-shadow:none;gap:0}
+#hand .hc[data-r="1"]{background-image:var(--ui-hc1)!important}#hand .hc[data-r="2"]{background-image:var(--ui-hc2)!important}#hand .hc[data-r="3"]{background-image:var(--ui-hc3)!important}#hand .hc[data-r="4"]{background-image:var(--ui-hc4)!important}
+#hand .hc.sel{background-image:var(--ui-hcsel)!important;box-shadow:none;transform:translateY(-3px)}
+#hand .hc .i{font-size:26px;line-height:1}#hand .hc .n{font-size:12px;line-height:1.1}#hand .hc .r{font-size:8px;line-height:1;color:#4a3520!important;font-weight:700;opacity:.85}#hand .hc .n{text-shadow:0 1px 0 rgba(255,255,255,.35)}#hand .hc .d{font-size:9px;line-height:1.1;-webkit-line-clamp:2}
 </style>
 </head>
 <body>
@@ -789,7 +794,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024123718';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024125252';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -828,7 +833,7 @@ const TELE=(()=>{
  }catch(e){}
  return{err};
 })();
-try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-road',u('road_path'));r.setProperty('--ui-stone',u('road_stone'));r.setProperty('--ui-stonecur',u('road_stone_cur'));r.setProperty('--ui-gap',u('road_gap'));r.setProperty('--ui-lair',u('road_boss'));r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
+try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-road',u('road_path'));['common','uncommon','rare','epic','legend'].forEach((k,i)=>r.setProperty('--ui-hc'+i,u('hc_'+k)));r.setProperty('--ui-hcsel',u('hc_sel'));r.setProperty('--ui-stone',u('road_stone'));r.setProperty('--ui-stonecur',u('road_stone_cur'));r.setProperty('--ui-gap',u('road_gap'));r.setProperty('--ui-lair',u('road_boss'));r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
  const el=document.getElementById('icky');if(!el)return;
@@ -2788,7 +2793,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')showSheet(null);});
 function hud(){
  const r=region(S.depth);
  const ti=S.depth%10;   // tile within the region (the 10th is the boss)
- if(r!==lastRegion&&!zoneFreeze){document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
+ if(r!==lastRegion&&!zoneFreeze){document.documentElement.style.setProperty('--ui-road','url(assets/ui/road_path_'+(r%ART_ACTS)+'.png'+V+')');document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
  {const gm=gateMul(region(S.depth)),sh=(S.road[0]==='empty'&&phase==='walk'?'🧭 Lay a tile · ':'')+(gm>1?'🔒 Needs Legend '+legReq(region(S.depth))+' · ':'')+((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
