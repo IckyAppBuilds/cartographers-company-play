@@ -695,6 +695,14 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #hand .hc[data-r="1"]{background-image:var(--ui-hc1)!important}#hand .hc[data-r="2"]{background-image:var(--ui-hc2)!important}#hand .hc[data-r="3"]{background-image:var(--ui-hc3)!important}#hand .hc[data-r="4"]{background-image:var(--ui-hc4)!important}
 #hand .hc.sel{background-image:var(--ui-hcsel)!important;box-shadow:none;transform:translateY(-3px)}
 #hand .hc .i{font-size:26px;line-height:1}#hand .hc .n{font-size:12px;line-height:1.1}#hand .hc .r{font-size:8px;line-height:1;color:#4a3520!important;font-weight:700;opacity:.85}#hand .hc .n{text-shadow:0 1px 0 rgba(255,255,255,.35)}#hand .hc .d{font-size:9px;line-height:1.1;-webkit-line-clamp:2}
+
+/* compact road and hand: the fight window keeps the room it had before the painted road */
+#road{padding:9px 6px 8px;background-size:cover}
+#road .tile .i{width:auto;height:34px;margin:0 auto;font-size:18px}
+#road .tile .n{font-size:9px;height:11px}
+#hand{justify-items:center}
+#hand .hc{height:74px!important;width:auto;padding:4% 8% 9%!important}
+#hand .hc .i{font-size:18px}#hand .hc .n{font-size:11px}#hand .hc .d{display:none}
 </style>
 </head>
 <body>
@@ -794,7 +802,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024173305';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024174134';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
