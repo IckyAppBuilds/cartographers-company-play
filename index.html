@@ -735,7 +735,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023210533';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023211504';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1884,6 +1884,8 @@ const ABIL={
 };
 const BOSSAB=[['gore','Tusk Charge'],['venom','Bog Venom'],['inferno','Cinder Sting'],['freeze','Frost Bite'],['drain','Blood Drain'],['breath','Dragon Breath'],['curse','Unmapping Curse'],['tide','Crashing Tide'],['roar','Riddle of Rage'],['quake','Thunder Clap'],['barrier','Crystal Shell'],['summon','Deploy Drones'],['venom','Spore Burst'],['mend','Heartwood Mending'],['inferno','Meteor Shower'],['gore','Jaguar Pounce'],['drain','Crimson Feast'],['curse','Inkblot Curse'],['quake','Labyrinth Slam'],['breath','Void Beam']];
 const bossAbility=(r,j)=>{const e=BOSSAB[(j===0?r:r+(j===1?7:13))%20];return{key:e[0],n:e[1]};};
+let zoneFreeze=null,actPending=false;   // after a Warden falls the game stays on that battlefield until every popup is cleared
+let winLock=false;   // a fight pays out exactly once
 let bossCurse=0,bossM={hpM:1,atk:1,r:0};
 function bossHit(t,dm){   // ability damage on a hero: the same protections as a normal hit, no counter-attacks
  if(S.hp[t]<=0)return;
@@ -1931,7 +1933,7 @@ const WALL={from:6,hp:2.2,atk:1.25,step:1};   // from Act VIII each act is a ste
 function startTile(){
  const k=S.road[0],t=TILES[k];
  curSyn=synFor(S.prev,k);curBoss=!!t.boss;curMod=S.rmod[0]||null;curRank=S.rrank[0]||1;
- foes=[];pt=0;revUsed=false;bossCurse=0;
+ foes=[];pt=0;revUsed=false;bossCurse=0;winLock=false;
  if(!S.actSnap||S.actSnap.a!==region(S.depth))S.actSnap=actSnap(region(S.depth));
  if(t.ev){phase='event';return;}
  const d=S.depth,r=region(d);
@@ -2015,6 +2017,8 @@ function foeAct(f){
  if(S.hp[t]<=0){S.hp[t]=0;if(S.un[19]&&S.hp[19]>0&&t!==19&&!revUsed){revUsed=true;S.hp[t]=heroMax(t)*(.3+.05*skr(19));special(19,{ally:t});say(HEROES[19].n+' brings '+HEROES[t].n+' back!');}else{say(HEROES[t].n+' has fallen!');SND.play('herodown');}}
 }
 function win(){
+ if(winLock)return;winLock=true;lootHold=performance.now()+1100;
+ if(TILES[S.road[0]].boss)zoneFreeze={d:S.depth,k:S.road[0],t0:performance.now()};   // rewards (relics, shards) come up only after the fight is over and the last enemy has finished falling
  const k=S.road[0],t=TILES[k];
  SND.play(t.boss?'bossWin':'win');setTimeout(()=>SND.play('coin'),260);
  const flawless=S.order.every(i=>!S.un[i]||S.hp[i]>0);   // nobody went down in this fight (checked before the fallen are revived)
@@ -2085,7 +2089,7 @@ function event(){
  if(!EVOPT[t.ev]){resolveEvent(0);return;}
  if(!evState){evState={k,t:0,stage:0,offer:null};renderEv();}
 }
-function evTick(dt){if(!evState)return;evState.t+=dt;const f=evEl&&evEl.querySelector('.evb i');if(f)f.style.width=Math.max(0,100*(1-evState.t/EV_WAIT))+'%';if(evState.t>=EV_WAIT)evChoose(0);}
+function evTick(dt){}   // event tiles wait for your choice; nothing is picked for you
 function evChoose(i,relic){
  if(!evState)return;const k=evState.k;
  if(TILES[k].ev==='vault'&&i===1&&!relic){   // second step: three relics to pick from
@@ -2101,7 +2105,7 @@ function renderEv(){
  let body;
  if(evState.stage===1)body='<div class="evt">Choose a relic</div><div class="evo">'+evState.offer.map(r=>'<button data-evr="'+r+'"><span class="evi">'+(RELICS[r].ico||RELICS[r].i)+'</span><b>'+RELICS[r].n+'</b><small>'+RELICS[r].d+'</small></button>').join('')+'</div>';
  else body='<div class="evt">'+t.n+'</div><div class="evd">'+t.d+'</div><div class="evo">'+opts.map((o,i)=>'<button data-evc="'+i+'"'+(evCost(k,i)>S.gold?' disabled':'')+'><b>'+o.n+'</b><small>'+(typeof o.d==='function'?o.d():o.d)+'</small></button>').join('')+'</div>';
- evEl.innerHTML='<div class="evc" style="'+(bg?'--evbg:url('+bg+')':'')+'"><div class="evh"><span class="evi">'+t.i+'</span></div>'+body+'<div class="evb"><i></i></div><div class="evf">The company waits... the first option is chosen automatically if you do not decide.</div></div>';
+ evEl.innerHTML='<div class="evc" style="'+(bg?'--evbg:url('+bg+')':'')+'"><div class="evh"><span class="evi">'+t.i+'</span></div>'+body+'<div class="evf">The company waits for your orders.</div></div>';
 }
 const evCost=(k,i)=>0;
 function resolveEvent(ch,relicPick){
@@ -2190,6 +2194,7 @@ function actSnap(r){const l=S.life||{};return{a:r,sec:S.playSec||0,fights:l.figh
 function actComplete(cr,first,old){
  const sn=old&&old.a===cr?old:null,l=S.life||{},nr=cr+1,nn=nr+1;
  const d=sn?{sec:(S.playSec||0)-sn.sec,fights:(l.fights||0)-sn.fights,kills:(l.kills||0)-sn.kills,gold:(l.gold||0)+gained-sn.gold,falls:(l.falls||0)-sn.falls,sh:(l.shGot||0)-sn.sh,rel:relicCount()-sn.rel}:null;
+ if(first)actPending=true;
  if(!first){toast('Act '+roman(cr+1)+' cleared'+(d?' in '+fmtT(d.sec):'')+'.');return;}
  const tile=(v,t)=>'<div><b>'+v+'</b><small>'+t+'</small></div>';
  let h='<p style="margin:0 0 4px"><b>'+RG(cr)[2]+'</b> is slain and a piece of the map is restored.</p>';
@@ -2200,7 +2205,7 @@ function actComplete(cr,first,old){
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
  const lg=legGain();if(lg)h+='<p class="hint" style="margin:8px 0 0">Retiring the company now would grant +'+lg+' Legend.</p>';
- const show=()=>{if(sheet||lootEl||lootQ.length){setTimeout(show,400);return;}SND.play('act');showModal('Act '+roman(cr+1)+' complete',h,[{t:'Onward to Act '+roman(nn),primary:true}]);};
+ const show=()=>{if(sheet||lootEl||lootQ.length){setTimeout(show,400);return;}SND.play('act');showModal('Act '+roman(cr+1)+' complete',h,[{t:'Onward to Act '+roman(nn),primary:true}]);actPending=false;};
  setTimeout(show,500);
 }
 function advance(){
@@ -2230,7 +2235,7 @@ function wipe(){
  reviveAsked=false;reviveWait=false;
  const rs=region(S.depth)*10,lost=S.gold*.1;S.gold-=lost;
  say('The company is routed! Retreating to '+RG(region(S.depth))[0]+"'s edge. Lost "+fmt(lost)+' gold.');
- S.streak=0;S.deaths=(S.deaths||0)+1;st('falls');S.depth=rs;S.prev='wilds';buildRoad();resetHeroes(true);S.bless=0;S.edge=S.plate=S.weak=0;S.kb=null;S.merc=null;phase='walk';pt=0;foes=[];
+ S.streak=0;S.deaths=(S.deaths||0)+1;st('falls');S.depth=rs;S.prev='wilds';buildRoad();resetHeroes(true);S.bless=0;S.edge=S.plate=S.weak=0;S.kb=null;S.merc=null;zoneFreeze=null;phase='walk';pt=0;foes=[];
  // everything goes back into the deck: hand, discard and draw pile are gathered and reshuffled
  reshuffleAll('You died: every card returns to your deck.');
 }
@@ -2261,7 +2266,7 @@ function step(dt){
    if(f.ab){bossTick(f,dt);if(f.cast>0)continue;}   // a Warden winding up its ability pauses its normal attacks
    f.cd+=dt*.75*(f.rage>0?1.25:1);if(f.cd>=1){f.cd-=1;foeAct(f);}
   }
-  if(foes.every(f=>f.hp<=0)){win();}
+  if(foes.length&&foes.every(f=>f.hp<=0)){win();}
   else if(S.hp.every((h,i)=>!S.un[i]||h<=0))startDeath();
  }
 }
@@ -2446,8 +2451,9 @@ function syncSpoils(){
 }
 /* ---------- loot popups: a celebration whenever a relic or a new card lands ---------- */
 const lootQ=[];let lootEl=null,lootTm=0;
+let lootHold=0;const lootBlocked=()=>phase==='fight'||performance.now()<lootHold;   // no reward popups while a fight is going on
 let lootNow=false;   // true while applying a reward the player just asked for inside a menu (an ad, a purchase): those show at once
-function loot(o){o.now=o.now||lootNow;if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now))nextLoot();}
+function loot(o){o.now=o.now||lootNow;if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now)&&(o.now||!lootBlocked()))nextLoot();}
 function nextLoot(){
  const ix=sheet?lootQ.findIndex(x=>x.now):0;   // in a menu, only popups for what you just did in it come up; the rest wait
  const o=ix<0?null:lootQ.splice(ix,1)[0];if(!o){lootEl=null;return;}
@@ -2461,7 +2467,7 @@ function nextLoot(){
  document.body.appendChild(el);lootEl=el;
  try{navigator.vibrate&&navigator.vibrate(big?[40,40,90]:30);}catch(e){}
  const done=()=>{clearTimeout(lootTm);if(lootEl!==el)return;el.classList.add('out');setTimeout(()=>{el.remove();lootEl=null;nextLoot();},240);};
- el.onclick=done;lootTm=setTimeout(done,dbl?12000:lootQ.length?3000:5000);
+ el.onclick=done;   // a reward popup stays until you tap it
  if(dbl)el.querySelector('.ldb').onclick=async e=>{e.stopPropagation();clearTimeout(lootTm);const b=e.currentTarget;b.disabled=true;if(await ADS.show()){o.dbl();sig='';save();toast('Doubled!');}else{toast('No reward: the ad was not finished.');}done();};
 }
 const RCOL=[[154,138,106],[95,191,106],[90,160,255],[176,107,255],[255,176,46]];
@@ -2469,9 +2475,7 @@ function lootRelic(r,how,nodbl){const n=S.relics[r];loot({head:how||'Relic found
 function lootCard(k,head){const t=TILES[k],q=t.r||0;loot({head:head,icon:t.i,name:t.n+' tile',sub:RAR[q].n+' card',desc:t.d,rar:q,col:RCOL[q]});}
 function newCardPop(k,force){const sc=S.seen||(S.seen={}),first=!sc[k];sc[k]=1;if(first||force||(TILES[k].r||0)>=2)lootCard(k,first?'New card!':'Card added!');}
 function closeModal(i){const b=modalBtns[i];$('modal').hidden=true;modalBtns=[];try{if(b&&b.fn)b.fn();}catch(e){console.error(e);}if($('modal').hidden&&modalQ.length)showModal(...modalQ.shift());}
-setInterval(()=>{   // safety net: clear any celebration popup that outlived its timer so nothing can sit on top of the game
- const now=Date.now();
- if(lootEl){if(!lootEl.dataset.t)lootEl.dataset.t=now;else if(now-lootEl.dataset.t>30000){lootEl.remove();lootEl=null;lootQ.length=0;}}
+setInterval(()=>{   // remove stray duplicates only; the popup you are looking at is never cleared for you
  document.querySelectorAll('#loot:not(.spoils)').forEach(x=>{if(x!==lootEl)x.remove();});
 },2000);
 document.addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(b)closeModal(+b.dataset.mb);});
@@ -2594,7 +2598,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')showSheet(null);});
 function hud(){
  const r=region(S.depth);
  const ti=S.depth%10;   // tile within the region (the 10th is the boss)
- if(r!==lastRegion){document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
+ if(r!==lastRegion&&!zoneFreeze){document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
  {const sh=((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
@@ -2875,7 +2879,7 @@ function passiveFx(i,x,y,hh,T){   // Bard's song drifts up continuously; Berserk
 }
 function drawHeroImg(i,x,y){
  const im=IMG['hero'+i],h=H[i]||{lunge:0,flash:0},dead=S.hp[i]<=0,T=performance.now()/1000;
- const hh=HH[i]*(CW===600?.78:active()>=4?.92:1),ww=hh*(im.naturalWidth||im.width)/(im.naturalHeight||im.height),walk=phase==='walk'&&!dead;
+ const hh=HH[i]*(CW===600?.78:active()>=4?.92:1),ww=hh*(im.naturalWidth||im.width)/(im.naturalHeight||im.height),walk=phase==='walk'&&!dead&&!zoneFreeze;
  const bob=walk?Math.abs(Math.sin(T*9+i))*5:0,breathe=1+Math.sin(T*2.4+i*1.7)*.014;
  const q=HEROES[i].q;
  if(!dead){rarBack(i,x,y,hh,T,q);passiveFx(i,x,y,hh,T);}
@@ -2957,7 +2961,7 @@ const BGSPEC={};BGNAMES.forEach(n=>BGSPEC[n]=[n]);
 const BGCAST=[null,'rgba(255,110,190,.38)','rgba(70,190,255,.38)','rgba(255,200,60,.38)'];
 const BGAL={forge:'battlefield',council:'battlefield',bounty:'battlefield',training:'village',warcamp:'village',arena:'battlefield',observatory:'leyline',graveyard:'crypt',mercenary:'market',starfall:'shrine',watchtower:'leyline',scriptorium:'shrine',crucible:'vault'};   // new tiles borrow a painted scene
 function bgKeyFor(k){
- const r=region(S.depth),a=r%ART_ACTS,cyc=Math.floor(r/ART_ACTS)%4;let n;
+ const r=region(zoneFreeze?zoneFreeze.d:S.depth),a=r%ART_ACTS,cyc=Math.floor(r/ART_ACTS)%4;let n;
  if(k==='lair')n='lair'+a;
  else if(BGAL[k])n=BGAL[k];
  else if(TILES[k].ev||k==='battlefield'||k==='crypt'||k==='swamp')n=k;
@@ -3010,7 +3014,7 @@ function vignette(){
  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,.4)');g.fillStyle=vg;g.fillRect(left-4,-EX-4,CW+8,hh+8);
 }
 function draw(dt){
- const k=S.road[0],t=TILES[k];
+ const k=zoneFreeze?zoneFreeze.k:S.road[0],t=TILES[k];
  const gr=g.createLinearGradient(0,0,0,250);gr.addColorStop(0,t.bg[0]);gr.addColorStop(1,'#00000022');
  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(K,0,0,K,OX*K,EX*K);const TOPY=-EX;   // the very top of the visible battle view, whatever the screen shape
  if(ARENA.live()){ARENA.draw(dt,TOPY);return;}   // an arena fight takes over the battle canvas
@@ -3201,9 +3205,11 @@ document.addEventListener('visibilitychange',holdStop);
 document.addEventListener('click',e=>{if(holdFired){e.stopPropagation();e.preventDefault();holdFired=false;}},true);   // the click that ends a hold must not buy one extra
 document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hero],button[data-lv],button[data-sk]'))e.preventDefault();});
 
-const popupOpen=()=>!!lootEl||(lootQ.length>0&&!sheet)||!$('modal').hidden||!!document.getElementById('adtest')||!!document.getElementById('arbat');
+const popupOpen=()=>!!zoneFreeze||!!lootEl||(lootQ.length>0&&!sheet&&!lootBlocked())||!$('modal').hidden||!!document.getElementById('adtest')||!!document.getElementById('arbat');
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
+ if(!lootEl&&lootQ.length&&!sheet&&!lootBlocked())nextLoot();   // popups held back during a fight come up now
+ if(zoneFreeze){const w=performance.now()-zoneFreeze.t0;if(w>1500&&!lootEl&&!lootQ.length&&$('modal').hidden&&!actPending&&(!S.offer||spoilsLater)||w>180000)zoneFreeze=null;}   // everything cleared: on to the next zone
  let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
  while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
  saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(gained/saveT);st('gold',gained);gained=0;saveT=0;save();}
