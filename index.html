@@ -696,7 +696,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023193919';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023200921';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1161,6 +1161,7 @@ const RELICS={
  ink:{n:'Spare Page',i:'🧪',d:'+1 redraw per deck'},fang:{n:'Vampire Fang',i:'🦷',d:'Heal 3% of damage dealt'},boots:{n:'Swift Boots',i:'🥾',d:'+8% speed'}
 };
 const RK=Object.keys(RELICS);
+const RELIC_RATE=.4,RELIC_BOSS=.6;   // relics were turning up too often: fights now drop them 40% as often as a tile's listed chance, and a Warden only 60% of the time
 
 /* ---------- state ---------- */
 function fresh(keep){
@@ -1703,7 +1704,7 @@ function win(){
  let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
  S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;st('fights');{const l=S.life;if(S.streak>(l.bstreak||0))l.bstreak=S.streak;}
  {const sh=t.boss?4+2*region(S.depth):(Math.random()<(t.gold>=2.5?.15:.05)+.03*(curRank-1)?1:0);if(sh){{const per=addShards(sh);say('Found '+shardMsg(per)+'!');shardPopup(per,t.boss?'Boss spoils':'Hero shards');}}}
- let rc=t.relic+.05*(curRank-1)+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
+ let rc=(t.boss?RELIC_BOSS:t.relic*RELIC_RATE)+.05*(curRank-1)+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
  if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r);}
  // revive fallen at 30%, small heal
  for(const i of S.order){if(!S.un[i])continue;if(S.hp[i]<=0)S.hp[i]=heroMax(i)*.3;if(t.heal)healHero(i,heroMax(i)*t.heal,true);}
