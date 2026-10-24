@@ -735,7 +735,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023205352';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023210533';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1866,13 +1866,72 @@ const fervor=()=>1+Math.min(1,(S.streak||0)*.2);   // +20% gold per consecutive 
 const heroPx=i=>(CW===600?362:340)-slot(i)*(CW===600?72:92);   // the front line stands nearest the enemies (rightmost)
 function resetHeroes(full){for(let i=0;i<HEROES.length;i++)S.hp[i]=S.order.includes(i)&&S.un[i]?(full?heroMax(i):S.hp[i]):0;}
 
+/* ---------- boss abilities: every Warden fills a charge bar, winds up with a warning, then casts ---------- */
+const ABIL={
+ gore:{c:'#ff7a5a',g:'⚔',t:14,d:'A crushing blow on the front hero.'},
+ venom:{c:'#8aff6a',g:'☠',t:15,d:'Poisons the whole company.'},
+ inferno:{c:'#ff9a3a',g:'🔥',t:15,d:'Scorches everyone and sets them burning.'},
+ freeze:{c:'#9fe0ff',g:'❄',t:14,d:'Freezes a hero solid for 2.5 seconds.'},
+ drain:{c:'#ff5a8a',g:'🩸',t:14,d:'Drains the weakest hero to heal itself.'},
+ breath:{c:'#ff7a2a',g:'🐉',t:16,d:'A blast that hits the whole company.'},
+ curse:{c:'#c08aff',g:'👁',t:15,d:'Curses the company: -25% damage for 7 seconds.'},
+ tide:{c:'#5ab8ff',g:'🌊',t:15,d:'A wave that hits everyone and throws off their timing.'},
+ quake:{c:'#d8b070',g:'💥',t:16,d:'Shakes the ground: damage and a brief stun for all.'},
+ mend:{c:'#6aff9a',g:'💚',t:16,d:'Heals itself for 18% of its health.'},
+ roar:{c:'#ffd24a',g:'📣',t:15,d:'Enrages: +25% attack and speed for 8 seconds.'},
+ barrier:{c:'#8ae8ff',g:'🛡',t:16,d:'Raises a barrier that absorbs 15% of its health.'},
+ summon:{c:'#e08aff',g:'👹',t:17,d:'Calls two minions to its side.'}
+};
+const BOSSAB=[['gore','Tusk Charge'],['venom','Bog Venom'],['inferno','Cinder Sting'],['freeze','Frost Bite'],['drain','Blood Drain'],['breath','Dragon Breath'],['curse','Unmapping Curse'],['tide','Crashing Tide'],['roar','Riddle of Rage'],['quake','Thunder Clap'],['barrier','Crystal Shell'],['summon','Deploy Drones'],['venom','Spore Burst'],['mend','Heartwood Mending'],['inferno','Meteor Shower'],['gore','Jaguar Pounce'],['drain','Crimson Feast'],['curse','Inkblot Curse'],['quake','Labyrinth Slam'],['breath','Void Beam']];
+const bossAbility=(r,j)=>{const e=BOSSAB[(j===0?r:r+(j===1?7:13))%20];return{key:e[0],n:e[1]};};
+let bossCurse=0,bossM={hpM:1,atk:1,r:0};
+function bossHit(t,dm){   // ability damage on a hero: the same protections as a normal hit, no counter-attacks
+ if(S.hp[t]<=0)return;
+ if(S.plate>0)dm*=.7;
+ if(S.un[7]&&S.hp[7]>0&&S.order.includes(7))dm*=1-(.06+.03*skr(7));
+ if(t===15)dm*=1-(.12+.03*skr(15));
+ S.hp[t]-=dm;H[t].flash=1;st('taken',dm);floatTxt('-'+fmt(dm),heroPx(t),200,'#e0584a');
+ if(S.hp[t]<=0){S.hp[t]=0;if(S.un[19]&&S.hp[19]>0&&t!==19&&!revUsed){revUsed=true;S.hp[t]=heroMax(t)*(.3+.05*skr(19));special(19,{ally:t});say(HEROES[19].n+' brings '+HEROES[t].n+' back!');}else{say(HEROES[t].n+' has fallen!');SND.play('herodown');}}
+}
+function bossTick(f,dt){
+ if(f.rage>0)f.rage-=dt;if(f.shield>0&&(f.shieldT-=dt)<=0)f.shield=0;
+ if(f.cast>0){f.cast-=dt;f.flash=Math.max(f.flash,.55+.35*Math.sin(performance.now()/55));if(f.cast<=0){f.cast=0;bossCast(f);}return;}
+ const A=ABIL[f.ab.key];f.ch+=dt/A.t*(1+.6*(1-f.hp/f.max))*(f.rage>0?1.3:1);   // it charges faster as it gets hurt
+ if(f.ch>=1){f.ch=0;f.cast=.9;floatTxt(f.ab.n+'!',Math.max(100,Math.min(CW-100,f.x)),f.y-150,A.c);SND.play('popup');}
+}
+function bossCast(f){
+ const a=f.ab,A=ABIL[a.key],m=f.abm||1,c=A.c,alive=S.order.filter(j=>S.un[j]&&S.hp[j]>0);if(!alive.length)return;
+ const front=alive[0],fp=fpos(f),each=fn=>alive.forEach((j,k)=>fn(j,k,hpos(j)));
+ f.lunge=1.6;cv.classList.remove('shake');void cv.offsetWidth;cv.classList.add('shake');setTimeout(()=>cv.classList.remove('shake'),700);
+ SND.play('boss');say((f.boss?(f===foes.find(x=>x.boss)?RG(region(S.depth))[2]:guardName(f)):'The boss')+' unleashes '+a.n+'!');
+ const dot=(j,ticks,d)=>{const h=H[j];h.dotT=ticks;h.dotD=d;h.dotC=c;h.dotA=0;};
+ switch(a.key){
+ case 'gore':{const p=hpos(front);bossHit(front,f.atk*2*m);FXS({k:'slash',x:p[0],y:p[1],c,dx:70,dy:-40,dur:300});FXS({k:'ring',x:p[0],y:p[1]+40,c,r1:120,dur:500});FXS({k:'burst',x:p[0],y:p[1],c,big:1,dur:450});break;}
+ case 'venom':each((j,k,p)=>{dot(j,6,f.atk*.14*m);FXS({k:'burst',x:p[0],y:p[1],c,dur:520,delay:k*90});FXS({k:'rise',x:p[0],y:p[1]+30,c,glyph:'☠',n:4,dur:1000,delay:k*90});});FXS({k:'ring',x:fp[0],y:fp[1]+50,c,r1:300,dur:700});break;
+ case 'inferno':each((j,k,p)=>{bossHit(j,f.atk*.7*m);dot(j,4,f.atk*.12*m);FXS({k:'burst',x:p[0],y:p[1],c,big:1,dur:560,delay:120+k*80});FXS({k:'ring',x:p[0],y:p[1]+40,c:'#ffd24a',r1:90,dur:500,delay:120+k*80});});FXS({k:'ring',x:fp[0],y:fp[1]+50,c,r1:320,dur:600});break;
+ case 'freeze':{const j=alive[Math.random()*alive.length|0],p=hpos(j);H[j].frz=2.5;bossHit(j,f.atk*.6*m);FXS({k:'pillar',x:p[0],y:p[1]+40,c,dur:700});FXS({k:'burst',x:p[0],y:p[1],c:'#ffffff',dur:500,delay:120});FXS({k:'rise',x:p[0],y:p[1]+30,c,glyph:'❄',n:6,dur:1100});break;}
+ case 'drain':{const j=alive.reduce((x,y)=>S.hp[x]/heroMax(x)<S.hp[y]/heroMax(y)?x:y),p=hpos(j),dm=f.atk*1.5*m;bossHit(j,dm);f.hp=Math.min(f.max,f.hp+dm*.8);floatTxt('+'+fmt(dm*.8),f.x,f.y-90,'#6fcf6f');FXS({k:'proj',x:p[0],y:p[1],x2:fp[0],y2:fp[1],c,arc:60,dur:520,wisp:1});FXS({k:'burst',x:p[0],y:p[1],c,dur:420});FXS({k:'rise',x:fp[0],y:fp[1]+30,c:'#ff9ab0',glyph:'✚',n:5,dur:900,delay:480});break;}
+ case 'breath':each((j,k,p)=>{bossHit(j,f.atk*1.0*m);FXS({k:'proj',x:fp[0]-30,y:fp[1]-10,x2:p[0],y2:p[1],c,arc:50,dur:380,delay:k*70});FXS({k:'burst',x:p[0],y:p[1],c,big:1,dur:520,delay:360+k*70});});break;
+ case 'curse':bossCurse=7;each((j,k,p)=>{FXS({k:'ring',x:p[0],y:p[1]+40,c,r1:90,dur:700,delay:k*80});FXS({k:'rise',x:p[0],y:p[1]+30,c,glyph:'✦',n:5,dur:1100,delay:k*80});});FXS({k:'ring',x:fp[0],y:fp[1]+50,c,r1:320,dur:700});break;
+ case 'tide':each((j,k,p)=>{bossHit(j,f.atk*.8*m);H[j].cd=Math.max(0,H[j].cd-.8);FXS({k:'burst',x:p[0],y:p[1]+10,c,dur:520,delay:k*70});});for(let k=0;k<3;k++)FXS({k:'ring',x:fp[0]-k*110,y:250,c,r1:260,dur:700,delay:k*160});break;
+ case 'quake':each((j,k,p)=>{bossHit(j,f.atk*.8*m);H[j].frz=1;FXS({k:'burst',x:p[0],y:p[1]+40,c,dur:500,delay:k*60});FXS({k:'ring',x:p[0],y:p[1]+45,c,r1:100,dur:520,delay:k*60});});FXS({k:'ring',x:fp[0],y:fp[1]+60,c,r1:340,dur:700});break;
+ case 'mend':{const h=f.max*.18;f.hp=Math.min(f.max,f.hp+h);floatTxt('+'+fmt(h),f.x,f.y-90,'#6fcf6f');FXS({k:'rise',x:fp[0],y:fp[1]+40,c,glyph:'✚',n:8,dur:1100});FXS({k:'dome',x:fp[0],y:fp[1]+10,c,dur:600});break;}
+ case 'roar':f.rage=8;FXS({k:'ring',x:fp[0],y:fp[1]+50,c,r1:340,dur:700});FXS({k:'burst',x:fp[0],y:fp[1],c,big:1,dur:560});FXS({k:'rise',x:fp[0],y:fp[1]+40,c,glyph:'▲',n:6,dur:1000});break;
+ case 'barrier':f.shield=f.max*.15;f.shieldT=8;FXS({k:'dome',x:fp[0],y:fp[1]+10,c,dur:700});FXS({k:'ring',x:fp[0],y:fp[1]+50,c,r1:200,dur:600});break;
+ case 'summon':{let add=0,minions=foes.filter(x=>!x.boss&&x.hp>0).length;
+  while(add<2&&minions<4){const ar='a'+(bossM.r%ART_ACTS)+'_'+(Math.random()*3|0),hp=bossM.hpM*.18;
+   foes.push({e:'👺',tr:null,hp,max:hp,atk:bossM.atk*.45,cd:Math.random()*.5,x:440-add*40-minions*14,y:238+add*14,boss:false,flash:1,lunge:0,rew:0,art:ar});
+   FXS({k:'burst',x:440-add*40-minions*14,y:200,c,dur:480});add++;minions++;}
+  FXS({k:'ring',x:fp[0],y:fp[1]+50,c,r1:240,dur:600});break;}
+ }
+}
 /* ---------- encounters ---------- */
 const PACE={};
 const WALL={from:6,hp:2.2,atk:1.25,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
 function startTile(){
  const k=S.road[0],t=TILES[k];
  curSyn=synFor(S.prev,k);curBoss=!!t.boss;curMod=S.rmod[0]||null;curRank=S.rrank[0]||1;
- foes=[];pt=0;revUsed=false;
+ foes=[];pt=0;revUsed=false;bossCurse=0;
  if(!S.actSnap||S.actSnap.a!==region(S.depth))S.actSnap=actSnap(region(S.depth));
  if(t.ev){phase='event';return;}
  const d=S.depth,r=region(d);
@@ -1889,6 +1948,7 @@ function startTile(){
    hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.4:1.8):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
    boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(multi===3?.42:dual?.6:1)*rkM(curRank),art:boss?(j>0?'a'+(r%ART_ACTS)+'_'+j:'boss'+bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%ART_ACTS)+'_'+(Math.random()*3|0):null)});
  }
+ if(t.boss){bossM={hpM,atk,r};let bi=0;for(const f of foes){f.ab=bossAbility(r,bi++);f.ch=.2;f.cast=0;f.rage=0;f.shield=0;f.abm=(multi>1?.75:1)*.6;}}   // each Warden gets an ability with its own charge bar
  H=HEROES.map((h,i)=>({cd:Math.random()*.4,n:0,flash:0,lunge:0}));
  phase='fight';
  if(t.boss)SND.play('boss');
@@ -1900,6 +1960,7 @@ function dmgFoe(f,d,i){
  if(f.hp<=0)return;
  let tm=1;if(i>=0&&f.tr){tm=(TRAIT[f.tr]||{})[HEROES[i].k]||1;d*=tm;}   // foe traits favour some kinds of hero
  {const l=S.life||(S.life={});const real=Math.min(d,Math.max(0,f.hp));l.dmg=(l.dmg||0)+real;if(d>(l.maxHit||0))l.maxHit=d;if(i>=0){const h=l.hd||(l.hd={});h[i]=(h[i]||0)+real;}if(d>=f.hp){l.kills=(l.kills||0)+1;if(f.boss)l.wardens=(l.wardens||0)+1;}}
+ if(f.shield>0){const ab=Math.min(f.shield,d);f.shield-=ab;d-=ab;if(d<=0){floatTxt('Blocked',f.x,f.y-50,'#8ae8ff');return;}}
  f.hp-=d;f.flash=1;floatTxt(fmt(d),f.x,f.y-50,tm>1.05?'#ffd24a':tm<.95?'#9aa6b8':'#fff');
  if(f.hp<=0)SND.play(f.boss?'bosskill':'kill');else SND.hit(i);
  if(S.relics.fang&&i>=0)healHero(i,d*.03*S.relics.fang,true);
@@ -1912,7 +1973,7 @@ function healHero(i,a,quiet){
 let revUsed=false;
 function weakestAlly(){let w=-1,wr=2;for(const j of S.order)if(S.hp[j]>0){const q=S.hp[j]/heroMax(j);if(q<wr){wr=q;w=j;}}return w;}
 function heroAct(i){
- const h=H[i],r=skr(i),atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1)*(curBoss?partyBonus().boss:1)*(S.edge>0?1.35:1)*(S.merc&&S.merc.n>0?S.merc.m:1)*(S.kb&&S.kb.n>0&&S.kb.k===HEROES[i].k?1.6:1);
+ const h=H[i],r=skr(i),atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1)*(curBoss?partyBonus().boss:1)*(S.edge>0?1.35:1)*(S.merc&&S.merc.n>0?S.merc.m:1)*(S.kb&&S.kb.n>0&&S.kb.k===HEROES[i].k?1.6:1)*(bossCurse>0?.75:1);
  const alive=foes.filter(f=>f.hp>0);if(!alive.length)return;
  h.n++;h.lunge=1;
  switch(i){
@@ -1946,6 +2007,7 @@ function foeAct(f){
  let dm=f.atk*(1-((S.un[7]&&S.hp[7]>0&&S.order.includes(7))?.06+.03*skr(7):0));   // Aegis: the Paladin shields the company
  if(t===15)dm*=1-(.12+.03*skr(15));
  if(S.plate>0)dm*=.7;   // Forge: reinforced armour
+ if(f.rage>0)dm*=1.25;
  f.lunge=1;S.hp[t]-=dm;H[t].flash=1;st('taken',dm);SND.play('foehit');
  floatTxt('-'+fmt(dm),heroPx(t),200,'#e0584a');
  if(t===12&&S.hp[12]>0&&f.hp>0){special(12,{foe:f});dmgFoe(f,heroAtk(12)*(1+.25*skr(12)),12);}
@@ -2134,6 +2196,7 @@ function actComplete(cr,first,old){
  if(d)h+='<h3 style="margin:10px 0 2px">Your run through the act</h3><div class="actst">'+tile(fmtT(d.sec),'time')+tile(fmt(d.fights),'fights won')+tile(fmt(d.kills),'foes slain')+tile(fmt(d.gold),'gold earned')+tile(d.rel,'relics found')+tile(d.sh,'hero shards')+(d.falls?tile(d.falls,'falls'):'')+'</div>';
  const T=(ACTTRAIT[nr%20]||['','']).filter(Boolean),newH=HEROES.map((x,i)=>i).filter(i=>HACT[i]===nn&&!S.owned.includes(i)),wardn=RG(nr);
  h+='<h3 style="margin:10px 0 2px">Next: Act '+roman(nn)+' · '+wardn[0]+'</h3><p style="margin:0 0 4px">Warden: <b>'+wardn[2]+'</b>.</p>';
+ {const ab=BOSSAB[nr%20],A=ABIL[ab[0]];h+='<div class="syn"><b style="color:'+A.c+'">'+A.g+' '+ab[1]+'</b> '+A.d+'</div>';}
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
  const lg=legGain();if(lg)h+='<p class="hint" style="margin:8px 0 0">Retiring the company now would grant +'+lg+' Legend.</p>';
@@ -2183,16 +2246,20 @@ function step(dt){
  }else if(phase==='event'){pt+=dt;if(pt>=1.3){if(evState)evTick(dt);else event();}}
  else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait){if(ADS.ok()&&!reviveAsked){if(!sheet)offerRevive();}else wipe();}}
  else if(phase==='fight'){
+  if(bossCurse>0)bossCurse-=dt;
   H.forEach((h,i)=>{
    h.lunge=Math.max(0,h.lunge-dt*4);h.flash=Math.max(0,h.flash-dt*4);
    if(S.hp[i]<=0)return;
+   if(h.dotT>0){h.dotT-=dt;h.dotA=(h.dotA||0)+dt;if(h.dotA>=1){h.dotA-=1;bossHit(i,h.dotD);}if(S.hp[i]<=0)return;}   // poison and burning
+   if(h.frz>0){h.frz-=dt;return;}   // frozen or stunned: no actions
    h.cd+=dt*HEROES[i].spd*spdMul();
    if(h.cd>=1){h.cd-=1;heroAct(i);}
   });
   for(const f of foes){
    f.lunge=Math.max(0,f.lunge-dt*4);f.flash=Math.max(0,f.flash-dt*5);
    if(f.hp<=0)continue;
-   f.cd+=dt*.75;if(f.cd>=1){f.cd-=1;foeAct(f);}
+   if(f.ab){bossTick(f,dt);if(f.cast>0)continue;}   // a Warden winding up its ability pauses its normal attacks
+   f.cd+=dt*.75*(f.rage>0?1.25:1);if(f.cd>=1){f.cd-=1;foeAct(f);}
   }
   if(foes.every(f=>f.hp<=0)){win();}
   else if(S.hp.every((h,i)=>!S.un[i]||h<=0))startDeath();
@@ -2690,9 +2757,9 @@ const BOSSNAMES=['Grubnak the Boar King','Old Gator Moss','The Cinder Scorpion',
 const GUARDS=[['Elder Treant','Giant Hornet'],['Marsh Hag','Wisp King'],['Lava Hound Alpha','Magma Brute'],['Wraith Lord','Yeti Chief'],['Pharaoh Mummy','Gargoyle Lord'],['Kobold King','Drake Knight'],['Stalker Prime','Cult Master'],['Siren Queen','Sea Serpent'],['Jackal Guardian','Sand Elemental'],['Storm Cloud','Sky Knight'],
  ['Quartz Colossus','Shardwing Matriarch'],['Steamplate Knight','Gearweaver'],['Sporeslime Mother','Puffcap Elder'],['Raven King','The Hollow Witch'],['Constellation Knight','Lunar Moth Queen'],['Strangler of the Sanctum','Idol Guardian'],['Bloodsworn Knight','Crimson Banshee'],['Inkflood Elemental','Scroll Golem'],['Sentinel of Stone','Maze Stalker'],['The Compass Horror','The Void Cartographer']];
 const guardName=f=>{const a=f.art||'';let m=/^boss(\d+)$/.exec(a);if(m)return BOSSNAMES[+m[1]]||'Guardian';m=/^a(\d+)_(\d)$/.exec(a);return(m&&GUARDS[+m[1]]&&GUARDS[+m[1]][+m[2]-1])||'Guardian';};
-function bossBars(top){   // big named health bars pinned to the top of the battle view
+function bossBars(top){   // big named health bars pinned to the top of the battle view, with each boss's ability bar right under its health bar
  const bs=foes.filter(f=>f.boss);if(!bs.length)return 0;
- const first=bs[0],w=Math.min(CW-60,340),cx=-OX+CW/2;let y=top+10;
+ const first=bs[0],w=Math.min(CW-60,340),cx=-OX+CW/2;let y=top+6;
  bs.forEach(f=>{
   const name=f===first?RG(region(S.depth))[2]:guardName(f),fr=Math.max(0,Math.min(1,f.hp/f.max)),fade=f.hp<=0?Math.max(0,1-(performance.now()-(f.dieT||0))/450):1;
   g.save();g.globalAlpha=fade;
@@ -2703,8 +2770,18 @@ function bossBars(top){   // big named health bars pinned to the top of the batt
   g.fillStyle='#2a0d0a';g.beginPath();g.roundRect(cx-w/2,by,w,bh,5);g.fill();
   if(fr>0){const gr=g.createLinearGradient(0,by,0,by+bh);gr.addColorStop(0,'#ff8a5c');gr.addColorStop(.5,'#e8321e');gr.addColorStop(1,'#a01810');g.fillStyle=gr;g.beginPath();g.roundRect(cx-w/2,by,Math.max(8,w*fr),bh,5);g.fill();
    g.fillStyle='rgba(255,255,255,.3)';g.fillRect(cx-w/2+4,by+2,Math.max(0,w*fr-8),3);}
+  if(f.shield>0){g.fillStyle=rgba(ABIL.barrier.c,.75);g.beginPath();g.roundRect(cx-w/2,by,Math.max(6,w*Math.min(1,f.shield/f.max)),5,3);g.fill();}   // the barrier shows as a bright strip on top of the health
   g.font='700 11px Georgia,serif';g.fillStyle='#fff';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.85)';const t=Math.ceil(fr*100)+'%';g.strokeText(t,cx,by+12);g.fillText(t,cx,by+12);
-  g.restore();y+=44;
+  let used=44;
+  if(f.ab&&f.hp>0){   // ability bar: fills up, flashes while the boss winds up, then the ability goes off
+   const A=ABIL[f.ab.key],ab=by+bh+8,ah=14,p=f.cast>0?1:Math.min(1,f.ch),ready=f.cast>0||p>.88,pulse=ready?.65+.35*Math.sin(performance.now()/70):1;
+   g.fillStyle='rgba(0,0,0,.65)';g.beginPath();g.roundRect(cx-w/2-3,ab-3,w+6,ah+6,7);g.fill();
+   g.strokeStyle=rgba(A.c,.9*pulse);g.lineWidth=2;g.beginPath();g.roundRect(cx-w/2-3,ab-3,w+6,ah+6,7);g.stroke();
+   g.fillStyle='#161018';g.beginPath();g.roundRect(cx-w/2,ab,w,ah,4);g.fill();
+   if(p>0){const gr=g.createLinearGradient(0,ab,0,ab+ah);gr.addColorStop(0,rgba(A.c,1));gr.addColorStop(1,rgba(A.c,.55));g.globalAlpha=fade*(ready?pulse:1);g.fillStyle=gr;g.beginPath();g.roundRect(cx-w/2,ab,Math.max(6,w*p),ah,4);g.fill();g.globalAlpha=fade;}
+   g.font='800 10px Cinzel,Georgia,serif';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.9)';const lab=A.g+' '+(f.cast>0?f.ab.n.toUpperCase()+'!':f.ab.n.toUpperCase());g.strokeText(lab,cx,ab+11);g.fillStyle='#fff';g.fillText(lab,cx,ab+11);
+   used=66;}
+  g.restore();y+=used;
  });
  return y-top;
 }
@@ -2814,6 +2891,11 @@ function drawHeroImg(i,x,y){
  if(q>=2&&!dead){const per=[0,0,5,3.6,2.4][q],ph=((T+i*.7)%per)/per;if(ph<.28){const u=ph/.28,bx=-ww/2+(ww+hh*.5)*u-hh*.25;g.save();g.beginPath();g.moveTo(bx,-hh);g.lineTo(bx+hh*.22,-hh);g.lineTo(bx+hh*.22-hh*.3,0);g.lineTo(bx-hh*.3,0);g.closePath();g.clip();g.globalAlpha=.7;g.drawImage(flashed(im,.9),-ww/2,-hh,ww,hh);g.restore();}}   // a glint sweeps across rare heroes
  g.restore();
  if(!dead)rarFront(i,x,y,hh,T,q);
+ if(!dead){const h=H[i]||{};
+  if(h.frz>0){g.save();g.globalCompositeOperation='lighter';glow(x,y-hh*.5,hh*.6,'rgba(140,215,255,.5)','rgba(140,215,255,0)');g.restore();g.font='18px serif';g.textAlign='center';g.fillText('❄',x,y-hh-6);}
+  if(h.dotT>0){g.save();g.globalCompositeOperation='lighter';glow(x,y-hh*.45,hh*.5,rgba(h.dotC||'#8aff6a',.28+.12*Math.sin(T*8)),rgba(h.dotC||'#8aff6a',0));g.restore();}
+  if(bossCurse>0){g.save();g.globalAlpha=.55+.25*Math.sin(T*5);g.font='14px serif';g.textAlign='center';g.fillText('👁',x+16,y-hh*.8);g.restore();}
+ }
  if(!dead)hpBar(x,y+9,38,S.hp[i]/heroMax(i),'#4cd07a');
 }
 /* ---------- painted enemies, icons and scenery ---------- */
@@ -2845,6 +2927,11 @@ function drawFoeImg(f,nm,im){
  const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,ww=hh*iw/ih;
  const fly=(nm==='bat'||nm==='ghost'||nm==='a0_2'||nm==='a1_2'||nm==='a3_1'||nm==='a6_0')?18+Math.sin(T*2.3+f.x)*6:0,breathe=1+Math.sin(T*3.1+f.x*.05)*.015;
  if(f.boss&&!dying)glow(f.x,f.y-hh*.5,hh*.95,'rgba(255,70,40,.30)','rgba(255,70,40,0)');
+ if(f.boss&&f.ab&&!dying){const ac=ABIL[f.ab.key].c,T2=performance.now();
+  if(f.cast>0){g.save();g.globalCompositeOperation='lighter';glow(f.x,f.y-hh*.5,hh*(.8+.25*Math.sin(T2/50)),rgba(ac,.6),rgba(ac,0));g.restore();}
+  else if(f.ch>.7){g.save();g.globalCompositeOperation='lighter';glow(f.x,f.y-hh*.5,hh*.8,rgba(ac,.12+.38*(f.ch-.7)/.3*(.7+.3*Math.sin(T2/140))),rgba(ac,0));g.restore();}
+  if(f.shield>0){g.save();g.strokeStyle=rgba(ABIL.barrier.c,.8);g.fillStyle=rgba(ABIL.barrier.c,.15);g.lineWidth=3;g.beginPath();g.ellipse(f.x,f.y-hh*.5,hh*.5,hh*.58,0,0,TAU);g.fill();g.stroke();g.restore();}
+  if(f.rage>0){g.save();g.globalCompositeOperation='lighter';glow(f.x,f.y-hh*.5,hh*.75,'rgba(255,60,30,.35)','rgba(255,60,30,0)');g.restore();}}
  g.save();
  g.fillStyle='rgba(0,0,0,'+(.36*(1-dt))+')';g.beginPath();g.ellipse(f.x,f.y+1,ww*.36,6*Math.min(1.6,bs),0,0,TAU);g.fill();
  g.translate(f.x-f.lunge*14+(dying?dt*14:0),f.y-fly-(dying?dt*16:0));
@@ -2925,7 +3012,7 @@ function vignette(){
 function draw(dt){
  const k=S.road[0],t=TILES[k];
  const gr=g.createLinearGradient(0,0,0,250);gr.addColorStop(0,t.bg[0]);gr.addColorStop(1,'#00000022');
- g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(K,0,0,K,OX*K,EX*K);const TOPY=Math.max(0,-EX);   // keep top-anchored labels visible when sky is trimmed
+ g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(K,0,0,K,OX*K,EX*K);const TOPY=-EX;   // the very top of the visible battle view, whatever the screen shape
  if(ARENA.live()){ARENA.draw(dt,TOPY);return;}   // an arena fight takes over the battle canvas
  const bgk=bgKeyFor(k),usedBG=drawBG(bgk);
  if(!usedBG){
