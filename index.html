@@ -773,7 +773,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023231525';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023232219';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1782,7 +1782,7 @@ function rosterHTML(){
 function drawTrait(f){const t=TRAITN[f.tr].toUpperCase();g.save();g.font='700 10px Cinzel,Georgia,serif';g.textAlign='center';g.textBaseline='middle';const w=g.measureText(t).width+10,x=f.x,y=f.y+12;g.fillStyle='rgba(15,10,6,.78)';g.beginPath();g.roundRect(x-w/2,y-7,w,14,7);g.fill();g.strokeStyle=TRAITC[f.tr];g.lineWidth=1;g.stroke();g.fillStyle=TRAITC[f.tr];g.fillText(t,x,y+.5);g.restore();}
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
-const legGain=()=>{if(S.depth<30)return 0;const a=Math.floor(S.depth/10)-1;return Math.floor(a*a/2);};   // retire from tile 30, but the payout grows with the square of how far you got (+2 at Act IV, +8 at Act VI, +32 at Act IX)
+const legGain=()=>{if(S.depth<30)return 0;const a=Math.min(Math.floor(S.depth/10),gateAct())-1;return Math.floor(a*a/2);};   // retire from tile 30, but the payout grows with the square of how far you got (+2 at Act IV, +8 at Act VI, +32 at Act IX)
 const TRIPLE_REGION=20;   // from Act XXI the Warden brings two more guardians (three bosses at once)
 const ART_ACTS=20;   // acts with their own art, music and boss before the cycle repeats
 const DUAL_REGION=10;   // from Act XI the Warden brings a second guardian
@@ -1969,8 +1969,11 @@ function bossCast(f){
 const PACE={};
 const GROW={from:30,k:.5};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
 /* Legend gate: every act from Act V expects a minimum Legend (about three retires' worth more than the act before); short of it, enemies are tougher in proportion */
-const GATE={p:10,from:4,cap:400};
-const legReq=A=>{let n=0;for(let j=GATE.from;j<=A;j++)n+=3*Math.floor((j-2)**2/2);return n;};
+const GATE={p:22,from:4,cap:1e30};
+const retiresFor=A=>Math.min(7,1+Math.round(6*(A-GATE.from)/15));   // retires an act asks for: 1 at Act V, climbing to 7 by Act XX
+const LR=[];
+const legReq=A=>{if(A<GATE.from)return 0;if(!LR.length)LR[GATE.from-1]=0;for(let j=LR.length;j<=A;j++)LR[j]=(LR[j-1]||0)+retiresFor(j)*Math.floor((j-1)**2/2);return LR[A];};   // each act adds that many retires' worth of the payout you earn while stuck on it
+const gateAct=()=>{for(let j=GATE.from;j<400;j++)if(legReq(j)>(S.legend||0))return j;return 999;};   // the first act you are not yet strong enough for; retires pay as if you got no further than this
 const gateMul=r=>r<GATE.from?1:Math.min(GATE.cap,Math.max(1,(1+.12*legReq(r))/(1+.12*(S.legend||0)))**GATE.p);
 const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
 const WALL={from:6,hp:1.1,atk:1.03,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
@@ -2244,7 +2247,7 @@ function actComplete(cr,first,old){
  if(d)h+='<h3 style="margin:10px 0 2px">Your run through the act</h3><div class="actst">'+tile(fmtT(d.sec),'game time')+tile(fmt(d.fights),'fights won')+tile(fmt(d.kills),'foes slain')+tile(fmt(d.gold),'gold earned')+tile(d.rel,'relics found')+tile(d.sh,'hero shards')+(d.falls?tile(d.falls,'falls'):'')+'</div>';
  const T=(ACTTRAIT[nr%20]||['','']).filter(Boolean),newH=HEROES.map((x,i)=>i).filter(i=>HACT[i]===nn&&!S.owned.includes(i)),wardn=RG(nr);
  h+='<h3 style="margin:10px 0 2px">Next: Act '+roman(nn)+' · '+wardn[0]+'</h3><p style="margin:0 0 4px">Warden: <b>'+wardn[2]+'</b>.</p>';
- if(nr>=GATE.from){const need=legReq(nr),have=S.legend||0;h+='<div class="syn"><b style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">Expects Legend '+need+'</b> '+(have>=need?'(you have '+have+').':'(you have '+have+'). Retire to earn Legend, or enemies hit much harder.')+'</div>';}
+ if(nr>=GATE.from){const need=legReq(nr),have=S.legend||0,rn=retiresFor(nr);h+='<div class="syn"><b style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">Expects Legend '+need+'</b> '+(have>=need?'(you have '+have+').':'(you have '+have+'). Expect about '+rn+' retire'+(rn>1?'s':'')+' here, or enemies hit much harder.')+'</div>';}
  {const ab=BOSSAB[nr%20],A=ABIL[ab[0]];h+='<div class="syn"><b style="color:'+A.c+'">'+A.g+' '+ab[1]+'</b> '+A.d+'</div>';}
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
