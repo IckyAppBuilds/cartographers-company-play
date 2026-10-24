@@ -696,7 +696,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023200921';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023201306';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1169,6 +1169,7 @@ function fresh(keep){
   lv:HEROES.map(()=>1),un:HEROES.map(()=>false),hp:HEROES.map(()=>0),relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},hs:keep?Object.assign({},keep.hs):{},streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  S.un[S.order[0]]=true;
+ if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint'])if(keep[k]!==undefined)S[k]=keep[k];
  return S;
 }
 function starterDeck(){return ['forest','forest','forest','forest','forest','village','village','village'];}   // Wilds is the free default road tile, never a card
@@ -1911,7 +1912,7 @@ function retire(){
 }
 function doRetire(){
  const g=legGain();if(!g)return;
- const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{}};
+ const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint};   // account-level things that must survive a retire, or the daily reward would come back the same day
  S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
