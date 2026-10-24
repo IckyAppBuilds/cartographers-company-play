@@ -794,7 +794,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024160419';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024161153';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2006,12 +2006,13 @@ function bossCast(f){
 const PACE={};
 const GROW={from:30,k:.5};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
 /* Legend gate: every act from Act V expects a minimum Legend (about three retires' worth more than the act before); short of it, enemies are tougher in proportion */
-const GATE={p:22,from:4,wall:1e12};
+const GATE={p:30,from:4,wall:1};
 const retiresFor=A=>Math.min(7,1+Math.round(6*(A-GATE.from)/15));   // retires an act asks for: 1 at Act V, climbing to 7 by Act XX
 const LR=[];
 const legReq=A=>{if(A<GATE.from)return 0;if(!LR.length)LR[GATE.from-1]=0;for(let j=LR.length;j<=A;j++)LR[j]=(LR[j-1]||0)+retiresFor(j)*Math.floor((j-1)**2/2);return LR[A];};   // each act adds that many retires' worth of the payout you earn while stuck on it
 const gateAct=()=>{for(let j=GATE.from;j<400;j++)if(legReq(j)>(S.legend||0))return j;return 999;};   // the first act you are not yet strong enough for; retires pay as if you got no further than this
-const gateMul=r=>{if(r<GATE.from)return 1;const q=(1+.12*legReq(r))/(1+.12*(S.legend||0));return q>1?GATE.wall*q**GATE.p:1;};   // short of the act's Legend the enemies are out of reach, however strong the company is
+const gateReq=d=>{const r=region(d);if(r<GATE.from)return 0;const a=legReq(r-1),b=legReq(r);return a+(b-a)*((d%10)+1)/10;};   // the Legend asked for rises tile by tile through the act, from the previous act's figure at its first tile to this act's figure at the Warden
+const gateMul=d=>{if(region(d)<GATE.from)return 1;const q=(1+.12*gateReq(d))/(1+.12*(S.legend||0));return q>1?Math.min(1e40,GATE.wall*q**GATE.p):1;};   // short of it the enemies toughen quickly, but only from the tile where your Legend runs out
 const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
 /* how much tougher a lone Warden is than a normal fight on the same tile (health, damage); dual and triple Wardens split it between them */
 /* ---------- play log: a record of fights, deaths, act clears and retires for balancing (only for the accounts listed here) ---------- */
@@ -2050,7 +2051,7 @@ function startTile(){
  if(t.ev){phase='event';return;}
  const d=S.depth,r=region(d);
  const wl=Math.max(0,(WALL.step?Math.floor(d/10):d)-WALL.from),pm=PACE[r]||1;   // past WALL.from enemies outgrow a single run, so the company has to retire for Legend to get further
- const ax=r>=ACTX.from?ACTX:{hp:1,atk:1},de=effD(d),gm=gateMul(r),hpM=22*1.16**de*pm*WALL.hp**wl*gm*ax.hp,atk=3.2*1.13**de*Math.sqrt(pm)*WALL.atk**wl*Math.sqrt(gm)*ax.atk;
+ const ax=r>=ACTX.from?ACTX:{hp:1,atk:1},de=effD(d),gm=gateMul(d),hpM=22*1.16**de*pm*WALL.hp**wl*gm*ax.hp,atk=3.2*1.13**de*Math.sqrt(pm)*WALL.atk**wl*Math.sqrt(gm)*ax.atk;
  const synF=curSyn&&curSyn.foe||1;
  const multi=t.boss?(r>=TRIPLE_REGION?3:r>=DUAL_REGION?2:1):1;   // after the ten normal acts the Warden brings a second guardian; from Act XXI, two more
  const dual=multi>1;
@@ -2807,7 +2808,7 @@ function hud(){
  const ti=S.depth%10;   // tile within the region (the 10th is the boss)
  if(r!==lastRegion&&!zoneFreeze){document.documentElement.style.setProperty('--ui-road','url(assets/ui/road_path_'+(r%ART_ACTS)+'.png'+V+')');document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
- {const gm=gateMul(region(S.depth)),sh=(S.road[0]==='empty'&&phase==='walk'?'🧭 Lay a tile · ':'')+(gm>1?'🔒 Needs Legend '+legReq(region(S.depth))+' · ':'')+((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
+ {const gm=gateMul(S.depth),sh=(S.road[0]==='empty'&&phase==='walk'?'🧭 Lay a tile · ':'')+(gm>1?'🔒 Needs Legend '+Math.ceil(gateReq(S.depth))+' · ':'')+((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
  $('rate').textContent='≈ '+fmt(S.rate)+' gold/s'+(S.boostT>0?' · ⚡x2 '+boostTxt(S.boostT):'');
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
