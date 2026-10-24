@@ -775,7 +775,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024115152';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024115343';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1286,6 +1286,7 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;
 if(!S.rmod||S.rmod.length!==S.road.length)S.rmod=S.road.map(()=>null);
 if(!S.rrank||S.rrank.length!==S.road.length)S.rrank=S.road.map(()=>1);
 if(!S.boons)S.boons={};
+S.wipeEpoch='2026-10-24e';   // stamped on every save; the server refuses saves from a wiped account that lack it (a stale open session cannot bring an old save back)
 if(!S.emptyV){   // saves from before Wilds became a card: empty road slots were stored as 'wilds'; an untouched starter deck becomes the new one (mostly Wilds)
  S.emptyV=1;S.road=S.road.map(k=>k==='wilds'?'empty':k);
  if(S.deck.slice().sort().join()==='forest,forest,forest,forest,forest,village,village,village'){S.deck=starterDeck();S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}
