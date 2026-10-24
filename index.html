@@ -357,6 +357,8 @@ button.swc{cursor:pointer;min-height:0}button.swc:active{transform:scale(.98);fi
 .swn .swc{border-color:#ffd24a;box-shadow:0 0 14px rgba(255,210,74,.35)}
 .swh{font-size:13px;opacity:.8;margin:2px 0 8px!important}
 .swl{display:flex;flex-direction:column}
+.actrec{margin:10px 0 2px;padding:8px 10px;border:1px solid rgba(255,214,110,.45);border-radius:12px;background:linear-gradient(180deg,rgba(255,210,74,.14),rgba(0,0,0,.25));display:flex;flex-direction:column;gap:2px;align-items:center}
+.actrec b{font:900 24px/1.1 Cinzel,Georgia,serif;color:#ffe08a}.actrec em{font-style:normal;font-weight:700;color:#fff}.actrec small{opacity:.8}.actrec i{font-style:normal;font-weight:700;color:#8fe39a;font-size:13px}
 #modal{position:fixed;inset:0;z-index:90;touch-action:manipulation;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
 #modal .mp{width:100%;max-width:440px;max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:20px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
 #modal h2{text-shadow:none!important;filter:drop-shadow(0 2px 0 rgba(70,35,0,.95)) drop-shadow(0 0 8px rgba(255,200,70,.3));margin:0 0 10px;font:900 clamp(22px,6.5vw,30px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -749,7 +751,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023213616';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023220514';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1245,7 +1247,7 @@ function fresh(keep){
   lv:HEROES.map(()=>1),un:HEROES.map(()=>false),hp:HEROES.map(()=>0),relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},hs:keep?Object.assign({},keep.hs):{},streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  S.un[S.order[0]]=true;
- if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint'])if(keep[k]!==undefined)S[k]=keep[k];
+ if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest'])if(keep[k]!==undefined)S[k]=keep[k];
  return S;
 }
 function starterDeck(){return ['forest','forest','forest','forest','forest','village','village','village'];}   // Wilds is the free default road tile, never a card
@@ -2218,7 +2220,16 @@ function actComplete(cr,first,old){
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
  const lg=legGain();if(lg)h+='<p class="hint" style="margin:8px 0 0">Retiring the company now would grant +'+lg+' Legend.</p>';
- const show=()=>{if(sheet||lootEl||lootQ.length){setTimeout(show,400);return;}SND.play('act');showModal('Act '+roman(cr+1)+' complete',h,[{t:'Onward to Act '+roman(nn),primary:true}]);actPending=false;};
+ const secs=d&&d.sec>=15?Math.round(d.sec):null,ab=S.actBest||(S.actBest={});
+ const isPB=!!secs&&(!ab[cr]||secs<ab[cr]);if(isPB)ab[cr]=secs;
+ const rec=(async()=>{try{const r=await Promise.race([CC.db.rpc('act_record',{p_act:cr+1,p_secs:secs}),new Promise(r=>setTimeout(()=>r(null),3500))]);return r&&r.data||null;}catch(e){return null;}})();
+ let shown=false;
+ const show=async()=>{if(shown)return;if(sheet||lootEl||lootQ.length){setTimeout(show,400);return;}shown=true;
+  const r=await rec,mine=ab[cr]||(r&&r.mine);let f='';
+  if(r&&r.best){const me=r.is_me;f='<div class="actrec"><small>Fastest clear of Act '+roman(cr+1)+'</small><b>'+fmtT(r.best)+'</b><span>'+(me?'You hold the record!':'held by <em>'+String(r.name).replace(/[<>&]/g,'')+'</em>')+'</span>'+(mine&&!me?'<small>Your best: <b>'+fmtT(mine)+'</b></small>':'')+'</div>';}
+  else if(mine)f='<div class="actrec"><small>Your fastest clear</small><b>'+fmtT(mine)+'</b></div>';
+  if(isPB&&f)f=f.replace('<div class="actrec">','<div class="actrec new"><i>New personal best!</i>');
+  SND.play('act');showModal('Act '+roman(cr+1)+' complete',h.replace('<h3 style="margin:10px 0 2px">Next:',f+'<h3 style="margin:10px 0 2px">Next:'),[{t:'Onward to Act '+roman(nn),primary:true}]);actPending=false;save();};
  setTimeout(show,500);
 }
 function advance(){
@@ -2329,7 +2340,7 @@ function retire(){
 }
 function doRetire(){
  const g=legGain();if(!g)return;
- const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint};   // account-level things that must survive a retire, or the daily reward would come back the same day
+ const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest};   // account-level things that must survive a retire, or the daily reward would come back the same day
  S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
