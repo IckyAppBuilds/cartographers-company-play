@@ -775,7 +775,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024114959';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024115152';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -853,7 +853,7 @@ const CC=(function(){
  async function pull(){   // bring the account's save into localStorage when it is newer than this device's copy
   const {data,error}=await db.from('saves').select('data,updated_at,device').eq('user_id',user.id).maybeSingle();
   if(error)throw error;
-  if(user.id==='f3f5b351-1f6d-4a81-998b-dcd26869b647'&&lget('cc-wipe')!=='2026-10-24d'){try{localStorage.removeItem(KEY);}catch(e){}lset('cc-wipe','2026-10-24d');}   // one-time fresh start for the owner's account on each device: its cloud save was deleted
+  if(user.id==='f3f5b351-1f6d-4a81-998b-dcd26869b647'&&lget('cc-wipe')!=='2026-10-24e'){try{localStorage.removeItem(KEY);}catch(e){}lset('cc-wipe','2026-10-24e');}   // one-time fresh start for the owner's account on each device: its cloud save was deleted
   const same=lget('cc-uid')===user.id;
   let local=null;if(same){try{local=JSON.parse(lget(KEY));}catch(e){}}
   if(!same){try{localStorage.removeItem(KEY);}catch(e){}lset('cc-uid',user.id);}
