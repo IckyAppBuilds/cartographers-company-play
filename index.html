@@ -138,7 +138,7 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 #evpop .evt{font:900 clamp(20px,6vw,26px)/1.1 Cinzel,Georgia,serif;color:#fff3c4;text-shadow:0 2px 0 #000}
 #evpop .evd{margin:4px 0 10px;font-size:13px;color:var(--dim)}
 #evpop .evo{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-#evpop .evo button{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:10px 12px;border-radius:10px;border:1px solid var(--gold);background:rgba(255,210,74,.12);color:#fff3c4;cursor:pointer;min-height:48px}
+#evpop .evo button{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px;padding:10px 12px;border-radius:10px;border:1px solid var(--gold);background:rgba(255,210,74,.12);color:#fff3c4;cursor:pointer;min-height:48px}
 #evpop .evo button:first-child{background:rgba(255,210,74,.22)}
 #evpop .evo button:hover:not(:disabled),#evpop .evo button:focus-visible{background:rgba(255,210,74,.34);transform:translateY(-1px)}
 #evpop .evo button b{font-size:15px}#evpop .evo button small{font-size:12px;line-height:1.25;color:var(--dim)}
@@ -148,7 +148,7 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 #loot.spoils{cursor:default;z-index:75}
 #loot.spoils .lc{width:min(94vw,520px);padding:20px 12px 14px}
 #loot .sr{display:flex;gap:8px;margin-top:14px;justify-content:center}
-#loot .sk{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px 10px;border-radius:12px;cursor:pointer;color:#fff3c4;background:linear-gradient(180deg,rgba(var(--kc),.28),#1b130c 75%);border:2px solid rgb(var(--kc));box-shadow:0 0 16px rgba(var(--kc),.55);animation:skin .6s cubic-bezier(.2,1.4,.4,1) both;animation-delay:calc(var(--n)*.14s + .35s);font:inherit}
+#loot .sk{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px;padding:12px 6px 10px;border-radius:12px;cursor:pointer;color:#fff3c4;background:linear-gradient(180deg,rgba(var(--kc),.28),#1b130c 75%);border:2px solid rgb(var(--kc));box-shadow:0 0 16px rgba(var(--kc),.55);animation:skin .6s cubic-bezier(.2,1.4,.4,1) both;animation-delay:calc(var(--n)*.14s + .35s);font:inherit}
 #loot .sk:hover,#loot .sk:focus-visible{transform:translateY(-4px) scale(1.04);box-shadow:0 0 26px rgba(var(--kc),.95)}
 #loot .sk .i{font-size:42px;line-height:1}#loot .sk .i img{width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(var(--kc),.9))}
 #loot .sk b{font:800 14px/1.1 Cinzel,Georgia,serif}#loot .sk small{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:rgb(var(--kc))}
@@ -257,6 +257,7 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 .artier{display:inline-block;padding:1px 8px;border-radius:10px;border:1px solid var(--tc);color:var(--tc);font:700 11px Cinzel,Georgia,serif;background:rgba(0,0,0,.35);margin-right:4px}
 .arhd{display:flex;align-items:center;gap:8px}.arhd .artier{font-size:14px;padding:2px 10px}
 .artag{color:#8fd0ff;font-weight:700}
+#sheet .pane .cltabs button{padding:0 2px!important;font-size:13px!important;letter-spacing:0!important;border-width:9px!important;border-image-width:9px!important;text-align:center;white-space:nowrap}
 .artm{display:inline-flex;gap:3px;margin-top:3px}.artm span{width:30px;height:30px;border:2px solid;border-radius:8px;overflow:hidden;background:#150f0a;display:block}.arp{width:100%;height:100%;object-fit:cover;display:block}
 .aropp small{display:block}
 .arteam{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}
@@ -265,7 +266,7 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 .arslot b{position:absolute;left:5px;top:2px;font-size:11px;color:var(--gold)}.arslot .arp{width:44px;height:44px;border-radius:8px}.arslot small{font-size:10px;line-height:1.1;margin-top:2px;overflow:hidden;max-width:100%;white-space:nowrap;text-overflow:ellipsis}
 .arslot .arm{display:flex;gap:2px;margin-top:2px}.arslot .arm button{min-height:0!important;padding:0 6px!important;font-size:11px!important;border-width:4px!important;line-height:1.1}
 .arpool{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.arhero{display:flex!important;flex-direction:column;align-items:center;gap:1px;padding:4px!important;min-height:0!important;text-align:center;border:2px solid transparent!important;border-image:none!important;border-radius:10px!important;background:rgba(0,0,0,.3)!important}
+.arhero{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:4px!important;min-height:0!important;text-align:center;border:2px solid transparent!important;border-image:none!important;border-radius:10px!important;background:rgba(0,0,0,.3)!important}
 .arhero.on{border-color:var(--rc)!important;background:rgba(80,60,30,.55)!important}.arhero .arp{width:42px;height:42px;border-radius:8px;border:2px solid var(--rc)}.arhero b{font-size:12px}.arhero small{font-size:10px;color:var(--dim);line-height:1.15}
 .artiers{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}.artiers button{min-height:0!important;padding:4px 0!important;border:2px solid var(--tc)!important;border-image:none!important;border-radius:8px!important;background:rgba(0,0,0,.35)!important;color:var(--tc);font-size:13px}.artiers button.on{background:var(--tc)!important;color:#1a1208}
 .arlad{max-height:340px;overflow:auto;border:1px solid #3a2c20;border-radius:10px}.arl{display:flex;gap:8px;padding:5px 8px;border-bottom:1px solid #2a2016;align-items:center}.arl span{width:44px;color:var(--dim);font-size:12px}.arl b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.arl em{font-style:normal;color:var(--gold);font-size:13px}.arl.me{background:rgba(255,210,74,.18)}
@@ -625,6 +626,16 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #mute{position:absolute;right:6px;top:6px;z-index:6;width:30px;height:30px;padding:0;min-height:0;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.45);color:#fff;font-size:15px;line-height:1;cursor:pointer}
 .sndrow{display:flex;gap:8px}.sndrow button{flex:1}
 [data-hero],button[data-lv],button[data-sk]{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
+/* the eight bottom buttons share the width equally and their labels always fit */
+#nav{grid-template-columns:repeat(8,minmax(0,1fr))}
+#nav button{min-width:0;text-align:center}#nav button.dot::after{top:3px;right:3px}#nav button small{max-width:100%;white-space:nowrap;text-align:center}
+@media (max-width:430px){#nav{gap:3px}#nav button{border-width:4px!important;border-image-width:4px!important;padding:0!important}#nav small{font-size:9px;letter-spacing:0}}
+@media (max-width:360px){#nav small{font-size:8px}#nav button{border-width:2px!important;border-image-width:2px!important}#nav .nv{font-size:19px!important}#nav .nv img{max-width:24px;height:auto}}
+@media (orientation:landscape){#nav{gap:3px}#nav small{font-size:8px;letter-spacing:0}#nav button{border-width:2px!important;border-image-width:2px!important;padding:0!important}#nav .nv{font-size:19px!important}#nav .nv img{max-width:24px;height:auto}}
+/* menus and dialogs only ever scroll up and down */
+#sheet .sb,#modal .mp,.arlad,.clmsgs,#auth{overflow-x:hidden!important;overflow-y:auto;touch-action:pan-y;overscroll-behavior-x:none}
+#sheet .pane{max-width:100%;overflow-x:hidden}
+#sheet .pane input[type=range]{width:100%;max-width:100%;box-sizing:border-box;margin-left:0;margin-right:0}
 </style>
 </head>
 <body>
@@ -644,14 +655,14 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
   <div id="mini"></div>
   <section id="handw" class="card"><div class="pile" id="piles"></div><div id="hand"></div></section>
   <nav id="nav">
-   <button id="nav-party" data-sheet="party"><span class="nv"><img class="ico" src="assets/icons/company.png" alt="" draggable="false"></span><small>Company</small></button>
+   <button id="nav-party" data-sheet="party"><span class="nv"><img class="ico" src="assets/icons/company.png" alt="" draggable="false"></span><small>Party</small></button>
    <button id="nav-deck" data-sheet="deck"><span class="nv"><img class="ico" src="assets/icons/deck.png" alt="" draggable="false"></span><small>Deck</small></button>
    <button id="nav-relics" data-sheet="relics"><span class="nv"><img class="ico" src="assets/icons/relics.png" alt="" draggable="false"></span><small>Relics</small></button>
    <button id="nav-shop" data-sheet="shop"><span class="nv"><img class="ico" src="assets/icons/coin.png" alt="" draggable="false"></span><small>Shop</small></button>
    <button id="nav-arena" data-sheet="arena"><span class="nv" style="font-size:24px;line-height:1">⚔️</span><small>Arena</small></button>
    <button id="nav-clan" data-sheet="clan"><span class="nv" style="font-size:24px;line-height:1">🏰</span><small>Clan</small></button>
    <button id="nav-stats" data-sheet="stats"><span class="nv" style="font-size:24px;line-height:1">📊</span><small>Stats</small></button>
-   <button id="nav-log" data-sheet="log"><span class="nv"><img class="ico" src="assets/icons/journal.png" alt="" draggable="false"></span><small>Journal</small></button>
+   <button id="nav-log" data-sheet="log"><span class="nv"><img class="ico" src="assets/icons/journal.png" alt="" draggable="false"></span><small>Log</small></button>
   </nav>
  </div>
 </div>
@@ -724,7 +735,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023204401';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023205352';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2697,7 +2708,7 @@ function bossBars(top){   // big named health bars pinned to the top of the batt
  });
  return y-top;
 }
-const TSHORT={battlefield:'Battle',treasury:'Hoard',vault:'Vault'};   // road tiles are narrow, so the longest names get short forms
+const TSHORT={battlefield:'Battle',treasury:'Hoard',vault:'Vault',hunt:'Hunt',council:'Council',watchtower:'Tower',training:'Training',warcamp:'Camp',arena:'Pit',observatory:'Stars',graveyard:'Graves',mercenary:'Mercs',bounty:'Bounty',scriptorium:'Scribes',crucible:'Crucible'};   // road tiles are narrow, so the longest names get short forms
 function fitTileNames(){
  for(const t of document.querySelectorAll('#road .tile')){const n=t.querySelector('.n');if(!n)continue;
   n.style.fontSize='';let fs=parseFloat(getComputedStyle(n).fontSize);const room=t.clientWidth-6;
