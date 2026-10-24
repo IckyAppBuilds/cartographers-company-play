@@ -773,7 +773,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023230847';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023231525';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1967,7 +1967,11 @@ function bossCast(f){
 }
 /* ---------- encounters ---------- */
 const PACE={};
-const GROW={from:80,k:.6};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
+const GROW={from:30,k:.5};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
+/* Legend gate: every act from Act V expects a minimum Legend (about three retires' worth more than the act before); short of it, enemies are tougher in proportion */
+const GATE={p:10,from:4,cap:400};
+const legReq=A=>{let n=0;for(let j=GATE.from;j<=A;j++)n+=3*Math.floor((j-2)**2/2);return n;};
+const gateMul=r=>r<GATE.from?1:Math.min(GATE.cap,Math.max(1,(1+.12*legReq(r))/(1+.12*(S.legend||0)))**GATE.p);
 const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
 const WALL={from:6,hp:1.1,atk:1.03,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
 function startTile(){
@@ -1978,7 +1982,7 @@ function startTile(){
  if(t.ev){phase='event';return;}
  const d=S.depth,r=region(d);
  const wl=Math.max(0,(WALL.step?Math.floor(d/10):d)-WALL.from),pm=PACE[r]||1;   // past WALL.from enemies outgrow a single run, so the company has to retire for Legend to get further
- const de=effD(d),hpM=22*1.16**de*pm*WALL.hp**wl,atk=3.2*1.13**de*Math.sqrt(pm)*WALL.atk**wl;
+ const de=effD(d),gm=gateMul(r),hpM=22*1.16**de*pm*WALL.hp**wl*gm,atk=3.2*1.13**de*Math.sqrt(pm)*WALL.atk**wl*Math.sqrt(gm);
  const synF=curSyn&&curSyn.foe||1;
  const multi=t.boss?(r>=TRIPLE_REGION?3:r>=DUAL_REGION?2:1):1;   // after the ten normal acts the Warden brings a second guardian; from Act XXI, two more
  const dual=multi>1;
@@ -2240,6 +2244,7 @@ function actComplete(cr,first,old){
  if(d)h+='<h3 style="margin:10px 0 2px">Your run through the act</h3><div class="actst">'+tile(fmtT(d.sec),'game time')+tile(fmt(d.fights),'fights won')+tile(fmt(d.kills),'foes slain')+tile(fmt(d.gold),'gold earned')+tile(d.rel,'relics found')+tile(d.sh,'hero shards')+(d.falls?tile(d.falls,'falls'):'')+'</div>';
  const T=(ACTTRAIT[nr%20]||['','']).filter(Boolean),newH=HEROES.map((x,i)=>i).filter(i=>HACT[i]===nn&&!S.owned.includes(i)),wardn=RG(nr);
  h+='<h3 style="margin:10px 0 2px">Next: Act '+roman(nn)+' · '+wardn[0]+'</h3><p style="margin:0 0 4px">Warden: <b>'+wardn[2]+'</b>.</p>';
+ if(nr>=GATE.from){const need=legReq(nr),have=S.legend||0;h+='<div class="syn"><b style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">Expects Legend '+need+'</b> '+(have>=need?'(you have '+have+').':'(you have '+have+'). Retire to earn Legend, or enemies hit much harder.')+'</div>';}
  {const ab=BOSSAB[nr%20],A=ABIL[ab[0]];h+='<div class="syn"><b style="color:'+A.c+'">'+A.g+' '+ab[1]+'</b> '+A.d+'</div>';}
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
