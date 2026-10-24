@@ -696,7 +696,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023201306';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023202702';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1084,9 +1084,23 @@ const TILES={
  leyline:{n:'Leyline',i:'🔷',ev:'leyline',d:'Blessing: +30% dmg for 5 fights.',bg:['#9fd8ff','#3a4ab0'],sc:'🔷',r:2},
  treasury:{n:'Treasury',i:'💎',ev:'treasury',d:'A dragon-sized stash: pays 15 tiles of income.',bg:['#ffe27a','#8a5a1a'],sc:'💎',r:3},
  vault:{n:'Relic Vault',i:'🗝️',ev:'vault',d:'Sealed chamber: two random relics.',bg:['#e8d0ff','#5a3a8a'],sc:'🗝️',r:4},
+ hunt:{n:'Hunting Grounds',i:'🏹',foes:['🐗','🐺','🐻'],cnt:2,pow:1.5,gold:1.6,relic:.05,shard:.5,d:'Fewer, tougher beasts. 50% chance of a hero shard.',bg:['#8ed0ff','#5e8f4a'],sc:'🌲',r:1},
+ forge:{n:'Forge',i:'🔨',ev:'forge',d:'Arm the company: more damage, or foes that hit softer, for many fights.',bg:['#ffb070','#6a3a1a'],sc:'🔨',r:1},
+ watchtower:{n:'Watchtower',i:'🗼',ev:'watchtower',d:'Scout ahead: weaker foes, or more gold, for the next fights.',bg:['#bcd0ff','#5a6a8a'],sc:'🗼',r:1},
+ council:{n:'War Council',i:'🗺️',ev:'council',d:'Pick one kind of hero: they hit +60% harder for 5 fights.',bg:['#ffe2b0','#7a5a3a'],sc:'🗺️',r:1},
+ training:{n:'Training Yard',i:'🎯',ev:'training',d:'Your heroes gain free levels.',bg:['#d0e8a0','#6a8a3a'],sc:'🎯',r:1},
+ warcamp:{n:'War Camp',i:'⛺',ev:'warcamp',d:'Regroup: everyone back on their feet, and foes soften.',bg:['#ffe2b0','#8a5a3a'],sc:'⛺',r:1},
+ arena:{n:'Champion Pit',i:'🏟️',foes:['👹','🧌','👺'],cnt:1,pow:3.6,gold:7,relic:.2,shard:.6,d:'One mighty champion. Big gold and a 60% chance of a hero shard.',bg:['#e8c890','#8a6a3a'],sc:'🏟️',r:1},
+ observatory:{n:'Observatory',i:'🔭',ev:'observatory',d:'Chart this act\'s foes: the kind of hero they fear deals more damage.',bg:['#9fb8ff','#3a3a7a'],sc:'🔭',r:1},
+ graveyard:{n:'Graveyard',i:'🪦',foes:['💀','🧟','👻'],cnt:3,pow:2.3,gold:1.4,relic:1,d:'Restless dead guard relics. Very high relic chance.',bg:['#6a7a8a','#2a3a3a'],sc:'🪦',r:1},
+ mercenary:{n:'Mercenary Hall',i:'💰',ev:'mercenary',d:'Spend gold to hire swords: a big damage boost.',bg:['#ffd9a0','#7a4a2a'],sc:'💰',r:1},
+ starfall:{n:'Starfall',i:'🌠',ev:'starfall',d:'A fallen star: a hero\'s skill grows, or the company is blessed.',bg:['#b0b8ff','#2a2a6a'],sc:'🌠',r:1},
+ bounty:{n:'Bounty Board',i:'📜',foes:['👺','🧌','👹'],cnt:3,pow:1.9,gold:2.5,relic:.1,flawless:true,d:'Win without anyone falling: a guaranteed relic and 2 hero shards.',bg:['#c9b08a','#6a4a2a'],sc:'📜',r:2},
+ scriptorium:{n:'Scriptorium',i:'🪶',ev:'scriptorium',d:'Scribes etch a free glyph onto a card in your deck.',bg:['#f2e0b0','#7a5a2a'],sc:'🪶',r:2},
+ crucible:{n:'Shard Crucible',i:'🔮',ev:'crucible',d:'Melt down hero shards for your company, or gamble for more.',bg:['#d8b0ff','#4a2a7a'],sc:'🔮',r:3},
  lair:{n:'Lair',i:'🌋',boss:true,cnt:1,pow:1,gold:10,relic:1,d:'Boss. Cannot be moved.',bg:['#3a1414','#5a1f1f'],sc:'🌋'}
 };
-const UNLOCK={wilds:1,forest:1,village:1,ruins:2,shrine:2,springs:2,swamp:3,market:3,crypt:4};
+const UNLOCK={wilds:1,forest:1,village:1,ruins:2,shrine:2,springs:2,swamp:3,market:3,crypt:4,hunt:5,forge:6,watchtower:7,council:8,warcamp:9,training:10,arena:12,observatory:14,graveyard:16,mercenary:18,starfall:20};
 const RAR=[{n:'Common',c:'#9a8a6a',d:'#6a5a3a',w:40},{n:'Uncommon',c:'#5fbf6a',d:'#2f8f3a',w:35},{n:'Rare',c:'#5aa0ff',d:'#2a6fd0',w:17},{n:'Epic',c:'#b06bff',d:'#7a3ad0',w:6},{n:'Legendary',c:'#ffb02e',d:'#b36b00',w:2}];
 const REGIONS=[['Greenwood','🐗','Grubnak the Boar King'],['Mirefen','🐊','Old Gator Moss'],['Ashen Hills','🦂','The Cinder Scorpion'],['Frostpeak','🐻‍❄️','Rimefang'],['Sunken Crypt','🧛','Count Veyl'],['Dragonspine','🐉','Vharax the Elder'],['The Void Rim','👹','The Unmapped'],['Sunken Reef','🐙','Maelgor the Reef Leviathan'],['Gilded Sands','🦁','Khepsun the Gilded Sphinx'],['Stormspire','🦅','Zahra the Thunder Roc'],
  ['Crystal Caverns','💎','Prismara the Faceted Wyrm'],['Clockwork Foundry','⚙️','Cogsworth Prime'],['Sporeheart Grotto','🍄','Mycelia the Sporeheart Titan'],['Witchwood','🌳','Mother Hollowoak'],['Astral Observatory','🔭','Celestia the Star Weaver'],['Verdant Sanctum','🐆','Itzamal the Jaguar God'],['Crimson Keep','🏰','Duke Sanguis'],['Inkbound Archive','📖','The Archivist of Ink'],['Obsidian Labyrinth','🐂','Asterion the Obsidian Minotaur'],['The Unmapped Heart','🧭','The Unmapped Sovereign']];
@@ -1101,7 +1115,16 @@ const SYN={
  'crypt>shrine':{n:'Cleansing',d:'+1 redraw',rd:1},
  'wilds>village':{n:'Market Day',d:'Village gold ×2',rew:2},
  'battlefield>market':{n:'War Profiteers',d:'Market gold ×2',rew:2},
- 'springs>shrine':{n:'Pilgrim Rest',d:'+1 redraw',rd:1}
+ 'springs>shrine':{n:'Pilgrim Rest',d:'+1 redraw',rd:1},
+ 'watchtower>battlefield':{n:'Ambush',d:'Foes ×0.7, gold ×1.5',foe:.7,rew:1.5},
+ 'watchtower>hunt':{n:'Marked Prey',d:'Foes ×0.8, gold ×1.4',foe:.8,rew:1.4},
+ 'forge>hunt':{n:'Fresh Arrows',d:'Guaranteed hero shard',shard:1},
+ 'council>lair':{n:'War Plan',d:'+50% damage vs boss',dmg:1.5},
+ 'bounty>market':{n:'Bounty Hunter',d:'Market gold ×2',rew:2},
+ 'observatory>lair':{n:'Known Weakness',d:'+40% damage vs boss',dmg:1.4},
+ 'warcamp>lair':{n:'Rallied Charge',d:'+30% damage vs boss',dmg:1.3},
+ 'mercenary>arena':{n:'Champion Bet',d:'Gold ×2',rew:2},
+ 'hunt>crucible':{n:'Shard Rush',d:'Crucible shards ×1.5',sh:1.5}
 };
 const HEROES=[   // r = role (team bonuses), k = damage kind (foe traits), q = rarity 0-4 (Common..Legendary)
  {n:'Ser Bram',c:'Knight',r:'Guardian',k:'melee',q:0,hp:150,atk:7,spd:.8,col:'#6b8cff',hat:'helm',w:'🗡️',sk:''},
@@ -1197,6 +1220,7 @@ const region=d=>Math.floor(d/10);
 const heroMax=i=>HEROES[i].hp*RARM[HEROES[i].q]*partyBonus().hp*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
 const heroAtk=i=>HEROES[i].atk*RARM[HEROES[i].q]*partyBonus().dmg*bardAura()*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
+const buffTxt=()=>(S.bless>0?'✨'+S.bless+' ':'')+(S.fort>0?'🍀'+S.fort+' ':'')+(S.edge>0?'⚔'+S.edge+' ':'')+(S.plate>0?'🛡'+S.plate+' ':'')+(S.weak>0?'🎯'+S.weak+' ':'')+(S.kb?KNAME[S.kb.k][0]+'+'+S.kb.n+' ':'')+(S.merc?'💰'+S.merc.n:'');
 const goldMul=()=>partyBonus().gold*(1+CLAN.bonus())*(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 /* ---------- clans and chat (Supabase): one clan per player, up to 30 members, a chat with report, mute and delete ---------- */
 const cesc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1501,9 +1525,9 @@ function synFor(p,k){return SYN[p+'>'+k]||null;}
 function kindAt(d){return d%10===9?'lair':'wilds';}
 function buildRoad(){S.road=[];S.rmod=[];S.rrank=[];for(let j=0;j<7;j++){S.road.push(kindAt(S.depth+j));S.rmod.push(null);S.rrank.push(1);}}
 /* ---- tile deck: draw pile -> hand -> discard, reshuffle when the draw pile is empty ---- */
-const KINDS=['forest','village','springs','shrine','ruins','swamp','market','battlefield','crypt','leyline','treasury','vault'];
+const KINDS=['forest','village','springs','shrine','ruins','swamp','market','hunt','forge','watchtower','council','warcamp','training','arena','observatory','graveyard','mercenary','starfall','battlefield','crypt','bounty','scriptorium','leyline','treasury','crucible','vault'];
 const buyable=k=>TILES[k].r<=1&&unlocked(k);   // rare and above only come from bosses
-const TILE_PRICE={forest:5,village:6,springs:7,shrine:8,ruins:10,swamp:12,market:12};   // in "tiles of income"
+const TILE_PRICE={forest:5,village:6,springs:7,shrine:8,ruins:10,swamp:12,market:12,hunt:9,forge:10,watchtower:11,council:12,warcamp:9,training:14,arena:16,observatory:14,graveyard:17,mercenary:15,starfall:22};   // in "tiles of income"
 const MIN_DECK=5;let MAX_DECK=10;   // a deck holds at most 10 cards; each card is single-use until the next boss kill or a wipe
 const gpt=()=>6*1.15**(region(S.depth)*10);   // card prices step up once per act, not per tile
 const cardCost=k=>TILE_PRICE[k]?Math.round(gpt()*TILE_PRICE[k]):0;
@@ -1631,7 +1655,7 @@ function startTile(){
  const n=t.boss?multi:Math.max(1,Math.min(t.cnt,active()+1));   // small parties face smaller packs
  for(let j=0;j<n;j++){
   const boss=t.boss;
-  const hp=hpM*t.pow*synF*(boss?(multi===3?3.4:dual?4.6:7):1)*(.85+.3*Math.random());
+  const hp=hpM*t.pow*synF*(S.weak>0?.75:1)*(boss?(multi===3?3.4:dual?4.6:7):1)*(.85+.3*Math.random());
   foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],tr:pickTrait(r,boss),
    hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.4:1.8):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
    boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(multi===3?.42:dual?.6:1)*rkM(curRank),art:boss?(j>0?'a'+(r%ART_ACTS)+'_'+j:'boss'+bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%ART_ACTS)+'_'+(Math.random()*3|0):null)});
@@ -1659,7 +1683,7 @@ function healHero(i,a,quiet){
 let revUsed=false;
 function weakestAlly(){let w=-1,wr=2;for(const j of S.order)if(S.hp[j]>0){const q=S.hp[j]/heroMax(j);if(q<wr){wr=q;w=j;}}return w;}
 function heroAct(i){
- const h=H[i],r=skr(i),atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1)*(curBoss?partyBonus().boss:1);
+ const h=H[i],r=skr(i),atk=heroAtk(i)*(S.bless>0?1.3:1)*(curSyn&&curSyn.dmg&&curBoss?curSyn.dmg:1)*(curMod==='empowered'?1.3:1)*(curBoss?partyBonus().boss:1)*(S.edge>0?1.35:1)*(S.merc&&S.merc.n>0?S.merc.m:1)*(S.kb&&S.kb.n>0&&S.kb.k===HEROES[i].k?1.6:1);
  const alive=foes.filter(f=>f.hp>0);if(!alive.length)return;
  h.n++;h.lunge=1;
  switch(i){
@@ -1692,6 +1716,7 @@ function foeAct(f){
  if(S.un[15]&&S.hp[15]>0&&S.order.includes(15)&&Math.random()<.5+.05*skr(15)){t=15;special(15,{quiet:1});}   // Shield Wall: the Shieldmaiden draws fire
  let dm=f.atk*(1-((S.un[7]&&S.hp[7]>0&&S.order.includes(7))?.06+.03*skr(7):0));   // Aegis: the Paladin shields the company
  if(t===15)dm*=1-(.12+.03*skr(15));
+ if(S.plate>0)dm*=.7;   // Forge: reinforced armour
  f.lunge=1;S.hp[t]-=dm;H[t].flash=1;st('taken',dm);SND.play('foehit');
  floatTxt('-'+fmt(dm),heroPx(t),200,'#e0584a');
  if(t===12&&S.hp[12]>0&&f.hp>0){special(12,{foe:f});dmgFoe(f,heroAtk(12)*(1+.25*skr(12)),12);}
@@ -1701,17 +1726,20 @@ function foeAct(f){
 function win(){
  const k=S.road[0],t=TILES[k];
  SND.play(t.boss?'bossWin':'win');setTimeout(()=>SND.play('coin'),260);
+ const flawless=S.order.every(i=>!S.un[i]||S.hp[i]>0);   // nobody went down in this fight (checked before the fallen are revived)
  let rew=((curSyn&&curSyn.rew)||1)*modGold();
  let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
  S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;st('fights');{const l=S.life;if(S.streak>(l.bstreak||0))l.bstreak=S.streak;}
- {const sh=t.boss?4+2*region(S.depth):(Math.random()<(t.gold>=2.5?.15:.05)+.03*(curRank-1)?1:0);if(sh){{const per=addShards(sh);say('Found '+shardMsg(per)+'!');shardPopup(per,t.boss?'Boss spoils':'Hero shards');}}}
+ {let sh=t.boss?4+2*region(S.depth):((Math.random()<(t.shard||(t.gold>=2.5?.15:.05))+.03*(curRank-1)||(curSyn&&curSyn.shard))?1:0);if(t.flawless&&flawless)sh+=2;if(sh){{const per=addShards(sh);say('Found '+shardMsg(per)+'!');shardPopup(per,t.boss?'Boss spoils':'Hero shards');}}}
  let rc=(t.boss?RELIC_BOSS:t.relic*RELIC_RATE)+.05*(curRank-1)+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
+ if(t.flawless){if(flawless){rc=1;say('Bounty claimed: nobody fell!');}else say('Bounty missed: someone fell.');}
  if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r);}
  // revive fallen at 30%, small heal
  for(const i of S.order){if(!S.un[i])continue;if(S.hp[i]<=0)S.hp[i]=heroMax(i)*.3;if(t.heal)healHero(i,heroMax(i)*t.heal,true);}
  if(curSyn&&curSyn.heal)for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
  if(S.bless>0)S.bless--;
  if(S.fort>0)S.fort--;
+ if(S.edge>0)S.edge--;if(S.merc&&--S.merc.n<=0)S.merc=null;if(S.plate>0)S.plate--;if(S.weak>0)S.weak--;if(S.kb&&--S.kb.n<=0)S.kb=null;
  modAfter();
  if(t.boss)say('Victory! '+RG(region(S.depth))[2]+' is slain. Map piece '+(region(S.depth)+1)+' restored. +'+fmt(g)+' gold.');
  const cleared=t.boss?region(S.depth):-1,firstClear=t.boss&&S.depth+1>S.best;
@@ -1722,6 +1750,25 @@ function win(){
 }
 /* ---------- interactive tiles: event tiles stop the march and let you choose; the first option is the classic effect, and it is picked for you after a short wait ---------- */
 const EV_WAIT=14;
+const KOPT=['melee','ranged','arcane','holy'],KNAME={melee:'Melee',ranged:'Ranged',arcane:'Arcane',holy:'Holy'};
+const kindWho=k=>{const w=S.order.filter(i=>S.un[i]&&HEROES[i].k===k).map(i=>HEROES[i].n);return w.length?'('+w.join(', ')+')':'(nobody in your party)';};
+function bestKind(){   // the kind of hero this act's foes fear most (none if the act has no weakness traits)
+ const T=(ACTTRAIT[region(S.depth)%20]||[]).filter(Boolean);let b=null,bs=1.001;
+ for(const k of KOPT){let sc=1;for(const t of T)sc*=((TRAIT[t]||{})[k]||1);if(sc>bs){bs=sc;b=k;}}
+ return b;
+}
+const trainPick=()=>{let b=-1;for(const i of S.order)if(S.un[i]&&(b<0||S.lv[i]<S.lv[b]))b=i;return b;};
+const trainName=()=>{const b=trainPick();return b<0?'Nobody':HEROES[b].n;};
+const crucN=()=>Math.max(1,Math.round((2+region(S.depth))*rkM(curRank)*((curSyn&&curSyn.sh)||1)));
+function freeLevel(i){const rt=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=S.hp[i]>0?Math.min(heroMax(i),heroMax(i)*rt+heroMax(i)*.1):0;}
+function etchRandom(){   // free glyph on a random un-etched card; the card keeps its place wherever it sits (hand, draw pile or discard)
+ const pool=S.deck.filter(c=>!modOf(c)&&Object.keys(MODS).some(m=>MODS[m].ok(kindOf(c))));
+ if(!pool.length)return null;
+ const c=pool[Math.random()*pool.length|0],k=kindOf(c),m=shuffle(Object.keys(MODS).filter(x=>MODS[x].ok(k)))[0],nw=cardKey(k,m,rankOf(c));
+ const di=S.deck.indexOf(c);if(di>=0)S.deck[di]=nw;
+ for(const pile of [S.hand,S.draw,S.disc]){const i=pile.indexOf(c);if(i>=0){pile[i]=nw;break;}}
+ return{k,m};
+}
 const EVOPT={
  village:[{n:'Rest',d:'Heal 60% and earn a little gold.'},{n:'Trade rumours',d:'Double the gold, but only heal 20%.'},{n:'Hold a feast',d:'Costs 15% of your gold: heal everyone fully and +30% damage for 2 fights.'}],
  shrine:[{n:'Pray',d:'+30% damage for 3 fights.'},{n:'Make an offering',d:'Costs 12% of your gold: +30% damage for 6 fights and +1 redraw.'},{n:'Meditate',d:'+2 redraws and +30% damage for 2 fights.'}],
@@ -1729,7 +1776,17 @@ const EVOPT={
  market:[{n:'Sell your loot',d:'The usual haul of gold.'},{n:'Buy supplies',d:'Half the gold, plus a random supply (heal, redraws or a battle tonic).'},{n:'Haggle',d:'A gamble: 50% chance of 2.6× gold, otherwise only 30%.'}],
  treasury:[{n:'Take the gold',d:'The full stash of gold.'},{n:'Take a relic',d:'30% of the gold and a random relic.'}],
  leyline:[{n:'Channel',d:'+30% damage for 5 fights.'},{n:'Focus',d:'+30% damage for 3 fights and +2 redraws.'}],
- vault:[{n:'Smash it open',d:'Two random relics.'},{n:'Pick the lock',d:'Choose one relic from three.'}]
+ vault:[{n:'Smash it open',d:'Two random relics.'},{n:'Pick the lock',d:'Choose one relic from three.'}],
+ warcamp:[{n:'Muster',d:'Everyone back to full health; foes hit 30% softer for 3 fights.'},{n:'Scout the road',d:'+3 redraws; the next 2 foes have 25% less health.'}],
+ observatory:[{n:'Chart the foes',d:()=>bestKind()?'Best against this act: '+KNAME[bestKind()]+' heroes deal +60% for 6 fights. '+kindWho(bestKind()):'Nothing here fears any kind of attack: +30% damage for 6 fights.'},{n:'Read the omens',d:'+3 redraws and +30% damage for 3 fights.'}],
+ mercenary:[{n:'Hire a company',d:'Costs 25% of your gold: +80% damage for 6 fights.'},{n:'Hire a squad',d:'Costs 10% of your gold: +35% damage for 4 fights.'}],
+ starfall:[{n:'Wish upon the star',d:'A random hero in your party gains a skill rank (shards not needed).'},{n:'Bathe in starlight',d:'Heal everyone fully and +30% damage for 8 fights.'}],
+ forge:[{n:'Sharpen',d:'All heroes deal +35% damage for 8 fights.'},{n:'Reinforce',d:'Foes hit 30% softer for 8 fights.'},{n:'Temper both',d:'Both effects, but only for 4 fights.'}],
+ watchtower:[{n:'Spot weaknesses',d:'The next 4 foes have 25% less health.'},{n:'Signal fires',d:'+50% gold from your next 5 fights.'}],
+ council:KOPT.map(k=>({n:KNAME[k]+' drill',d:()=>KNAME[k]+' heroes deal +60% damage for 5 fights. '+kindWho(k)})),
+ training:[{n:'Drill',d:()=>trainName()+' gains a level.'},{n:'Spar',d:'Costs 20% of your gold: every hero gains a level.'}],
+ scriptorium:[{n:'Etch a glyph',d:'A random card in your deck gets a free glyph.'},{n:'Study',d:'+4 redraws.'}],
+ crucible:[{n:'Smelt',d:()=>'Hero shards for your company ('+crucN()+').'},{n:'Gamble',d:()=>'50%: '+crucN()*3+' shards. Otherwise just 1.'}]
 };
 let evState=null,evEl=null;
 function event(){
@@ -1752,7 +1809,7 @@ function renderEv(){
  const bg=BGB[k]?'assets/bg/'+k+'.jpg'+V:'';
  let body;
  if(evState.stage===1)body='<div class="evt">Choose a relic</div><div class="evo">'+evState.offer.map(r=>'<button data-evr="'+r+'"><span class="evi">'+(RELICS[r].ico||RELICS[r].i)+'</span><b>'+RELICS[r].n+'</b><small>'+RELICS[r].d+'</small></button>').join('')+'</div>';
- else body='<div class="evt">'+t.n+'</div><div class="evd">'+t.d+'</div><div class="evo">'+opts.map((o,i)=>'<button data-evc="'+i+'"'+(evCost(k,i)>S.gold?' disabled':'')+'><b>'+o.n+'</b><small>'+o.d+'</small></button>').join('')+'</div>';
+ else body='<div class="evt">'+t.n+'</div><div class="evd">'+t.d+'</div><div class="evo">'+opts.map((o,i)=>'<button data-evc="'+i+'"'+(evCost(k,i)>S.gold?' disabled':'')+'><b>'+o.n+'</b><small>'+(typeof o.d==='function'?o.d():o.d)+'</small></button>').join('')+'</div>';
  evEl.innerHTML='<div class="evc" style="'+(bg?'--evbg:url('+bg+')':'')+'"><div class="evh"><span class="evi">'+t.i+'</span></div>'+body+'<div class="evb"><i></i></div><div class="evf">The company waits... the first option is chosen automatically if you do not decide.</div></div>';
 }
 const evCost=(k,i)=>0;
@@ -1790,6 +1847,45 @@ function resolveEvent(ch,relicPick){
   S.rd=Math.min(maxRd()+3,S.rd+((curSyn&&curSyn.rd)||0));
   if(ch===0){S.bless=5+2*(curRank-1);say('Leyline surge: +30% damage for '+S.bless+' fights.');}
   else{S.bless=Math.max(S.bless,3);S.rd=Math.min(maxRd()+3,S.rd+2);say('You focus the leyline: +2 redraws and a short blessing.');}
+ }else if(t.ev==='warcamp'){
+  if(ch===0){for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);S.plate=Math.max(S.plate||0,3+(curRank-1));say('The war camp musters the company: fully healed, foes hit softer for '+S.plate+' fights.');}
+  else{S.rd=Math.min(maxRd()+3,S.rd+3);S.weak=Math.max(S.weak||0,2+(curRank-1));say('Scouts report back: +3 redraws, the next '+S.weak+' foes are weakened.');}
+  if(curSyn)say('Combo: '+curSyn.n+'!');
+ }else if(t.ev==='observatory'){
+  if(ch===0){const bk=bestKind();if(bk){S.kb={k:bk,n:6+(curRank-1)};say('The stars show it: '+KNAME[bk].toLowerCase()+' heroes deal +60% damage for '+S.kb.n+' fights.');}else{S.bless=Math.max(S.bless,6);say('The stars are calm: +30% damage for 6 fights.');}}
+  else{S.rd=Math.min(maxRd()+3,S.rd+3);S.bless=Math.max(S.bless,3+(curRank-1));say('You read the omens: +3 redraws and a short blessing.');}
+  if(curSyn)say('Combo: '+curSyn.n+'!');
+ }else if(t.ev==='mercenary'){
+  const big=ch===0,fee=S.gold*(big?.25:.1);S.gold-=fee;S.merc={n:(big?6:4)+(curRank-1),m:big?1.8:1.35};
+  say('You pay '+fmt(fee)+' gold: hired swords add +'+Math.round((S.merc.m-1)*100)+'% damage for '+S.merc.n+' fights.');
+ }else if(t.ev==='starfall'){
+  if(ch===0){const c=S.order.filter(i=>S.un[i]&&skr(i)<skMax(i));
+   if(c.length){const i=c[Math.random()*c.length|0];S.sk=S.sk||{};S.sk[i]=skr(i)+1;say(HEROES[i].n+' learns from the star: '+HSK[i].n+' rank '+S.sk[i]+'!');loot({head:'Starfall!',icon:shardSVG(i,64,'sf'+i),name:HEROES[i].n,sub:HSK[i].n+' rank '+S.sk[i],desc:'The fallen star sharpens their skill.',rar:HEROES[i].q,col:RCOL[HEROES[i].q]});}
+   else{const per=addShards(4);say('Every skill is at its limit: '+shardMsg(per)+' instead.');shardPopup(per,'Starfall');}}
+  else{for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);S.bless=Math.max(S.bless,8+(curRank-1));say('Starlight heals the company: +30% damage for '+S.bless+' fights.');}
+ }else if(t.ev==='forge'){
+  const up=2*(curRank-1);
+  if(ch===0){S.edge=Math.max(S.edge||0,8+up);say('The forge sharpens every blade: +35% damage for '+S.edge+' fights.');}
+  else if(ch===1){S.plate=Math.max(S.plate||0,8+up);say('The forge reinforces your armour: foes hit 30% softer for '+S.plate+' fights.');}
+  else{S.edge=Math.max(S.edge||0,4+up);S.plate=Math.max(S.plate||0,4+up);say('Blades sharpened and armour tempered for '+(4+up)+' fights.');}
+ }else if(t.ev==='watchtower'){
+  if(ch===0){S.weak=Math.max(S.weak||0,4+(curRank-1));say('Scouts mark the weak spots: the next '+S.weak+' foes have 25% less health.');}
+  else{S.fort=Math.max(S.fort||0,5+(curRank-1));say('Signal fires call the merchants: +50% gold for '+S.fort+' fights.');}
+ }else if(t.ev==='council'){
+  const kd=KOPT[Math.max(0,Math.min(3,ch))];S.kb={k:kd,n:5+(curRank-1)};
+  say('The council orders a '+KNAME[kd].toLowerCase()+' drill: those heroes deal +60% damage for '+S.kb.n+' fights.');
+ }else if(t.ev==='training'){
+  if(ch===1){const fee=S.gold*.2;S.gold-=fee;for(const i of S.order)if(S.un[i])freeLevel(i);say('Sparring costs '+fmt(fee)+' gold, and every hero gains a level.');}
+  else{const b=trainPick();if(b>=0){for(let q=0;q<curRank;q++)freeLevel(b);say(HEROES[b].n+' trains hard and reaches level '+S.lv[b]+'.');}}
+ }else if(t.ev==='scriptorium'){
+  const e=ch===0?etchRandom():null;
+  if(e)say('The scribes etch '+MODS[e.m].n+' onto a '+TILES[e.k].n+' card.');
+  else{S.rd=Math.min(maxRd()+3,S.rd+(ch===0?2:4));say(ch===0?'Every card already carries a glyph: +2 redraws instead.':'You study the old maps: +4 redraws.');}
+  if(curSyn)say('Combo: '+curSyn.n+'!');
+ }else if(t.ev==='crucible'){
+  let c=crucN();if(ch===1)c=Math.random()<.5?c*3:1;
+  const per=addShards(c);say('The crucible yields '+shardMsg(per)+'!');shardPopup(per,'Shard Crucible');
+  if(curSyn)say('Combo: '+curSyn.n+'!');
  }else if(t.ev==='vault'){
   if(ch===1&&relicPick){S.relics[relicPick]=(S.relics[relicPick]||0)+1;say('Vault relic: '+RELICS[relicPick].i+' '+RELICS[relicPick].n+'!');lootRelic(relicPick,'Vault treasure!');}
   else for(let n=0;n<1+curRank;n++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Vault relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r,'Vault treasure!');}
@@ -1842,7 +1938,7 @@ function wipe(){
  reviveAsked=false;reviveWait=false;
  const rs=region(S.depth)*10,lost=S.gold*.1;S.gold-=lost;
  say('The company is routed! Retreating to '+RG(region(S.depth))[0]+"'s edge. Lost "+fmt(lost)+' gold.');
- S.streak=0;S.deaths=(S.deaths||0)+1;st('falls');S.depth=rs;S.prev='wilds';buildRoad();resetHeroes(true);S.bless=0;phase='walk';pt=0;foes=[];
+ S.streak=0;S.deaths=(S.deaths||0)+1;st('falls');S.depth=rs;S.prev='wilds';buildRoad();resetHeroes(true);S.bless=0;S.edge=S.plate=S.weak=0;S.kb=null;S.merc=null;phase='walk';pt=0;foes=[];
  // everything goes back into the deck: hand, discard and draw pile are gathered and reshuffled
  reshuffleAll('You died: every card returns to your deck.');
 }
@@ -2173,7 +2269,7 @@ function statsRender(){
  h+=sec('Lifetime')+'<div class="stg">'+tile(fmt(l.gold||0),'gold earned')+tile(fmt(l.kills||0),'enemies slain')+tile(l.wardens||0,'wardens felled')+tile(fmt(l.fights||0),'fights won')+tile(l.falls||0,'falls')+tile(fmt(l.tiles||0),'tiles placed')+tile(fmt(l.dmg||0),'damage dealt')+tile(fmt(l.taken||0),'damage taken')+tile(fmt(l.maxHit||0),'biggest hit')+tile('×'+(l.bstreak||0),'best Fervor streak')+tile(shardTot(),'hero shards')+tile(fmtT(l.sec||0),'time played')+'</div>';
  const tot=Object.values(l.hd||{}).reduce((a,b)=>a+b,0)||1,heroes=[...new Set(S.order.concat(S.owned))];
  h+=sec('Heroes')+heroes.map(i=>{const d=(l.hd||{})[i]||0,pc=Math.round(100*d/tot);return '<div class="sc"><div class="si">'+heroIcon(i)+'</div><div class="sd"><b>'+HEROES[i].n+' <small style="font-weight:400;opacity:.7">· '+HEROES[i].c+' · Lv '+S.lv[i]+(S.order.includes(i)?'':' · reserve')+'</small></b><small>Max HP '+fmt(heroMax(i))+' · Attack '+fmt(heroAtk(i))+' · '+fmt(d)+' damage ('+pc+'%)</small><div class="bar" style="height:6px;margin-top:4px"><i style="width:'+pc+'%;background:'+HEROES[i].col+'"></i></div></div></div>';}).join('');
- h+=sec('Bonuses')+'<div class="stg">'+tile('×'+(goldMul()).toFixed(2),'gold')+tile('+'+Math.round(100*(S.legend*.12+.15*((S.boons||{}).dmg||0)+.12*(S.relics.whet||0)))+'%','damage')+tile('+'+Math.round(100*(S.legend*.12+.15*((S.boons||{}).hp||0)+.12*(S.relics.oak||0)))+'%','max HP')+tile(maxRd(),'redraws / deck')+tile(MAX_DECK,'deck slots')+tile(S.fort>0||S.bless>0?(S.bless>0?'✨'+S.bless:'')+(S.fort>0?' 🍀'+S.fort:''):'—','buffs (fights left)')+'</div>';
+ h+=sec('Bonuses')+'<div class="stg">'+tile('×'+(goldMul()).toFixed(2),'gold')+tile('+'+Math.round(100*(S.legend*.12+.15*((S.boons||{}).dmg||0)+.12*(S.relics.whet||0)))+'%','damage')+tile('+'+Math.round(100*(S.legend*.12+.15*((S.boons||{}).hp||0)+.12*(S.relics.oak||0)))+'%','max HP')+tile(maxRd(),'redraws / deck')+tile(MAX_DECK,'deck slots')+tile(buffTxt()||'—','buffs (fights left)')+'</div>';
  return h;
 }
 /* ---------- menus (bottom sheets) and toasts ---------- */
@@ -2203,7 +2299,7 @@ function hud(){
  const ti=S.depth%10;   // tile within the region (the 10th is the boss)
  if(r!==lastRegion){document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
- {const sh=((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
+ {const sh=((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
  $('rate').textContent='≈ '+fmt(S.rate)+' gold/s'+(S.boostT>0?' · ⚡x2 '+boostTxt(S.boostT):'');
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
@@ -2499,7 +2595,7 @@ const ACTH={a0_0:56,a0_1:84,a0_2:58,a1_0:100,a1_1:88,a1_2:60,a2_0:62,a2_1:64,a2_
 Object.assign(FOEH,ACTH);
 for(let a=0;a<ART_ACTS;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/enemies/a'+a+'_'+i+'.png'+V);}
 for(let i=0;i<BOSS_N;i++)loadImg('f_boss'+i,'assets/enemies/boss'+i+'.png'+V);
-const ICONS=['wilds','forest','village','ruins','swamp','crypt','shrine','springs','market','battlefield','leyline','treasury','vault','lair','coin','whet','oak','ink','fang','boots','company','deck','relics','journal','flame'];
+const ICONS=['warcamp','arena','observatory','graveyard','mercenary','starfall','hunt','forge','watchtower','council','training','bounty','scriptorium','crucible','wilds','forest','village','ruins','swamp','crypt','shrine','springs','market','battlefield','leyline','treasury','vault','lair','coin','whet','oak','ink','fang','boots','company','deck','relics','journal','flame'];
 ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'+V));
 function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png'+V+'" alt="" draggable="false">';}
 for(const k in TILES)TILES[k].i=ic(k);                // tile icons are now images (HTML), used in every card and tile
@@ -2542,9 +2638,11 @@ const BGNAMES=['meadow','forest','ruins','lair','act0','act1','act2','act3','act
 const BGSPEC={};BGNAMES.forEach(n=>BGSPEC[n]=[n]);
 // which painted backdrop a tile gets: acts own their fights and boss lairs, special tiles own their scene; later acts reuse the art in a new colour cast
 const BGCAST=[null,'rgba(255,110,190,.38)','rgba(70,190,255,.38)','rgba(255,200,60,.38)'];
+const BGAL={forge:'battlefield',council:'battlefield',bounty:'battlefield',training:'village',warcamp:'village',arena:'battlefield',observatory:'leyline',graveyard:'crypt',mercenary:'market',starfall:'shrine',watchtower:'leyline',scriptorium:'shrine',crucible:'vault'};   // new tiles borrow a painted scene
 function bgKeyFor(k){
  const r=region(S.depth),a=r%ART_ACTS,cyc=Math.floor(r/ART_ACTS)%4;let n;
  if(k==='lair')n='lair'+a;
+ else if(BGAL[k])n=BGAL[k];
  else if(TILES[k].ev||k==='battlefield'||k==='crypt'||k==='swamp')n=k;
  else n='act'+a;
  return cyc&&BGCAST[cyc]&&(n==='lair'+a||n==='act'+a)?n+'#'+cyc:n;
