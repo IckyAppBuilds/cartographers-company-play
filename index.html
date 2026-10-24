@@ -775,7 +775,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024112927';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024114959';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1992,6 +1992,31 @@ const gateAct=()=>{for(let j=GATE.from;j<400;j++)if(legReq(j)>(S.legend||0))retu
 const gateMul=r=>{if(r<GATE.from)return 1;const q=(1+.12*legReq(r))/(1+.12*(S.legend||0));return q>1?GATE.wall*q**GATE.p:1;};   // short of the act's Legend the enemies are out of reach, however strong the company is
 const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
 /* how much tougher a lone Warden is than a normal fight on the same tile (health, damage); dual and triple Wardens split it between them */
+/* ---------- play log: a record of fights, deaths, act clears and retires for balancing (only for the accounts listed here) ---------- */
+const PLAYLOG_USERS=['f3f5b351-1f6d-4a81-998b-dcd26869b647'];
+let plq=[],FL=null;
+function plog(ev){
+ if(AWAYSIM||typeof CC==='undefined'||!CC.user||!PLAYLOG_USERS.includes(CC.user.id))return;
+ ev.pt=Math.round(S.playSec||0);ev.dp=S.depth;ev.lg=S.legend||0;plq.push(ev);if(plq.length>=25)plFlush();
+}
+async function plFlush(){
+ if(!plq.length||typeof CC==='undefined'||!CC.db)return;
+ const take=plq.splice(0,100);
+ try{const {error}=await CC.db.from('play_events').insert(take.map(ev=>({build:BUILD,ev})));if(error)throw error;}
+ catch(e){plq.unshift(...take);if(plq.length>300)plq.length=300;}
+}
+setInterval(plFlush,45000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)plFlush();});
+function plParty(){return S.order.filter(i=>S.un[i]).map(i=>[HEROES[i].n,S.lv[i],star(i),Math.round(S.hp[i]/heroMax(i)*100)]);}
+function plPower(){let dps=0,hp=0;for(const i of S.order){if(!S.un[i])continue;dps+=heroAtk(i)*HEROES[i].spd*spdMul();hp+=heroMax(i);}return {dps,hp};}
+function plResult(win){
+ if(!FL)return;const f=FL;FL=null;const pw=plPower(),left=S.order.reduce((a,i)=>a+(S.un[i]?Math.max(0,S.hp[i]):0),0);
+ plog({t:'fight',k:f.k,boss:f.boss,n:f.n,win,dur:+((S.playSec||0)-f.t0).toFixed(1),lost:win?+Math.max(0,1-left/Math.max(1,f.php)).toFixed(2):1,
+  foeHp:f.fhp,foeAtk:f.fatk,pDps:Math.round(f.pdps),pHp:Math.round(f.php),
+  ttk:f.pdps>0?+(f.fhp/f.pdps).toFixed(1):null,   // seconds the party needs to kill everything, if nobody falls
+  hit:f.php>0?+(f.fatk*.75*f.n*((S.playSec||0)-f.t0)/f.php).toFixed(2):null,   // damage the foes could have dealt as a share of party health
+  party:f.party,gold:Math.round(S.gold),relics:Object.values(S.relics).reduce((a,b)=>a+b,0),act:f.act,syn:f.syn});
+}
 const BOSSX={hp:8,atk:2};
 const ACTX={from:3,hp:1.6,atk:1.35};   // extra health and damage from Act IV on (index 3), on top of the normal climb; it stays on so no later act is easier than Act V
 const WALL={from:6,hp:1.1,atk:1.03,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
@@ -2017,6 +2042,7 @@ function startTile(){
  }
  if(t.boss){bossM={hpM,atk,r};let bi=0;for(const f of foes){f.ab=bossAbility(r,bi++);f.ch=.2;f.cast=0;f.rage=0;f.shield=0;f.abm=(multi>1?.75:1)*.6;}}   // each Warden gets an ability with its own charge bar
  H=HEROES.map((h,i)=>({cd:Math.random()*.4,n:0,flash:0,lunge:0}));
+ {const pw=plPower();FL={t0:S.playSec||0,k,boss:!!t.boss,n:foes.length,fhp:Math.round(foes.reduce((a,f)=>a+f.max,0)),fatk:Math.round(foes.reduce((a,f)=>a+f.atk,0)/foes.length),pdps:pw.dps,php:pw.hp,party:plParty(),act:region(d)+1,syn:curSyn?curSyn.n:null};}
  phase='fight';
  if(t.boss)SND.play('boss');
  if(t.boss)say('⚠ '+RG(r)[2]+(multi===3?' and two more guardians block':dual?' and a second guardian block':' blocks')+' the road!');
@@ -2082,7 +2108,7 @@ function foeAct(f){
  if(S.hp[t]<=0){S.hp[t]=0;if(S.un[19]&&S.hp[19]>0&&t!==19&&!revUsed){revUsed=true;S.hp[t]=heroMax(t)*(.3+.05*skr(19));special(19,{ally:t});say(HEROES[19].n+' brings '+HEROES[t].n+' back!');}else{say(HEROES[t].n+' has fallen!');SND.play('herodown');}}
 }
 function win(){
- if(winLock)return;winLock=true;lootHold=performance.now()+1100;
+ if(winLock)return;winLock=true;plResult(true);lootHold=performance.now()+1100;
  if(TILES[S.road[0]].boss)zoneFreeze={d:S.depth,k:S.road[0],t0:performance.now()};   // rewards (relics, shards) come up only after the fight is over and the last enemy has finished falling
  const k=S.road[0],t=TILES[k];
  SND.play(t.boss?'bossWin':'win');setTimeout(()=>SND.play('coin'),260);
@@ -2258,6 +2284,7 @@ const relicCount=()=>Object.values(S.relics||{}).reduce((a,b)=>a+b,0);
 function actSnap(r){const l=S.life||{};return{a:r,sec:S.playSec||0,fights:l.fights||0,kills:l.kills||0,gold:(l.gold||0)+gained,falls:l.falls||0,sh:l.shGot||0,rel:relicCount()};}
 function actComplete(cr,first,old){
  const sn=old&&old.a===cr?old:null,l=S.life||{},nr=cr+1,nn=nr+1;
+ plog({t:'act',act:cr+1,secs:sn?Math.round((S.playSec||0)-sn.sec):null,fights:sn?(l.fights||0)-sn.fights:null,falls:sn?(l.falls||0)-sn.falls:null,party:plParty(),relics:relicCount(),gold:Math.round(S.gold),deck:S.deck.join(',')});
  const d=sn?{sec:(S.playSec||0)-sn.sec,fights:(l.fights||0)-sn.fights,kills:(l.kills||0)-sn.kills,gold:(l.gold||0)+gained-sn.gold,falls:(l.falls||0)-sn.falls,sh:(l.shGot||0)-sn.sh,rel:relicCount()-sn.rel}:null;
  actPending=true;   // the popup appears at the end of every act, first clear or not
  const tile=(v,t)=>'<div><b>'+v+'</b><small>'+t+'</small></div>';
@@ -2294,7 +2321,7 @@ function advance(){
 }
 const DEATH_TIME=2.6;
 function startDeath(){
- phase='dead';pt=0;say('The company has fallen...');SND.play('defeat');
+ plResult(false);phase='dead';pt=0;say('The company has fallen...');SND.play('defeat');
  cv.classList.remove('shake');void cv.offsetWidth;cv.classList.add('shake');setTimeout(()=>cv.classList.remove('shake'),700);
 }
 function replay(el,cls,ms){el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms);}
@@ -2306,6 +2333,7 @@ function offerRevive(){
   {t:'Retreat',fn:()=>{reviveWait=false;wipe();}}]);
 }
 function wipe(){
+ plog({t:'wipe',act:region(S.depth)+1,gold:Math.round(S.gold)});
  reviveAsked=false;reviveWait=false;
  const rs=region(S.depth)*10,lost=S.gold*.1;S.gold-=lost;
  say('The company is routed! Retreating to '+RG(region(S.depth))[0]+"'s edge. Lost "+fmt(lost)+' gold.');
@@ -2391,6 +2419,7 @@ function retire(){
 }
 function doRetire(){
  const g=legGain();if(!g)return;
+ plog({t:'retire',gain:g,act:region(S.depth)+1,party:plParty()});
  const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest,menuSeen:S.menuSeen,menuInit:S.menuInit};   // account-level things that must survive a retire, or the daily reward would come back the same day
  S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
