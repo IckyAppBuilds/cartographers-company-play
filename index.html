@@ -69,7 +69,7 @@ button.on{border-color:var(--gold);color:var(--gold)}
 #mini{grid-area:mini;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 #ctrl{grid-area:ctrl;display:grid;gap:6px}
 #handw{grid-area:handw;display:flex;flex-direction:column;min-height:0}
-#nav{grid-area:nav;display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+#nav{grid-area:nav;display:flex;gap:6px}#nav button{flex:1 1 0;min-width:0}#nav button[hidden]{display:none}#nav button.nw{animation:navnew 1.2s ease-in-out infinite}@keyframes navnew{50%{filter:brightness(1.7) drop-shadow(0 0 6px #ffd24a)}}
 
 canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:manipulation}
 
@@ -751,7 +751,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023221558';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023223019';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1247,7 +1247,7 @@ function fresh(keep){
   lv:HEROES.map(()=>1),un:HEROES.map(()=>false),hp:HEROES.map(()=>0),relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},hs:keep?Object.assign({},keep.hs):{},streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  S.un[S.order[0]]=true;
- if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest'])if(keep[k]!==undefined)S[k]=keep[k];
+ if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest','menuSeen','menuInit'])if(keep[k]!==undefined)S[k]=keep[k];
  return S;
 }
 function starterDeck(){return ['forest','forest','forest','forest','forest','village','village','village'];}   // Wilds is the free default road tile, never a card
@@ -2340,7 +2340,7 @@ function retire(){
 }
 function doRetire(){
  const g=legGain();if(!g)return;
- const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest};   // account-level things that must survive a retire, or the daily reward would come back the same day
+ const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest,menuSeen:S.menuSeen,menuInit:S.menuInit};   // account-level things that must survive a retire, or the daily reward would come back the same day
  S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
@@ -2615,13 +2615,26 @@ function showSplash(r){   // big act title over the battle when a new region beg
  sp.style.animation='none';void sp.offsetWidth;sp.style.animation='';
  clearTimeout(splT);splT=setTimeout(()=>{sp.hidden=true;},2900);
 }
+/* ---------- menus unlock as the story goes on (all within the first ten acts) ---------- */
+const NAVU={party:0,deck:0,relics:1,log:1,shop:2,stats:3,clan:5,arena:8};   // act index (0 = Act I) at which each menu opens
+const NAVINFO={relics:['Relics','Relics found in fights make the whole company stronger. Open the Relics menu to see them.'],log:['Log','The Log keeps the story of the company: recent battles, finds and deeds.'],shop:['Shop','The Shop sells free rewards, boosts and extras for the company.'],stats:['Stats','Stats shows how your run and your whole adventure are going.'],clan:['Clan','Join or found a clan: chat with other players and share a bonus.'],arena:['Arena','The Arena pits teams of your heroes against other players on a ladder of ten tiers, with a daily reward.']};
+const navOpen=k=>region(Math.max(S.best||0,S.depth||0))>=NAVU[k];
+function navSync(){
+ document.querySelectorAll('#nav button').forEach(b=>{b.hidden=!navOpen(b.dataset.sheet);});
+ const seen=S.menuSeen||(S.menuSeen={});
+ if(S.menuSeen&&!S.menuInit){S.menuInit=1;for(const k in NAVU)if(navOpen(k))seen[k]=1;return;}   // existing players keep what they already have, silently
+ if(zoneFreeze||actPending||!$('modal').hidden||lootEl||lootQ.length)return;
+ for(const k in NAVINFO){if(navOpen(k)&&!seen[k]){seen[k]=1;const nb=$('nav-'+k);if(nb)nb.classList.add('nw');SND.play('act');showModal('New menu: '+NAVINFO[k][0],'<p>'+NAVINFO[k][1]+'</p><p class="hint">Find it in the bar along the bottom.</p>',[{t:'Got it',primary:true}]);save();break;}}
+}
 function showSheet(n){
+ if(n&&NAVU[n]!==undefined&&!navOpen(n))return;
  sheet=(!n||sheet===n)?null:n;
  $('sheet').hidden=!sheet;
  if(sheet){$('sheetTitle').textContent=SHEETS[sheet];document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==sheet);}
  if(sheet==='clan')CLAN.open();else CLAN.close();
  if(sheet==='arena')ARENA.open();else ARENA.close();
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.sheet===sheet));
+ if(sheet&&$('nav-'+sheet))$('nav-'+sheet).classList.remove('nw');
  if(!sheet){if(!lootEl&&lootQ.length)nextLoot();setTimeout(dailyCheck,300);}
 }
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
@@ -3244,7 +3257,7 @@ function frame(now){
  let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
  while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
  saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(gained/saveT);st('gold',gained);gained=0;saveT=0;save();}
- if((fitN=(fitN||0)+1)%20===0)fit();   // keep the canvas matched to its box
+ if((fitN=(fitN||0)+1)%20===0){fit();navSync();}   // keep the canvas matched to its box
  if(!(drag&&drag.active))build();
  hud();draw(dt);SND.mood(phase,curBoss,S.depth);
  requestAnimationFrame(frame);
