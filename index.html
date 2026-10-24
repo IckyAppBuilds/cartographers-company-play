@@ -451,7 +451,7 @@ canvas.shake{animation:shake .6s}
 #sheet [data-close]{font-size:0;width:42px;min-height:38px;height:38px;padding:0;border:0;background:var(--ui-close) center/contain no-repeat;flex:none}
 #sheet [data-close]:hover:not(:disabled){filter:brightness(1.2)}
 #modal .mp,#auth .ap{border:26px solid transparent;border-image:var(--ui-panel) 28 fill/26px stretch;border-radius:0;background:none;box-shadow:none;padding:6px 6px;filter:drop-shadow(0 12px 28px rgba(0,0,0,.7))}
-#sheet .pane button:not([data-close]),#modal .row button,#auth .row button{border:12px solid transparent;border-image:var(--ui-blue) 24 fill/12px stretch;background:none;border-radius:0;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.6);font-weight:700;min-height:42px;padding:0 6px}
+#sheet .pane button:not([data-close]),#modal .row button,#auth .row button{border:12px solid transparent;border-image:var(--ui-blue) 16 fill/12px stretch;background:none;border-radius:0;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.6);font-weight:700;min-height:42px;padding:0 6px}
 #sheet .pane button:not([data-close]):disabled,#modal .row button:disabled{border-image-source:var(--ui-grey);opacity:.85;color:#bbb}
 #sheet .pane .sc button,#modal .row button.prim,#auth .row button.prim,#sheet .pane button.gold{border-image-source:var(--ui-gold);color:#3a2205;text-shadow:0 1px 0 rgba(255,240,180,.6)}
 #sheet .pane .sc button:disabled{border-image-source:var(--ui-grey);color:#bbb;text-shadow:none}
@@ -465,7 +465,7 @@ canvas.shake{animation:shake .6s}
 #top{border:14px solid transparent;border-image:var(--ui-panel) 28 fill/14px stretch;border-radius:0;background:none;box-shadow:none;padding:0 4px}
 .card{border:10px solid transparent;border-image:var(--ui-panel) 28 fill/10px stretch;border-radius:0;background:none;padding:0 2px}
 #stage{border:10px solid transparent;border-image:var(--ui-panel) 28/10px stretch;border-radius:0}
-.row3 button,#reroll,#insbtn{border:12px solid transparent;border-image:var(--ui-blue) 24 fill/12px stretch;border-radius:0;background:none;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.6);font-weight:700;min-height:42px;padding:0 4px}
+.row3 button,#reroll,#insbtn{border:12px solid transparent;border-image:var(--ui-blue) 16 fill/12px stretch;border-radius:0;background:none;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.6);font-weight:700;min-height:42px;padding:0 4px}
 #insbtn{border-image-source:var(--ui-gold);color:#3a2205;text-shadow:0 1px 0 rgba(255,240,180,.6)}
 .row3 button:disabled{border-image-source:var(--ui-grey);color:#bbb;text-shadow:none;opacity:.85}
 .row3 button:hover:not(:disabled){filter:brightness(1.12)}
@@ -512,7 +512,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 /* ---------- graphic labels: road ribbon, boss plate, deck counters ---------- */
 #roadw .rl{align-items:center;margin:0 0 4px}
 #roadw .rl b{font:900 12px Cinzel,Georgia,serif;letter-spacing:.14em;text-transform:uppercase;color:#f4ecff;text-shadow:0 1px 1px rgba(0,0,0,.8);border:0 solid transparent;border-width:0 24px;border-image:var(--ui-ribbonb) 0 70 fill/0 24px stretch;padding:4px 8px 6px;line-height:1.1}
-#roadw .rl span{font:700 11px Cinzel,Georgia,serif;letter-spacing:.06em;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.8);border:7px solid transparent;border-image:var(--ui-red) 24 fill/7px stretch;padding:0 8px;line-height:1.5}
+#roadw .rl span{font:700 11px Cinzel,Georgia,serif;letter-spacing:.06em;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.8);border:7px solid transparent;border-image:var(--ui-red) 16 fill/7px stretch;padding:0 8px;line-height:1.5}
 #roadw .rl span em{color:#ffe27a;font-weight:900}
 #piles{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:0 0 5px}
 #piles .bd{font:700 11px Cinzel,Georgia,serif;letter-spacing:.05em;color:#d9c79b;border:7px solid transparent;border-image:var(--ui-tab) 24 fill/7px stretch;padding:0 7px;line-height:1.45;text-shadow:0 1px 1px rgba(0,0,0,.8)}
@@ -672,19 +672,8 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #sheet .pane{max-width:100%;overflow-x:hidden}
 #sheet .pane input[type=range]{width:100%;max-width:100%;box-sizing:border-box;margin-left:0;margin-right:0}
 
-/* ---------- no stretched picture borders anywhere: panels and buttons are drawn with plain CSS so they never distort ---------- */
-#sheet .sp,#modal .mp,#auth .ap{border:2px solid #b9893a!important;border-image:none!important;border-radius:16px!important;background:linear-gradient(180deg,#3a2a1b,#1d140d)!important;box-shadow:inset 0 0 0 1px rgba(255,220,140,.25),inset 0 0 0 4px rgba(0,0,0,.25),0 14px 36px rgba(0,0,0,.7)!important;filter:none!important}
-#modal .mp,#auth .ap{padding:18px 14px!important}
-#sheet .sp{padding:8px 10px calc(10px + env(safe-area-inset-bottom))!important;border-radius:18px 18px 0 0!important}
-#stage{border:2px solid #8a6a3a!important;border-image:none!important;border-radius:12px!important}
+/* panel and button art has plain edges, so it scales cleanly; the title ribbon is plain text */
 #sheet .sh h3{border:0!important;border-image:none!important;background:none!important;padding:8px!important}
-#sheet .pane button:not([data-close]):not(.mini):not(.arhero),#modal .row button,#auth .row button,.row3 button,#reroll,#insbtn{border:1px solid #6fb0ff!important;border-image:none!important;border-radius:10px!important;background:linear-gradient(180deg,#4a86d8,#1f4a8c)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 2px 0 #0f2a55;padding:0 10px!important;color:#fff}
-#sheet .pane .sc button,#modal .row button.prim,#auth .row button.prim,#sheet .pane button.gold,#insbtn,#sheet .pane .cltabs button.on{border-color:#ffe9a0!important;background:linear-gradient(180deg,#ffd96a,#d9961f)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 0 #7a4a08;color:#3a2205}
-#sheet .pane button[data-burn]{border-color:#ff9a86!important;background:linear-gradient(180deg,#e0634a,#8c2a1c)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 2px 0 #4a120a}
-#sheet .pane button:not([data-close]):disabled,#modal .row button:disabled,.row3 button:disabled,#sheet .pane .sc button:disabled,#reroll:disabled,#insbtn:disabled{border-color:#8a8a8a!important;background:linear-gradient(180deg,#6d6d6d,#444)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2);color:#bbb;text-shadow:none}
-.dc,.hc{border:2px solid var(--rc,#8a6a3a)!important;border-image:none!important;border-radius:10px!important;background:var(--parch2);color:#3b2a18}
-.dc button{border-width:1px!important;min-height:28px}
-#sheet .pane .cltabs button{padding:0 2px!important}
 </style>
 </head>
 <body>
@@ -784,7 +773,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023224651';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023225154';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
