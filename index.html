@@ -359,6 +359,25 @@ button.swc{cursor:pointer;min-height:0}button.swc:active{transform:scale(.98);fi
 .swl{display:flex;flex-direction:column}
 .actrec{margin:10px 0 2px;padding:8px 10px;border:1px solid rgba(255,214,110,.45);border-radius:12px;background:linear-gradient(180deg,rgba(255,210,74,.14),rgba(0,0,0,.25));display:flex;flex-direction:column;gap:2px;align-items:center}
 .actrec b{font:900 24px/1.1 Cinzel,Georgia,serif;color:#ffe08a}.actrec em{font-style:normal;font-weight:700;color:#fff}.actrec small{opacity:.8}.actrec i{font-style:normal;font-weight:700;color:#8fe39a;font-size:13px}
+.unl{position:relative;width:150px;height:130px;margin:4px auto 6px;display:flex;align-items:center;justify-content:center}
+.unic{position:relative;z-index:2;font-size:64px;line-height:1;animation:unpop .9s cubic-bezier(.2,1.6,.4,1) both,unfl 2.4s ease-in-out .9s infinite;filter:drop-shadow(0 0 14px rgba(255,210,74,.9))}
+.unic .nv{font-size:64px!important}.unic .ico{width:72px;height:72px}
+.unr{position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px;border-radius:50%;border:3px solid #ffd24a;opacity:0;animation:unring 2s ease-out infinite}
+.unr.r2{animation-delay:.65s}.unr.r3{animation-delay:1.3s}
+.uns{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px;border-radius:2px;background:#ffe9a0;transform:rotate(45deg);opacity:0;animation:unsp 1.8s ease-out infinite}
+.uns.a{--x:-62px;--y:-48px}.uns.b{--x:60px;--y:-52px;animation-delay:.3s}.uns.c{--x:-68px;--y:20px;animation-delay:.6s}.uns.d{--x:66px;--y:26px;animation-delay:.9s}.uns.e{--x:-20px;--y:-66px;animation-delay:1.2s}.uns.f{--x:24px;--y:64px;animation-delay:1.5s}
+.unt{font-size:16px}.unw{font-size:14px;padding:6px 10px;border-radius:10px;background:rgba(255,210,74,.12);border:1px solid rgba(255,214,110,.35)}
+@keyframes unpop{0%{transform:scale(0) rotate(-40deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes unfl{50%{transform:translateY(-6px) scale(1.06)}}
+@keyframes unring{0%{transform:scale(.6);opacity:.9}100%{transform:scale(2.6);opacity:0}}
+@keyframes unsp{0%{transform:translate(0,0) rotate(45deg) scale(.4);opacity:0}25%{opacity:1}100%{transform:translate(var(--x),var(--y)) rotate(225deg) scale(1);opacity:0}}
+.unp{position:fixed;z-index:95;pointer-events:none;width:0;height:0}
+.unring{position:absolute;left:0;top:0;transform:translate(-50%,0);border:3px solid #ffd24a;border-radius:12px;box-shadow:0 0 18px #ffd24a,inset 0 0 12px rgba(255,210,74,.6);animation:unpulse 1s ease-in-out infinite}
+.unar{position:absolute;left:0;bottom:6px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;font:900 15px/1 Cinzel,Georgia,serif;color:#ffe08a;text-shadow:0 2px 4px #000;animation:unbob .8s ease-in-out infinite}
+.unar b{padding:3px 9px;border-radius:9px;background:#2a1a0c;border:2px solid #ffd24a;margin-bottom:2px}
+@keyframes unpulse{50%{transform:translate(-50%,0) scale(1.1);opacity:.7}}
+@keyframes unbob{50%{transform:translateX(-50%) translateY(-7px)}}
+@media (prefers-reduced-motion:reduce){.unic,.unr,.uns,.unring,.unar{animation:none}.unic{opacity:1}}
 #modal{position:fixed;inset:0;z-index:90;touch-action:manipulation;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
 #modal .mp{width:100%;max-width:440px;max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:20px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
 #modal h2{text-shadow:none!important;filter:drop-shadow(0 2px 0 rgba(70,35,0,.95)) drop-shadow(0 0 8px rgba(255,200,70,.3));margin:0 0 10px;font:900 clamp(22px,6.5vw,30px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -751,7 +770,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023223019';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023223208';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2505,7 +2524,7 @@ const RCOL=[[154,138,106],[95,191,106],[90,160,255],[176,107,255],[255,176,46]];
 function lootRelic(r,how,nodbl){const n=S.relics[r];loot({head:how||'Relic found!',icon:RELICS[r].ico||RELICS[r].i,name:RELICS[r].n,sub:n>1?'Relic · now ×'+n:'Relic · new!',desc:RELICS[r].d,rar:2,col:[255,176,46],dbl:nodbl?null:()=>{S.relics[r]=(S.relics[r]||0)+1;say('Ad bonus: a second '+RELICS[r].n+'!');}});}
 function lootCard(k,head){const t=TILES[k],q=t.r||0;loot({head:head,icon:t.i,name:t.n+' tile',sub:RAR[q].n+' card',desc:t.d,rar:q,col:RCOL[q]});}
 function newCardPop(k,force){const sc=S.seen||(S.seen={}),first=!sc[k];sc[k]=1;if(first||force||(TILES[k].r||0)>=2)lootCard(k,first?'New card!':'Card added!');}
-function closeModal(i){const b=modalBtns[i];$('modal').hidden=true;modalBtns=[];try{if(b&&b.fn)b.fn();}catch(e){console.error(e);}if($('modal').hidden&&modalQ.length)showModal(...modalQ.shift());}
+function closeModal(i){if(unPtr){unPtr();unPtr=null;}const b=modalBtns[i];$('modal').hidden=true;modalBtns=[];try{if(b&&b.fn)b.fn();}catch(e){console.error(e);}if($('modal').hidden&&modalQ.length)showModal(...modalQ.shift());}
 setInterval(()=>{   // remove stray duplicates only; the popup you are looking at is never cleared for you
  document.querySelectorAll('#loot:not(.spoils)').forEach(x=>{if(x!==lootEl)x.remove();});
 },2000);
@@ -2624,7 +2643,19 @@ function navSync(){
  const seen=S.menuSeen||(S.menuSeen={});
  if(S.menuSeen&&!S.menuInit){S.menuInit=1;for(const k in NAVU)if(navOpen(k))seen[k]=1;return;}   // existing players keep what they already have, silently
  if(zoneFreeze||actPending||!$('modal').hidden||lootEl||lootQ.length)return;
- for(const k in NAVINFO){if(navOpen(k)&&!seen[k]){seen[k]=1;const nb=$('nav-'+k);if(nb)nb.classList.add('nw');SND.play('act');showModal('New menu: '+NAVINFO[k][0],'<p>'+NAVINFO[k][1]+'</p><p class="hint">Find it in the bar along the bottom.</p>',[{t:'Got it',primary:true}]);save();break;}}
+ for(const k in NAVINFO){if(navOpen(k)&&!seen[k]){seen[k]=1;unlockShow(k);save();break;}}
+}
+let unPtr=null;
+function unlockShow(k){   // animated reveal: a glowing icon, what the menu does, and a pointer at its button in the bottom bar
+ const nb=$('nav-'+k),nm=NAVINFO[k][0],vis=[...document.querySelectorAll('#nav button')].filter(b=>!b.hidden),pos=vis.indexOf(nb)+1;
+ if(nb)nb.classList.add('nw');SND.play('act');
+ const where=pos?'<p class="unw">📍 <b>Where:</b> the <b>'+nm+'</b> button, number '+pos+' of '+vis.length+' along the bottom bar.</p>':'';
+ showModal('New menu: '+nm,'<div class="unl"><span class="unr"></span><span class="unr r2"></span><span class="unr r3"></span><span class="unic">'+(nb?nb.querySelector('.nv').innerHTML:'')+'</span>'+['a','b','c','d','e','f'].map(c=>'<i class="uns '+c+'"></i>').join('')+'</div><p class="unt">'+NAVINFO[k][1]+'</p>'+where,
+  [{t:'Open '+nm,primary:true,fn:()=>setTimeout(()=>showSheet(k),50)},{t:'Later'}]);
+ if(nb){const r=nb.getBoundingClientRect(),el=document.createElement('div');el.className='unp';
+  el.style.cssText='left:'+(r.left+r.width/2)+'px;top:'+r.top+'px;';
+  el.innerHTML='<span class="unring" style="width:'+(r.width+8)+'px;height:'+(r.height+8)+'px"></span><span class="unar"><b>'+nm+'</b>▼</span>';
+  document.body.appendChild(el);unPtr=()=>el.remove();}
 }
 function showSheet(n){
  if(n&&NAVU[n]!==undefined&&!navOpen(n))return;
