@@ -678,17 +678,18 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 
 /* panel and button art has plain edges, so it scales cleanly; the title ribbon is plain text */
 #sheet .sh h3{border:0!important;border-image:none!important;background:none!important;padding:8px!important}
-/* the road is a path of flagstones on packed earth with a grass fringe, like the tutorial icon */
-#road{position:relative;padding:9px 6px 8px;border-radius:14px;background:radial-gradient(ellipse at 15% 100%,rgba(90,150,50,.5),transparent 55%),radial-gradient(ellipse at 85% 0,rgba(90,150,50,.45),transparent 55%),linear-gradient(180deg,#7a5833,#5a3d21);box-shadow:inset 0 0 0 2px #3a2814,inset 0 5px 12px rgba(0,0,0,.45)}
-#road::before,#road::after{content:'';position:absolute;left:8px;right:8px;height:7px;background:repeating-linear-gradient(90deg,#4f8a34 0 6px,#66a840 6px 11px,#3d7128 11px 17px);pointer-events:none}
-#road::before{top:0;border-radius:0 0 7px 7px}#road::after{bottom:0;border-radius:7px 7px 0 0}
-#road .tile{background:linear-gradient(145deg,#b3b4ab,#8a8c84 55%,#74766f);border-width:2px;border-radius:7px;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -4px 0 rgba(0,0,0,.28),0 2px 0 rgba(30,20,8,.7)}
-#road .tile .n{color:#f6f1e2;text-shadow:0 1px 2px #000}
-#road .tile.cur{box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -4px 0 rgba(0,0,0,.28),0 0 12px rgba(255,210,74,.6),0 2px 0 rgba(30,20,8,.7)}
-#road .tile.lair{background:linear-gradient(145deg,#c2897c,#8a5246 55%,#6e3d34)}
-#road .tile.empty{background:rgba(20,12,4,.22);border:2px dashed #e0cf9c!important;box-shadow:inset 0 2px 6px rgba(0,0,0,.35);color:#f0e2b0;text-shadow:0 1px 1px #000}
-#road .tile.empty .i{opacity:.85}#road .tile.empty .n{color:#f0e2b0}
-#road .tile.can{border-style:dashed}
+/* the road: a painted dirt path with grass edges; each slot is a painted flagstone (square art, so nothing is stretched) with its tile on top and its name on the path */
+#road{display:flex;gap:2px;padding:21px 6px 19px;background:var(--ui-road) center/100% 100% no-repeat;border-radius:10px}
+#road .tile{background:none;border:0!important;border-radius:0;box-shadow:none;outline:none;height:auto;padding:0;justify-content:flex-start;gap:1px;color:#fff}
+#road .tile .i{width:100%;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;background:var(--ui-stone) center/100% 100% no-repeat;filter:drop-shadow(0 0 2px var(--rc,rgba(0,0,0,.6)));font-size:clamp(20px,6vw,28px)}
+#road .tile .i .ico{width:62%;height:auto}
+#road .tile.cur .i{background-image:var(--ui-stonecur)}
+#road .tile.lair .i{background-image:var(--ui-lair)}
+#road .tile.empty .i{background-image:var(--ui-gap);color:#f4e7b8;filter:none;text-shadow:0 1px 2px #000}
+#road .tile .n{color:#fff6dc;text-shadow:0 1px 2px #000,0 0 3px #000;font-size:clamp(8px,2.4vw,10px);line-height:1.1;margin-top:1px}
+#road .tile.empty .n{color:#e9dcae}
+#road .tile.can .i{outline:2px dashed #fff;outline-offset:-3px;border-radius:8px}
+#road .tile.drop{transform:scale(1.08)}
 </style>
 </head>
 <body>
@@ -788,7 +789,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024123256';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024123718';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -827,7 +828,7 @@ const TELE=(()=>{
  }catch(e){}
  return{err};
 })();
-try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
+try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-road',u('road_path'));r.setProperty('--ui-stone',u('road_stone'));r.setProperty('--ui-stonecur',u('road_stone_cur'));r.setProperty('--ui-gap',u('road_gap'));r.setProperty('--ui-lair',u('road_boss'));r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
  const el=document.getElementById('icky');if(!el)return;
