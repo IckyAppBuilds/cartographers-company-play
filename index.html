@@ -794,7 +794,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024161153';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024171122';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2413,10 +2413,13 @@ function placeTile(j){st('tiles');
  save();   // the road you build is part of the saved run (and goes up to the account with it), so store it the moment a tile is laid
 }
 function moveHero(pos,d){const j=pos+d;if(j<0||j>3)return;[S.order[pos],S.order[j]]=[S.order[j],S.order[pos]];sig='';}
-function recruit(i){if(S.un[i])return;if(S.gold<recruitCost(i)){SND.play('nope');return;}S.gold-=recruitCost(i);SND.play('recruit');S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
+function recruit(i,quiet){if(S.un[i])return;if(S.gold<recruitCost(i)){if(!quiet)SND.play('nope');return;}S.gold-=recruitCost(i);SND.play('recruit');S.un[i]=true;S.hp[i]=heroMax(i);say(HEROES[i].n+' the '+HEROES[i].c+' joins the company!');sig='';}
 function levelUp(i,quiet){if(!S.un[i])return;const c=lvCost(i);if(S.gold<c){if(!quiet)SND.play('nope');return;}S.gold-=c;if(!quiet)SND.play('level');const r=S.hp[i]/heroMax(i);S.lv[i]++;S.hp[i]=Math.max(S.hp[i],0)>0?heroMax(i)*r+heroMax(i)*.1:0;sig='';}
-function autoLevel(){   // the Auto level up switch: whoever is cheapest to raise next gets the gold, again and again while it lasts
- let n=0;while(n++<25){let best=-1,bc=1e99;for(const i of S.order){if(!S.un[i])continue;const c=lvCost(i);if(c<bc){bc=c;best=i;}}if(best<0||S.gold<bc)break;levelUp(best,1);}
+function autoLevel(){   // the Auto level up switch: it hires every hero it can afford (saving for the next one before it levels anyone), then whoever is cheapest to raise next gets the gold, again and again while it lasts
+ let n=0;
+ for(const i of S.order){if(!S.un[i]&&S.gold>=recruitCost(i)){recruit(i,1);n++;}}   // hire any hero in the party you can afford first, so an idle company never stays at one hero
+ if(S.order.some(i=>!S.un[i]))return;   // a hero is still waiting to be hired: save the gold for them instead of levelling the others
+ while(n++<25){let best=-1,bc=1e99;for(const i of S.order){if(!S.un[i])continue;const c=lvCost(i);if(c<bc){bc=c;best=i;}}if(best<0||S.gold<bc)break;levelUp(best,1);}
  if(n>1)sig='';
 }
 let autoT=0;
