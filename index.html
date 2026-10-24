@@ -69,7 +69,7 @@ button.on{border-color:var(--gold);color:var(--gold)}
 #mini{grid-area:mini;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 #ctrl{grid-area:ctrl;display:grid;gap:6px}
 #handw{grid-area:handw;display:flex;flex-direction:column;min-height:0}
-#nav{grid-area:nav;display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+#nav{grid-area:nav;display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
 
 canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:manipulation}
 
@@ -254,6 +254,29 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 #cbLeft{display:block;margin:8px 0 2px;text-align:center}#cbStrike{width:100%}
 .cbname{font:900 20px Cinzel,Georgia,serif;color:#ffe9a0;text-align:center;margin-top:4px}.cbtrait{text-align:center;font-size:13px;margin:2px 0 6px}
 .cbbar{position:relative;height:26px;border-radius:13px;background:#150f0a;border:2px solid #ffd24a;overflow:hidden}.cbbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(180deg,#ff7a5a,#b3200f);transition:width .6s}.cbbar b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;text-shadow:0 1px 2px #000}
+.artier{display:inline-block;padding:1px 8px;border-radius:10px;border:1px solid var(--tc);color:var(--tc);font:700 11px Cinzel,Georgia,serif;background:rgba(0,0,0,.35);margin-right:4px}
+.arhd{display:flex;align-items:center;gap:8px}.arhd .artier{font-size:14px;padding:2px 10px}
+.artag{color:#8fd0ff;font-weight:700}
+.artm{display:inline-flex;gap:3px;margin-top:3px}.artm span{width:30px;height:30px;border:2px solid;border-radius:8px;overflow:hidden;background:#150f0a;display:block}.arp{width:100%;height:100%;object-fit:cover;display:block}
+.aropp small{display:block}
+.arteam{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}
+.arslot{border:2px solid #5a4430;border-radius:12px;padding:4px;text-align:center;background:rgba(0,0,0,.28);position:relative;min-height:96px;display:flex;flex-direction:column;align-items:center}
+.arslot.empty{justify-content:center;color:var(--dim);font-size:22px;border-style:dashed}
+.arslot b{position:absolute;left:5px;top:2px;font-size:11px;color:var(--gold)}.arslot .arp{width:44px;height:44px;border-radius:8px}.arslot small{font-size:10px;line-height:1.1;margin-top:2px;overflow:hidden;max-width:100%;white-space:nowrap;text-overflow:ellipsis}
+.arslot .arm{display:flex;gap:2px;margin-top:2px}.arslot .arm button{min-height:0!important;padding:0 6px!important;font-size:11px!important;border-width:4px!important;line-height:1.1}
+.arpool{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.arhero{display:flex!important;flex-direction:column;align-items:center;gap:1px;padding:4px!important;min-height:0!important;text-align:center;border:2px solid transparent!important;border-image:none!important;border-radius:10px!important;background:rgba(0,0,0,.3)!important}
+.arhero.on{border-color:var(--rc)!important;background:rgba(80,60,30,.55)!important}.arhero .arp{width:42px;height:42px;border-radius:8px;border:2px solid var(--rc)}.arhero b{font-size:12px}.arhero small{font-size:10px;color:var(--dim);line-height:1.15}
+.artiers{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}.artiers button{min-height:0!important;padding:4px 0!important;border:2px solid var(--tc)!important;border-image:none!important;border-radius:8px!important;background:rgba(0,0,0,.35)!important;color:var(--tc);font-size:13px}.artiers button.on{background:var(--tc)!important;color:#1a1208}
+.arlad{max-height:340px;overflow:auto;border:1px solid #3a2c20;border-radius:10px}.arl{display:flex;gap:8px;padding:5px 8px;border-bottom:1px solid #2a2016;align-items:center}.arl span{width:44px;color:var(--dim);font-size:12px}.arl b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.arl em{font-style:normal;color:var(--gold);font-size:13px}.arl.me{background:rgba(255,210,74,.18)}
+body.arfight #mini,body.arfight #roadw,body.arfight #handw,body.arfight #ctrl,body.arfight #nav,body.arfight #spoils{display:none!important}   /* an arena fight is just the battlefield: no road, cards or menus */
+body.arfight #app{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+body.arfight #stage{align-self:start}
+@media (max-width:640px){body.arfight #stage{aspect-ratio:600/740;height:auto;max-height:100%}}
+#arbat{position:fixed;inset:0;z-index:90;pointer-events:none}
+#arbat .arpan{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(12,8,5,.96);border-top:2px solid #5a4430;pointer-events:auto}
+.arres{text-align:center;min-height:54px;margin:2px 0 8px;color:var(--dim)}.arbig{font:900 28px Cinzel,Georgia,serif}.arbig.win{color:#ffd24a;text-shadow:0 0 12px #ff9a1f}.arbig.lose{color:#ff8a7a}
+#arbat button{width:100%}
 .clerr{color:#ff8a7a;min-height:18px;margin-top:4px;font-size:14px}
 .clchk{display:flex;align-items:center;gap:8px;margin:6px 0;color:var(--dim)}.clchk input{width:20px;height:20px}
 #modal.actdone .mp{border:3px solid #e2a92f;border-image:none;border-radius:20px;padding:20px 14px 16px;background:radial-gradient(ellipse at 50% 0,rgba(255,200,80,.16),rgba(255,200,80,0) 60%),linear-gradient(180deg,#3d2c1c,#1b120b);box-shadow:inset 0 0 0 3px #2a1a0c,inset 0 0 0 5px rgba(255,214,110,.45),0 0 44px rgba(255,200,70,.4),0 22px 50px rgba(0,0,0,.75);filter:none}
@@ -622,6 +645,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
    <button id="nav-deck" data-sheet="deck"><span class="nv"><img class="ico" src="assets/icons/deck.png" alt="" draggable="false"></span><small>Deck</small></button>
    <button id="nav-relics" data-sheet="relics"><span class="nv"><img class="ico" src="assets/icons/relics.png" alt="" draggable="false"></span><small>Relics</small></button>
    <button id="nav-shop" data-sheet="shop"><span class="nv"><img class="ico" src="assets/icons/coin.png" alt="" draggable="false"></span><small>Shop</small></button>
+   <button id="nav-arena" data-sheet="arena"><span class="nv" style="font-size:24px;line-height:1">⚔️</span><small>Arena</small></button>
    <button id="nav-clan" data-sheet="clan"><span class="nv" style="font-size:24px;line-height:1">🏰</span><small>Clan</small></button>
    <button id="nav-stats" data-sheet="stats"><span class="nv" style="font-size:24px;line-height:1">📊</span><small>Stats</small></button>
    <button id="nav-log" data-sheet="log"><span class="nv"><img class="ico" src="assets/icons/journal.png" alt="" draggable="false"></span><small>Journal</small></button>
@@ -649,6 +673,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
     <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
    </div>
    <div class="pane" data-pane="shop" hidden><div id="shopBody"></div></div>
+   <div class="pane" data-pane="arena" hidden><div id="arenaBody"></div></div>
    <div class="pane" data-pane="clan" hidden><div id="clanBody"></div></div>
    <div class="pane" data-pane="stats" hidden><div id="statsBody"></div></div>
    <div class="pane" data-pane="log" hidden>
@@ -696,7 +721,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023202702';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023204257';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1437,6 +1462,195 @@ const CLAN=(()=>{
   click
  };
 })();
+
+/* ---------- arena: set a team of up to 4 heroes (base stats, no levels, relics or Legend) and climb a ladder of 10 tiers x 100 players ---------- */
+const ARENA=(()=>{
+ const TIERS=['Champion','Grandmaster','Master','Diamond','Platinum','Gold','Silver','Bronze','Squire','Initiate'],TCOL=['#ff7ad9','#ff6a4a','#b06bff','#5ad7ff','#9fe0d0','#ffd24a','#cfd6df','#d58a4a','#9ac47a','#a89a7a'];
+ const st={me:null,opps:[],log:[],left:0,claimed:false,tab:'fight',tier:10,ladder:null,busy:false,err:'',team:[],loaded:false,open:false,profile:null,players:0,fighting:false,teamDirty:false};
+ const db=()=>CC.db,uid=()=>CC.user&&CC.user.id;
+ const rpc=async(n,a)=>{const r=await db().rpc(n,a||{});if(r.error)throw r.error;return r.data;};
+ const say=m=>{st.err=m;const e=$('arErr');if(e)e.textContent=m;};
+ const aHP=i=>HEROES[i].hp*RARM[HEROES[i].q],aAtk=i=>HEROES[i].atk*RARM[HEROES[i].q];
+ const tierName=t=>TIERS[t-1]||'Initiate';
+ const tg=t=>t?'<span class="artag">['+cesc(t)+']</span> ':'',nm=(n,t)=>tg(t)+cesc(n),plain=(n,t)=>(t?'['+t+'] ':'')+n;
+ const chip=t=>'<span class="artier" style="--tc:'+TCOL[t-1]+'">'+tierName(t)+'</span>';
+ const portrait=(i,cls)=>'<img class="'+(cls||'arp')+'" src="assets/heroes/'+HID[i]+'_p.png'+V+'" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
+ const teamRow=t=>'<span class="artm">'+(t||[]).map(i=>'<span style="border-color:'+RARCOL[HEROES[i].q]+'">'+portrait(i)+'</span>').join('')+'</span>';
+ const reward=t=>({sh:1+Math.floor((10-t)/2)+(t===1?2:0),h:.5+.25*(10-t)});
+ /* ----- battle simulation: base stats only; every role has one simple skill ----- */
+ function sim(ta,tb){
+  const mk=(i,side)=>({i,side,hp:aHP(i),max:aHP(i),atk:aAtk(i),spd:HEROES[i].spd,role:HEROES[i].r,n:0,cd:Math.random()*.6});
+  const U=[ta.map(i=>mk(i,0)),tb.map(i=>mk(i,1))],frames=[];let ev=[],t=0,last=0;
+  const alive=s=>U[s].filter(u=>u.hp>0),all=()=>U[0].concat(U[1]);
+  const snap=()=>({t,hp:U.map(s=>s.map(u=>Math.max(0,u.hp/u.max))),ev:ev.splice(0)});
+  const aura=s=>alive(s).some(u=>u.role==='Support')?1.08:1;
+  const idx=u=>U[u.side].indexOf(u);
+  function hit(a,tg,v,k){v*=aura(a.side);if(tg.role==='Guardian')v*=.85;tg.hp-=v;ev.push({s:a.side,a:idx(a),s2:tg.side,b:idx(tg),v,k:k||'hit'});}
+  function act(a){
+   const foes=alive(1-a.side),allies=alive(a.side);if(!foes.length)return;a.n++;
+   const pick=Math.random()<.5?foes[0]:foes[Math.random()*foes.length|0];
+   if(a.role==='Marksman'){const w=foes.reduce((x,y)=>x.hp<y.hp?x:y),c=Math.random()<.25;hit(a,w,a.atk*(c?2.2:1),c?'crit':'hit');}
+   else if(a.role==='Caster'){if(a.n%3===0)foes.forEach(f=>hit(a,f,a.atk*1.3,'aoe'));else hit(a,pick,a.atk);}
+   else if(a.role==='Healer'){
+    if(a.n%2===0){const w=allies.reduce((x,y)=>x.hp/x.max<y.hp/y.max?x:y);if(w.hp/w.max<.98){const hv=w.max*.1+2.2*a.atk;w.hp=Math.min(w.max,w.hp+hv);ev.push({s:a.side,a:idx(a),s2:w.side,b:idx(w),v:hv,k:'heal'});return;}}
+    hit(a,pick,a.atk);}
+   else if(a.role==='Striker'){hit(a,pick,a.atk);const f2=alive(1-a.side)[0];if(f2)hit(a,f2,a.atk*.5);}
+   else if(a.role==='Guardian'){const b=a.n%3===0;hit(a,pick,a.atk*(b?2:1),b?'crit':'hit');}
+   else hit(a,pick,a.atk);
+  }
+  outer:while(t<90&&alive(0).length&&alive(1).length){
+   t+=.1;
+   for(const u of all()){if(u.hp<=0)continue;u.cd-=.1;if(u.cd<=0){u.cd+=1.5/u.spd;act(u);if(!alive(0).length||!alive(1).length)break;}}
+   if(t-last>=.5){last=t;frames.push(snap());}
+  }
+  frames.push(snap());
+  const frac=s=>U[s].reduce((a,u)=>a+Math.max(0,u.hp),0)/U[s].reduce((a,u)=>a+u.max,0);
+  const a0=alive(0).length,a1=alive(1).length;
+  return{won:a1===0&&a0>0?true:a0===0?false:frac(0)>frac(1),frames};
+ }
+ /* ----- battle playback: drawn on the game's own battle canvas so it looks like normal combat ----- */
+ let ARB=null;
+ const heroX=k=>(CW===600?362:340)-k*(CW===600?72:92),foeX=k=>(CW===600?446:480)+k*(CW===600?64:78);
+ function drawUnit(u,T){
+  const im=IMG['hero'+u.i];if(!im)return;
+  const x=u.s?foeX(u.k):heroX(u.k),y=256-u.k*5,dir=u.s?-1:1,q=HEROES[u.i].q,dead=u.dead;
+  const hh=HH[u.i]*(CW===600?.78:.92),ww=hh*(im.naturalWidth||im.width)/(im.naturalHeight||im.height),breathe=1+Math.sin(T*2.4+u.i*1.7+u.s)*.014;
+  if(!dead)rarBack(u.i,x,y,hh,T,q);
+  g.save();
+  g.fillStyle='rgba(0,0,0,.34)';g.beginPath();g.ellipse(x,y+1,ww*.4,6,0,0,TAU);g.fill();
+  g.translate(x+dir*u.lunge*16,y);
+  if(dead){g.rotate(-1.35*dir);g.globalAlpha=.55;}else g.rotate(dir*u.lunge*.1);
+  g.scale(dir/breathe,breathe);
+  g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+  if(q>0&&!dead){g.shadowColor=RARCOL[q];g.shadowBlur=(5+q*4)*(1+.25*Math.sin(T*3+u.i));}
+  g.drawImage(u.flash>0?flashed(im,u.flash*.75):im,-ww/2,-hh,ww,hh);
+  g.shadowBlur=0;
+  g.restore();
+  if(!dead){rarFront(u.i,x,y,hh,T,q);hpBar(x,y+9,38,u.f,u.s?'#e0584a':'#4cd07a');}
+ }
+ function applyFrame(fr){
+  fr.hp.forEach((arr,s)=>arr.forEach((p,k)=>{const u=ARB.U[s][k];if(!u)return;u.tf=p;if(p<=0&&!u.dead){u.dead=true;SND.play('kill');}}));
+  for(const e of fr.ev){
+   const a=ARB.U[e.s][e.a],b=ARB.U[e.s2][e.b];if(!a||!b)continue;
+   if(e.k!=='heal'){a.lunge=1;b.flash=1;if(Math.random()<.5)SND.hit(a.i);}
+   const bx=b.s?foeX(b.k):heroX(b.k),hh=HH[b.i]*.9;
+   fxT.push({t:0,txt:(e.k==='heal'?'+':'')+fmt(e.v),x:bx,y:256-b.k*5-hh*.8,c:e.k==='heal'?'#6fcf6f':e.k==='crit'||e.k==='aoe'?'#ffd24a':'#fff'});
+   if(e.k==='heal')SND.play('heal');
+  }
+ }
+ function drawBattle(dt,TOPY){
+  const T=performance.now()/1000;
+  if(!drawBG('battlefield')){g.fillStyle='#6a5a48';g.fillRect(0,-EX,800,320+EX);}
+  ambient('battlefield');
+  if(!ARB.fin){ARB.acc+=dt;while(ARB.acc>=.4&&ARB.fi<ARB.F.length){ARB.acc-=.4;applyFrame(ARB.F[ARB.fi++]);}if(ARB.fi>=ARB.F.length){ARB.fin=true;ARB.onEnd();}}
+  for(const side of ARB.U)for(const u of side){u.f+=(u.tf-u.f)*Math.min(1,dt*8);u.lunge=Math.max(0,u.lunge-dt*4);u.flash=Math.max(0,u.flash-dt*5);}
+  for(let k=3;k>=0;k--){for(const s of [0,1]){const u=ARB.U[s][k];if(u)drawUnit(u,T);}}
+  vignette();
+  g.save();g.textAlign='center';g.font='900 18px Cinzel,Georgia,serif';g.lineWidth=4;g.strokeStyle='#150f0a';g.fillStyle='#ffe9a0';
+  const tt='You  vs  '+ARB.name;g.strokeText(tt,400,26-EX);g.fillText(tt,400,26-EX);g.restore();
+  fxT=fxT.filter(f=>(f.t+=dt)<.9);
+  for(const f of fxT){g.globalAlpha=1-f.t/.9;g.fillStyle=f.c;g.font='bold 16px Georgia';g.textAlign='center';g.lineWidth=3;g.strokeStyle='#000';g.strokeText(f.txt,f.x,f.y-f.t*40);g.fillText(f.txt,f.x,f.y-f.t*40);}
+  g.globalAlpha=1;
+ }
+ function play(ta,tb,nameB,res){
+  return new Promise(done=>{
+   const old=document.getElementById('arbat');if(old)old.remove();
+   const el=document.createElement('div');el.id='arbat';
+   el.innerHTML='<div class="arpan"><div class="arres" id="arRes">Fighting…</div><button class="clbtn" id="arSkip">Skip</button></div>';
+   document.body.appendChild(el);
+   $('sheet').hidden=true;$('splash').hidden=true;document.body.classList.add('arfight');   // show the battlefield behind the menu
+   const mk=(arr,s)=>arr.map((i,k)=>({i,s,k,f:1,tf:1,lunge:0,flash:0,dead:false}));
+   fxT=[];
+   ARB={U:[mk(ta,0),mk(tb,1)],F:res.frames,fi:0,acc:0,fin:false,name:nameB};
+   const close=()=>{el.remove();ARB=null;document.body.classList.remove('arfight');$('sheet').hidden=!sheet;done();};
+   ARB.onEnd=()=>{
+    const r=$('arRes');
+    r.innerHTML='<div class="arbig '+(res.won?'win':'lose')+'">'+(res.won?'Victory!':'Defeat')+'</div><div>'+(res.info?(res.info.delta>0?'+':'')+res.info.delta+' rating · now rank #'+res.info.rank+' · '+chip(res.info.tier):'')+'</div>';
+    const b=$('arSkip');b.textContent='Continue';b.classList.add('gold');b.onclick=close;
+    SND.play(res.won?'bossWin':'defeat');
+   };
+   $('arSkip').onclick=()=>{const last=ARB.F[ARB.F.length-1];ARB.U.forEach((side,s)=>side.forEach((u,k)=>{u.tf=u.f=last.hp[s][k];u.dead=u.tf<=0;}));ARB.fi=ARB.F.length;ARB.fin=true;ARB.onEnd();};
+  });
+ }
+ /* ----- data ----- */
+ async function loadMe(){
+  if(!db()||!uid())return;
+  const p=await db().from('profiles').select('name').eq('user_id',uid()).maybeSingle();st.profile=p.data?p.data.name:null;
+  if(!st.profile){st.loaded=true;return;}
+  const s=await rpc('arena_state');st.loaded=true;st.players=s.players||0;
+  st.me=s.me;
+  if(s.me){st.opps=s.opps||[];st.log=s.log||[];st.left=s.attacks_left;st.claimed=!!s.claimed;if(!st.teamDirty)st.team=(s.me.team||[]).slice();}
+ }
+ async function refresh(){try{await loadMe();}catch(e){say(e.message||'Could not reach the arena.');}if(st.open)render();}
+ const ownedList=()=>S.owned.slice().sort((a,b)=>HEROES[b].q-HEROES[a].q||a-b);
+ function picker(){
+  const sel=st.team;
+  return '<div class="hint" style="margin:4px 0">Your arena team (front line first). Heroes fight with <b>base stats</b>: no levels, stars, relics or Legend, so only who you bring, and in what order, matters. Rarer heroes are stronger.</div>'
+   +'<div class="arteam">'+[0,1,2,3].map(k=>{const i=sel[k];return i==null?'<div class="arslot empty">'+(k+1)+'</div>':'<div class="arslot" style="border-color:'+RARCOL[HEROES[i].q]+'"><b>'+(k+1)+'</b>'+portrait(i)+'<small>'+cesc(HEROES[i].n)+'</small><span class="arm"><button data-ar="mv:'+k+':-1" '+(k?'':'disabled')+'>◀</button><button data-ar="mv:'+k+':1" '+(k<sel.length-1?'':'disabled')+'>▶</button></span></div>';}).join('')+'</div>'
+   +'<h3 style="margin-top:10px">Your heroes</h3><div class="arpool">'+ownedList().map(i=>{const on=sel.includes(i);return '<button class="arhero'+(on?' on':'')+'" style="--rc:'+RARCOL[HEROES[i].q]+'" data-ar="pick:'+i+'">'+portrait(i)+'<b>'+cesc(HEROES[i].n)+'</b><small>'+HEROES[i].r+'</small><small>HP '+fmt(aHP(i))+' · ATK '+fmt(aAtk(i))+'</small></button>';}).join('')+'</div>';
+ }
+ function render(){
+  const el=$('arenaBody');if(!el)return;
+  if(!CC.db||!CC.user){el.innerHTML='<div class="hint">The arena needs an online account. Sign in to use it.</div>';return;}
+  if(!st.loaded){el.innerHTML='<div class="hint">Loading…</div>';return;}
+  if(!st.profile){el.innerHTML='<h3>Choose your player name</h3><div class="hint" style="margin-bottom:8px">The arena ladder shows this name. 3 to 16 letters, numbers, spaces, - or _. Keep it friendly.</div><input id="arName" class="clin" maxlength="16" placeholder="Player name" autocomplete="off" autocapitalize="off" spellcheck="false"><button class="clbtn gold" data-ar="setname">Save name</button><div class="clerr" id="arErr">'+cesc(st.err)+'</div>';return;}
+  if(!st.me){
+   el.innerHTML='<div class="clhead"><b>Enter the Arena</b><small>1,000 fighters in 10 tiers of 100. Win battles to rise; the top tier is Champion. You start at the bottom of the Initiate tier.</small></div>'+picker()+'<button class="clbtn gold" data-ar="join" '+(st.team.length?'':'disabled')+'>Enter the arena with '+st.team.length+' hero'+(st.team.length===1?'':'es')+'</button><div class="clerr" id="arErr">'+cesc(st.err)+'</div>';return;
+  }
+  const m=st.me,r=reward(m.tier);
+  let h='<div class="clhead"><div class="arhd">'+chip(m.tier)+'<b>'+nm(m.name,m.tag)+'</b></div><small>Rank #'+m.rank+' of '+Math.max(1000,st.players)+' · rating '+m.rating+' · '+m.wins+' W / '+m.losses+' L</small></div>';
+  if(!st.claimed)h+='<div class="clcard" style="border:1px solid #ffd24a;border-radius:12px;padding:8px 10px;margin:8px 0"><div><b style="color:#ffe9a0">Daily arena reward</b><small>'+tierName(m.tier)+' tier: '+r.sh+' hero shards and a purse of gold</small></div><button class="clbtn gold" data-ar="claim">Claim</button></div>';
+  h+='<div class="cltabs">'+[['fight','Fight'],['team','Team'],['ladder','Ladder'],['log','Log']].map(([k,n])=>'<button class="'+(st.tab===k?'on':'')+'" data-ar="tab:'+k+'">'+n+'</button>').join('')+'</div>';
+  if(st.tab==='fight'){
+   h+='<div class="hint" style="margin-bottom:4px"><b>'+st.left+'</b> of 5 attacks left today (they refill at midnight UTC). Beat players near your rank to climb.</div>';
+   h+=st.opps.length?st.opps.map(o=>'<div class="clcard aropp"><div><b>'+nm(o.name,o.tag)+'</b><small>'+chip(o.tier)+' #'+o.rank+' · '+o.rating+'</small>'+teamRow(o.team)+'</div><button class="clbtn gold" data-ar="fight:'+o.id+'" '+(st.left>0&&!st.fighting?'':'disabled')+'>Fight</button></div>').join(''):'<div class="hint">No opponents found. Try again soon.</div>';
+   h+='<button class="clbtn" data-ar="reload">Find new opponents</button>';
+  }else if(st.tab==='team'){
+   h+=picker()+'<button class="clbtn gold" data-ar="save" '+(st.team.length?'':'disabled')+'>Save team</button><div class="hint">Other players fight this team when they pick you. Defending changes your rating a little.</div>';
+  }else if(st.tab==='ladder'){
+   h+='<div class="artiers">'+TIERS.map((n,k)=>'<button class="'+(st.tier===k+1?'on':'')+'" style="--tc:'+TCOL[k]+'" data-ar="tier:'+(k+1)+'">'+(k+1)+'</button>').join('')+'</div><div class="hint" style="margin:4px 0">Tier '+st.tier+': <b style="color:'+TCOL[st.tier-1]+'">'+tierName(st.tier)+'</b> · ranks '+((st.tier-1)*100+1)+' to '+st.tier*100+'</div>';
+   h+=st.ladder&&st.ladder.t===st.tier?'<div class="arlad">'+st.ladder.rows.map(x=>'<div class="arl'+(x.me?' me':'')+'"><span>#'+x.rank+'</span><b>'+nm(x.name,x.tag)+(x.me?' (you)':'')+'</b><em>'+x.rating+'</em></div>').join('')+'</div>':'<div class="hint">Loading…</div>';
+  }else{
+   h+=st.log.length?st.log.map(l=>{const mine=l.mine,won=mine?l.won:!l.won,d=mine?l.delta:-Math.round(l.delta*.5);return '<div class="clcard"><div><b>'+(mine?'You attacked '+cesc(l.def):cesc(l.att)+' attacked you')+'</b><small>'+ago(l.at)+'</small></div><div><b style="color:'+(won?'#6fcf6f':'#e0584a')+'">'+(won?'Won':'Lost')+' '+(d>0?'+':'')+d+'</b></div></div>';}).join(''):'<div class="hint">No battles yet.</div>';
+  }
+  el.innerHTML=h+'<div class="clerr" id="arErr">'+cesc(st.err)+'</div>';
+ }
+ const ago=t=>{const s=(Date.now()-Date.parse(t))/1000;return s<3600?Math.max(1,Math.floor(s/60))+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago';};
+ async function loadLadder(t){try{const rows=await rpc('arena_ladder',{p_tier:t});st.ladder={t,rows};}catch(e){say(e.message);}if(st.open&&st.tab==='ladder'&&st.tier===t){render();const me=document.querySelector('.arl.me');if(me)me.scrollIntoView({block:'center'});}}
+ async function act(fn){if(st.busy)return;st.busy=true;say('');try{await fn();}catch(e){say((e&&e.message)||'Something went wrong.');}st.busy=false;if(st.open)render();}
+ async function fight(id){
+  if(st.fighting)return;st.fighting=true;say('');render();
+  try{
+   const o=await rpc('arena_attack_begin',{p_id:id});
+   const ta=st.me.team.slice(),tb=(o.team||[]).slice(),res=sim(ta,tb);
+   try{res.info=await rpc('arena_attack_finish',{p_won:res.won});}catch(e){say(e.message);}
+   await play(ta,tb,plain(o.name,o.tag),res);
+   await loadMe();
+  }catch(e){say((e&&e.message)||'The fight could not start.');}
+  st.fighting=false;if(st.open)render();
+ }
+ async function claim(){
+  const r=await rpc('arena_claim'),rw=reward(r.tier),g=hrGold(rw.h,1);
+  S.gold+=g;gained+=g;const per=addShards(rw.sh);save();sig='';st.claimed=true;
+  showModal('Arena reward','<p>You are in the <b style="color:'+TCOL[r.tier-1]+'">'+tierName(r.tier)+'</b> tier (rank #'+r.rank+').</p><div class="actst"><div><b>+'+fmt(g)+'</b><small>gold</small></div><div><b>'+rw.sh+'</b><small>hero shards</small></div></div><p class="hint" style="margin:6px 0">'+Object.keys(per).map(i=>shardSVG(i,22,'ar'+i)+' '+cesc(HEROES[i].n)+' ×'+per[i]).join(' &nbsp; ')+'</p>',[{t:'Excellent!',primary:true}]);
+  SND.play('bossWin');
+ }
+ function click(e){
+  const b=e.target.closest('[data-ar]');if(!b||b.disabled)return;const [k,x,y]=b.dataset.ar.split(':');
+  if(k==='pick'){const i=+x,p=st.team.indexOf(i);if(p>=0)st.team.splice(p,1);else if(st.team.length<4)st.team.push(i);st.teamDirty=true;render();}
+  else if(k==='mv'){const p=+x,q=p+ +y;if(q>=0&&q<st.team.length){[st.team[p],st.team[q]]=[st.team[q],st.team[p]];st.teamDirty=true;render();}}
+  else if(k==='tab'){st.tab=x;if(x==='ladder')loadLadder(st.tier);render();}
+  else if(k==='tier'){st.tier=+x;st.ladder=null;loadLadder(+x);render();}
+  else if(k==='setname'){const n=$('arName').value;act(async()=>{await rpc('set_profile_name',{p_name:n});await loadMe();});}
+  else if(k==='join'||k==='save')act(async()=>{await rpc('arena_join',{p_team:st.team});st.teamDirty=false;await loadMe();if(k==='save')toast('Arena team saved.');});
+  else if(k==='fight')fight(x);
+  else if(k==='reload')act(loadMe);
+  else if(k==='claim')act(claim);
+ }
+ return{st,sim,live:()=>!!ARB,draw:drawBattle,open(){st.open=true;st.err='';render();refresh();},close(){st.open=false;},click};
+})();
+
+$('arenaBody').addEventListener('click',e=>ARENA.click(e));
 
 /* ---------- hero shards (every hero has their own), act gating, team bonuses and foe traits ---------- */
 const hsh=i=>(S.hs&&S.hs[i])||0;
@@ -2273,7 +2487,7 @@ function statsRender(){
  return h;
 }
 /* ---------- menus (bottom sheets) and toasts ---------- */
-const SHEETS={clan:'Clan',party:'Company',deck:'Tile Deck',relics:'Relics & Legacy',shop:'Shop',stats:'Statistics',log:'Journal'};
+const SHEETS={arena:'Arena',clan:'Clan',party:'Company',deck:'Tile Deck',relics:'Relics & Legacy',shop:'Shop',stats:'Statistics',log:'Journal'};
 const RACC=['111,207,111','95,208,176','255,138,61','122,208,255','176,107,255','255,92,77','215,123,255','64,224,208','240,196,64','120,170,255','170,140,255','255,170,80','170,230,120','220,150,90','150,170,255','120,230,150','255,110,120','150,190,255','255,140,60','190,120,255'];   // per-region accent colours
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
 let sheet=null,lastRsub,lastLog,toastT,lastRegion,lastPips,splT,lastSub,lastGold;
@@ -2289,6 +2503,7 @@ function showSheet(n){
  $('sheet').hidden=!sheet;
  if(sheet){$('sheetTitle').textContent=SHEETS[sheet];document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==sheet);}
  if(sheet==='clan')CLAN.open();else CLAN.close();
+ if(sheet==='arena')ARENA.open();else ARENA.close();
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.sheet===sheet));
  if(!sheet){if(!lootEl&&lootQ.length)nextLoot();setTimeout(dailyCheck,300);}
 }
@@ -2696,6 +2911,7 @@ function draw(dt){
  const k=S.road[0],t=TILES[k];
  const gr=g.createLinearGradient(0,0,0,250);gr.addColorStop(0,t.bg[0]);gr.addColorStop(1,'#00000022');
  g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(K,0,0,K,OX*K,EX*K);const TOPY=Math.max(0,-EX);   // keep top-anchored labels visible when sky is trimmed
+ if(ARENA.live()){ARENA.draw(dt,TOPY);return;}   // an arena fight takes over the battle canvas
  const bgk=bgKeyFor(k),usedBG=drawBG(bgk);
  if(!usedBG){
  g.fillStyle=t.bg[0];g.fillRect(0,-EX,800,320+EX);
@@ -2883,7 +3099,7 @@ document.addEventListener('visibilitychange',holdStop);
 document.addEventListener('click',e=>{if(holdFired){e.stopPropagation();e.preventDefault();holdFired=false;}},true);   // the click that ends a hold must not buy one extra
 document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hero],button[data-lv],button[data-sk]'))e.preventDefault();});
 
-const popupOpen=()=>!!lootEl||(lootQ.length>0&&!sheet)||!$('modal').hidden||!!document.getElementById('adtest');
+const popupOpen=()=>!!lootEl||(lootQ.length>0&&!sheet)||!$('modal').hidden||!!document.getElementById('adtest')||!!document.getElementById('arbat');
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
  let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
