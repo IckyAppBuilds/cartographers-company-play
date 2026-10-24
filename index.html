@@ -380,6 +380,7 @@ button.swc{cursor:pointer;min-height:0}button.swc:active{transform:scale(.98);fi
 @media (prefers-reduced-motion:reduce){.unic,.unr,.uns,.unring,.unar{animation:none}.unic{opacity:1}}
 #awayveil{position:fixed;inset:0;z-index:120;background:rgba(6,4,2,.88);display:flex;align-items:center;justify-content:center;text-align:center;color:#ffe9a8;font:700 20px Cinzel,Georgia,serif}#awayveil small{display:block;margin-top:8px;font:400 14px Alegreya,Georgia,serif;opacity:.8}
 #modal.tutm{align-items:flex-start;padding-top:max(14px,env(safe-area-inset-top));background:rgba(6,4,2,.45)}
+#resetRun{border-image-source:var(--ui-red)!important}
 #modal{position:fixed;inset:0;z-index:90;touch-action:manipulation;background:rgba(6,4,2,.78);display:flex;align-items:center;justify-content:center;padding:16px}
 #modal .mp{width:100%;max-width:440px;max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:20px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
 #modal h2{text-shadow:none!important;filter:drop-shadow(0 2px 0 rgba(70,35,0,.95)) drop-shadow(0 0 8px rgba(255,200,70,.3));margin:0 0 10px;font:900 clamp(22px,6.5vw,30px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -729,7 +730,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
    <div class="pane" data-pane="shop" hidden><div id="shopBody"></div></div>
    <div class="pane" data-pane="arena" hidden><div id="arenaBody"></div></div>
    <div class="pane" data-pane="clan" hidden><div id="clanBody"></div></div>
-   <div class="pane" data-pane="stats" hidden><div id="statsBody"></div><p class="hint" id="buildTag" style="text-align:center;opacity:.6"></p></div>
+   <div class="pane" data-pane="stats" hidden><div id="statsBody"></div><p class="hint" id="buildTag" style="text-align:center;opacity:.6"></p><div class="row" style="justify-content:center;margin:8px 0 14px"><button id="resetRun" hidden style="max-width:240px">Reset my run</button></div></div>
    <div class="pane" data-pane="log" hidden>
     <div id="objective"></div><h3 style="margin-top:14px">Journal</h3><div id="log"></div>
     <div class="hint" style="margin-top:10px">How to play: drag a tile card from your hand onto a tile on the road (or tap the card, then tap the tile) to replace it. Cards are single-use until the next boss or a wipe. Fights pay far more gold than rest tiles and build Battle Fervor: +20% gold per consecutive fight (up to +100%), lost when you rest at a Village or Springs or fall. Chain fights, then rest. Tap a hero icon under the battle to level them up; open Company to reorder the formation. Neighbouring tiles can make <span class="gold">combos</span> (gold chip under the tile). Select a card and tap Inscribe to etch a permanent glyph onto it.</div>
@@ -775,7 +776,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024115343';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024122132';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -853,7 +854,7 @@ const CC=(function(){
  async function pull(){   // bring the account's save into localStorage when it is newer than this device's copy
   const {data,error}=await db.from('saves').select('data,updated_at,device').eq('user_id',user.id).maybeSingle();
   if(error)throw error;
-  if(user.id==='f3f5b351-1f6d-4a81-998b-dcd26869b647'&&lget('cc-wipe')!=='2026-10-24e'){try{localStorage.removeItem(KEY);}catch(e){}lset('cc-wipe','2026-10-24e');}   // one-time fresh start for the owner's account on each device: its cloud save was deleted
+  try{const {data:ep}=await db.rpc('my_epoch');if(ep&&lget('cc-epoch')!==ep){try{localStorage.removeItem(KEY);}catch(e){}lset('cc-epoch',ep);}}catch(e){}   // the server stamps a wipe (the owner's Reset button): any device that has not seen it starts fresh once
   const same=lget('cc-uid')===user.id;
   let local=null;if(same){try{local=JSON.parse(lget(KEY));}catch(e){}}
   if(!same){try{localStorage.removeItem(KEY);}catch(e){}lset('cc-uid',user.id);}
@@ -1286,7 +1287,7 @@ function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;
 if(!S.rmod||S.rmod.length!==S.road.length)S.rmod=S.road.map(()=>null);
 if(!S.rrank||S.rrank.length!==S.road.length)S.rrank=S.road.map(()=>1);
 if(!S.boons)S.boons={};
-S.wipeEpoch='2026-10-24e';   // stamped on every save; the server refuses saves from a wiped account that lack it (a stale open session cannot bring an old save back)
+try{S.wipeEpoch=localStorage.getItem('cc-epoch')||'2026-10-24e';}catch(e){S.wipeEpoch='2026-10-24e';}   // stamped on every save; the server refuses saves from a wiped account that lack it (a stale open session cannot bring an old save back)
 if(!S.emptyV){   // saves from before Wilds became a card: empty road slots were stored as 'wilds'; an untouched starter deck becomes the new one (mostly Wilds)
  S.emptyV=1;S.road=S.road.map(k=>k==='wilds'?'empty':k);
  if(S.deck.slice().sort().join()==='forest,forest,forest,forest,forest,village,village,village'){S.deck=starterDeck();S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}
@@ -2747,7 +2748,18 @@ function tutTick(){
  if(tutOn||!S.seenIntro||!$('modal').hidden||sheet||lootEl||lootQ.length||zoneFreeze||ARENA.live())return;
  tutOn=true;tutShow(0);
 }
+function resetRunAsk(){
+ showModal('Reset your run?','<p>This starts a completely fresh run from Act I and <b>deletes</b> your saved game: heroes, levels, Legend, relics, deck, fastest-clear records and arena entry.</p><p class="hint">It cannot be undone. The play log is kept.</p>',[{t:'Reset my run',primary:true,fn:resetRunDo},{t:'Keep playing'}]);
+}
+async function resetRunDo(){
+ resetting=true;toast('Resetting…');
+ try{const {data,error}=await CC.db.rpc('owner_reset');if(error)throw error;
+  try{localStorage.setItem('cc-epoch',data);localStorage.removeItem(KEY);}catch(e){}
+  location.replace(location.pathname+'?r='+Date.now());
+ }catch(e){resetting=false;toast('Reset failed: '+(e&&e.message||e));}
+}
 function showSheet(n){
+ {const rb=$('resetRun');if(rb)rb.hidden=!(typeof CC!=='undefined'&&CC.user&&PLAYLOG_USERS.includes(CC.user.id));}
  if(n&&NAVU[n]!==undefined&&!navOpen(n))return;
  sheet=(!n||sheet===n)?null:n;
  $('sheet').hidden=!sheet;
@@ -2811,6 +2823,7 @@ document.addEventListener('click',e=>{
   else if(b.dataset.replace)replaceCard(b.dataset.replace);
   else if('skip' in b.dataset)skipOffer();
   else if('cancelTake' in b.dataset){pendingTake=null;sig='';}
+  else if(b.id==='resetRun')resetRunAsk();
   else if(b.dataset.s)speed=+b.dataset.s,sig='';
   else if(b.id==='reroll')reroll();
   else if(b.id==='leg'||b.id==='retbtn')retire();
@@ -3245,7 +3258,8 @@ function draw(dt){
 
 /* ---------- loop ---------- */
 let AWAYSIM=false;   // true while the company fights offscreen (away march): no sound, popups, saves or timers
-function save(){if(AWAYSIM)return;S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}CC.queue();}
+let resetting=false;
+function save(){if(AWAYSIM||resetting)return;S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}CC.queue();}
 if(!S.road||S.road.length!==7)buildRoad();
 fillHand();
 if(S.hp.every(h=>!h))resetHeroes(true);
