@@ -774,7 +774,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023235157';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261024000600';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1970,12 +1970,12 @@ function bossCast(f){
 const PACE={};
 const GROW={from:30,k:.5};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
 /* Legend gate: every act from Act V expects a minimum Legend (about three retires' worth more than the act before); short of it, enemies are tougher in proportion */
-const GATE={p:22,from:4,cap:1e30};
+const GATE={p:22,from:4,wall:1e12};
 const retiresFor=A=>Math.min(7,1+Math.round(6*(A-GATE.from)/15));   // retires an act asks for: 1 at Act V, climbing to 7 by Act XX
 const LR=[];
 const legReq=A=>{if(A<GATE.from)return 0;if(!LR.length)LR[GATE.from-1]=0;for(let j=LR.length;j<=A;j++)LR[j]=(LR[j-1]||0)+retiresFor(j)*Math.floor((j-1)**2/2);return LR[A];};   // each act adds that many retires' worth of the payout you earn while stuck on it
 const gateAct=()=>{for(let j=GATE.from;j<400;j++)if(legReq(j)>(S.legend||0))return j;return 999;};   // the first act you are not yet strong enough for; retires pay as if you got no further than this
-const gateMul=r=>r<GATE.from?1:Math.min(GATE.cap,Math.max(1,(1+.12*legReq(r))/(1+.12*(S.legend||0)))**GATE.p);
+const gateMul=r=>{if(r<GATE.from)return 1;const q=(1+.12*legReq(r))/(1+.12*(S.legend||0));return q>1?GATE.wall*q**GATE.p:1;};   // short of the act's Legend the enemies are out of reach, however strong the company is
 const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
 const WALL={from:6,hp:1.1,atk:1.03,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
 function startTile(){
@@ -2248,7 +2248,7 @@ function actComplete(cr,first,old){
  if(d)h+='<h3 style="margin:10px 0 2px">Your run through the act</h3><div class="actst">'+tile(fmtT(d.sec),'game time')+tile(fmt(d.fights),'fights won')+tile(fmt(d.kills),'foes slain')+tile(fmt(d.gold),'gold earned')+tile(d.rel,'relics found')+tile(d.sh,'hero shards')+(d.falls?tile(d.falls,'falls'):'')+'</div>';
  const T=(ACTTRAIT[nr%20]||['','']).filter(Boolean),newH=HEROES.map((x,i)=>i).filter(i=>HACT[i]===nn&&!S.owned.includes(i)),wardn=RG(nr);
  h+='<h3 style="margin:10px 0 2px">Next: Act '+roman(nn)+' · '+wardn[0]+'</h3><p style="margin:0 0 4px">Warden: <b>'+wardn[2]+'</b>.</p>';
- if(nr>=GATE.from){const need=legReq(nr),have=S.legend||0,rn=retiresFor(nr);h+='<div class="syn"><b style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">Expects Legend '+need+'</b> '+(have>=need?'(you have '+have+').':'(you have '+have+'). Expect about '+rn+' retire'+(rn>1?'s':'')+' here, or enemies hit much harder.')+'</div>';}
+ if(nr>=GATE.from){const need=legReq(nr),have=S.legend||0,pay=Math.max(1,Math.floor((nr-1)*(nr-1)/2)),left=Math.ceil((need-have)/pay);h+='<div class="syn"><b style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">Needs Legend '+need+'</b> '+(have>=need?'(you have '+have+').':'(you have '+have+'). About '+left+' more retire'+(left>1?'s':'')+' at about +'+pay+' Legend each; without it the enemies here cannot be beaten.')+'</div>';}
  {const ab=BOSSAB[nr%20],A=ABIL[ab[0]];h+='<div class="syn"><b style="color:'+A.c+'">'+A.g+' '+ab[1]+'</b> '+A.d+'</div>';}
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
@@ -2690,7 +2690,7 @@ function hud(){
  const ti=S.depth%10;   // tile within the region (the 10th is the boss)
  if(r!==lastRegion&&!zoneFreeze){document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
- {const sh=((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
+ {const gm=gateMul(region(S.depth)),sh=(gm>1?'🔒 Needs Legend '+legReq(region(S.depth))+' · ':'')+((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
  $('rate').textContent='≈ '+fmt(S.rate)+' gold/s'+(S.boostT>0?' · ⚡x2 '+boostTxt(S.boostT):'');
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
