@@ -270,12 +270,15 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 .artiers{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}.artiers button{min-height:0!important;padding:4px 0!important;border:2px solid var(--tc)!important;border-image:none!important;border-radius:8px!important;background:rgba(0,0,0,.35)!important;color:var(--tc);font-size:13px}.artiers button.on{background:var(--tc)!important;color:#1a1208}
 .arlad{max-height:340px;overflow:auto;border:1px solid #3a2c20;border-radius:10px}.arl{display:flex;gap:8px;padding:5px 8px;border-bottom:1px solid #2a2016;align-items:center}.arl span{width:44px;color:var(--dim);font-size:12px}.arl b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.arl em{font-style:normal;color:var(--gold);font-size:13px}.arl.me{background:rgba(255,210,74,.18)}
 body.arfight #mini,body.arfight #roadw,body.arfight #handw,body.arfight #ctrl,body.arfight #nav,body.arfight #spoils{display:none!important}   /* an arena fight is just the battlefield: no road, cards or menus */
-body.arfight #app{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+body.arfight #app{padding-bottom:calc(200px + env(safe-area-inset-bottom))}
 body.arfight #stage{align-self:start}
 @media (max-width:640px){body.arfight #stage{aspect-ratio:600/740;height:auto;max-height:100%}}
 #arbat{position:fixed;inset:0;z-index:90;pointer-events:none}
 #arbat .arpan{position:absolute;left:0;right:0;bottom:0;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(12,8,5,.96);border-top:2px solid #5a4430;pointer-events:auto}
-.arres{text-align:center;min-height:54px;margin:2px 0 8px;color:var(--dim)}.arbig{font:900 28px Cinzel,Georgia,serif}.arbig.win{color:#ffd24a;text-shadow:0 0 12px #ff9a1f}.arbig.lose{color:#ff8a7a}
+.arvs{display:flex;align-items:center;gap:8px;margin-bottom:6px}.arsd{flex:1;min-width:0}.arsd b{display:block;font:700 12px Cinzel,Georgia,serif;color:#ffe9a0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.arsd.r{text-align:right}.arsd em{font-style:normal;font-size:12px;color:var(--dim)}
+.arbr{height:14px;border-radius:7px;background:#150f0a;border:2px solid #5a4430;overflow:hidden;margin:2px 0}.arbr i{display:block;height:100%;width:100%;background:linear-gradient(180deg,#8be07a,#2f9a2a);transition:width .15s}.arbr.foe{transform:scaleX(-1)}.arbr.foe i{background:linear-gradient(180deg,#ff7a5a,#b3200f)}
+.arclk{font:900 18px Cinzel,Georgia,serif;color:#ffd24a;min-width:44px;text-align:center}
+.arres{text-align:center;min-height:46px;margin:2px 0 8px;color:var(--dim)}.arbig{font:900 28px Cinzel,Georgia,serif}.arbig.win{color:#ffd24a;text-shadow:0 0 12px #ff9a1f}.arbig.lose{color:#ff8a7a}
 #arbat button{width:100%}
 .clerr{color:#ff8a7a;min-height:18px;margin-top:4px;font-size:14px}
 .clchk{display:flex;align-items:center;gap:8px;margin:6px 0;color:var(--dim)}.clchk input{width:20px;height:20px}
@@ -721,7 +724,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023204257';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023204401';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1545,6 +1548,7 @@ const ARENA=(()=>{
   if(!ARB.fin){ARB.acc+=dt;while(ARB.acc>=.4&&ARB.fi<ARB.F.length){ARB.acc-=.4;applyFrame(ARB.F[ARB.fi++]);}if(ARB.fi>=ARB.F.length){ARB.fin=true;ARB.onEnd();}}
   for(const side of ARB.U)for(const u of side){u.f+=(u.tf-u.f)*Math.min(1,dt*8);u.lunge=Math.max(0,u.lunge-dt*4);u.flash=Math.max(0,u.flash-dt*5);}
   for(let k=3;k>=0;k--){for(const s of [0,1]){const u=ARB.U[s][k];if(u)drawUnit(u,T);}}
+  {const tot=s=>{let h=0,m=0;for(const u of ARB.U[s]){h+=u.f*aHP(u.i);m+=aHP(u.i);}return m?h/m:0;},a=tot(0),b=tot(1),fr=ARB.F[Math.max(0,ARB.fi-1)],tm=fr?Math.floor(fr.t):0;   const A=$('arbA'),B=$('arbB');if(A){A.style.width=(100*a)+'%';B.style.width=(100*b)+'%';$('arpA').textContent=Math.round(100*a)+'%';$('arpB').textContent=Math.round(100*b)+'%';$('arClk').textContent=Math.floor(tm/60)+':'+String(tm%60).padStart(2,'0');}}
   vignette();
   g.save();g.textAlign='center';g.font='900 18px Cinzel,Georgia,serif';g.lineWidth=4;g.strokeStyle='#150f0a';g.fillStyle='#ffe9a0';
   const tt='You  vs  '+ARB.name;g.strokeText(tt,400,26-EX);g.fillText(tt,400,26-EX);g.restore();
@@ -1556,7 +1560,7 @@ const ARENA=(()=>{
   return new Promise(done=>{
    const old=document.getElementById('arbat');if(old)old.remove();
    const el=document.createElement('div');el.id='arbat';
-   el.innerHTML='<div class="arpan"><div class="arres" id="arRes">Fighting…</div><button class="clbtn" id="arSkip">Skip</button></div>';
+   el.innerHTML='<div class="arpan"><div class="arvs"><div class="arsd"><b>You</b><div class="arbr"><i id="arbA"></i></div><em id="arpA">100%</em></div><div class="arclk" id="arClk">0:00</div><div class="arsd r"><b>'+cesc(nameB)+'</b><div class="arbr foe"><i id="arbB"></i></div><em id="arpB">100%</em></div></div><div class="arres" id="arRes">Fighting…</div><button class="clbtn" id="arSkip">Skip</button></div>';
    document.body.appendChild(el);
    $('sheet').hidden=true;$('splash').hidden=true;document.body.classList.add('arfight');   // show the battlefield behind the menu
    const mk=(arr,s)=>arr.map((i,k)=>({i,s,k,f:1,tf:1,lunge:0,flash:0,dead:false}));
