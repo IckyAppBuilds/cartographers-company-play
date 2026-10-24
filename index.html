@@ -696,7 +696,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261023173938';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261023193919';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1560,7 +1560,7 @@ function fuseCards(c){   // two identical cards in the deck become one card a ra
  if(selCard>=S.hand.length)selCard=-1;
  const nc=cardKey(kindOf(c),modOf(c),r+1);S.deck.push(nc);S.draw.splice(Math.random()*(S.draw.length+1)|0,0,nc);fillHand();
  const t=TILES[kindOf(c)];st('fusions');
- loot({head:'Tiles fused!',icon:t.i,name:t.n+' ★'+(r+1),sub:'Rank '+(r+1)+' tile',desc:rankDesc(kindOf(c),r+1),rar:Math.min(4,(t.r||0)+r),col:RCOL[Math.min(4,(t.r||0)+r)]});
+ loot({now:true,head:'Tiles fused!',icon:t.i,name:t.n+' ★'+(r+1),sub:'Rank '+(r+1)+' tile',desc:rankDesc(kindOf(c),r+1),rar:Math.min(4,(t.r||0)+r),col:RCOL[Math.min(4,(t.r||0)+r)]});
  say('Fused two '+t.n+' tiles into rank '+(r+1)+'.');sig='';save();
 }
 function removeExact(arr,c){const i=arr.indexOf(c);if(i>=0)arr.splice(i,1);return i>=0;}
@@ -1810,7 +1810,7 @@ function actComplete(cr,first,old){
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
  const lg=legGain();if(lg)h+='<p class="hint" style="margin:8px 0 0">Retiring the company now would grant +'+lg+' Legend.</p>';
- const show=()=>{if(lootEl||lootQ.length){setTimeout(show,400);return;}SND.play('act');showModal('Act '+roman(cr+1)+' complete',h,[{t:'Onward to Act '+roman(nn),primary:true}]);};
+ const show=()=>{if(sheet||lootEl||lootQ.length){setTimeout(show,400);return;}SND.play('act');showModal('Act '+roman(cr+1)+' complete',h,[{t:'Onward to Act '+roman(nn),primary:true}]);};
  setTimeout(show,500);
 }
 function advance(){
@@ -1854,7 +1854,7 @@ function step(dt){
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
   if(pt>=1.0)startTile();
  }else if(phase==='event'){pt+=dt;if(pt>=1.3){if(evState)evTick(dt);else event();}}
- else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait){if(ADS.ok()&&!reviveAsked)offerRevive();else wipe();}}
+ else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait){if(ADS.ok()&&!reviveAsked){if(!sheet)offerRevive();}else wipe();}}
  else if(phase==='fight'){
   H.forEach((h,i)=>{
    h.lunge=Math.max(0,h.lunge-dt*4);h.flash=Math.max(0,h.flash-dt*4);
@@ -1890,7 +1890,7 @@ let swapId=null;
 function starUp(i){   // after the last skill rank of the current star, a champion can ascend: +5 more ranks and +12% stats
  const s=star(i);if(!S.owned.includes(i)||skr(i)<skMax(i)||s>=STAR_MAX||hsh(i)<starCost(s,i))return;
  S.hs[i]-=starCost(s,i);S.star[i]=s+1;sig='';save();
- loot({head:'Champion ascends!',icon:heroIcon(i),name:HEROES[i].n+' '+'★'.repeat(s+1),sub:'Star '+(s+1)+' · +12% stats',desc:'Skill ranks now go up to '+skMax(i)+'.',rar:3,col:[255,208,74]});
+ loot({now:true,head:'Champion ascends!',icon:heroIcon(i),name:HEROES[i].n+' '+'★'.repeat(s+1),sub:'Star '+(s+1)+' · +12% stats',desc:'Skill ranks now go up to '+skMax(i)+'.',rar:3,col:[255,208,74]});
  say(HEROES[i].n+' ascends to '+'★'.repeat(s+1)+'!');
 }
 function upSkill(i){const r=skr(i);if(!S.owned.includes(i)||r>=skMax(i)||hsh(i)<skCost(r,i))return;S.hs[i]-=skCost(r,i);S.sk[i]=r+1;say(HEROES[i].n+': '+HSK[i].n+' rank '+(r+1)+'.');sig='';save();}
@@ -1975,7 +1975,7 @@ function build(){
   $('relics').innerHTML=keys.map(k=>{const n=S.relics[k]||0,r=RELICS[k];return `<div class="rl ${n?'':'unk'}"><div class="ic">${r.ico}</div><div><div class="nm">${r.n}${n?' <small>×'+n+'</small>':''}</div><div class="hint">${r.d} each, stacks</div></div><div class="eff">${n?EFF[k](n):'Not found yet'}</div></div>`;}).join('');}
  const lg=legGain();$('leg').disabled=!lg;$('leg').textContent=lg?`Retire the company: +${lg} Legend`:'Retire the company';
  {const rb=$('retbtn');rb.hidden=!lg;if(lg){rb.textContent='★ Retire +'+lg;}
-  if(lg&&!S.retHint&&$('modal').hidden){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>★ Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
+  if(lg&&!S.retHint&&$('modal').hidden&&!sheet){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>★ Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
  $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats, +${S.legend*10}% gold). Unlocks at tile 30. The further you get before retiring, the more Legend it pays.`;
  $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">▶ x${speed}</button>`;
  {const rb=$('reroll'),ad=S.rd<1&&ADS.ok();rb.disabled=S.rd<1&&!ad;const t=ad?'▶ +2 Redraws':'↻ Redraw';if(rb.textContent!==t)rb.textContent=t;}
@@ -2008,7 +2008,7 @@ const BOONS={
  relic:{n:'Treasure Sense',d:'+8% relic chance from fights',ic:'treasury'}
 };
 function showBoon(){
- if(!$('modal').hidden)return setTimeout(showBoon,1500);
+ if(!$('modal').hidden||sheet)return setTimeout(showBoon,1500);
  const pool=Object.keys(BOONS).sort(()=>Math.random()-.5).slice(0,3);
  showModal("Cartographer's Boon",'<p>A Warden falls and the map grows. Choose a permanent boon. It stays with you, even when you retire.</p>',
   pool.map(k=>({t:ic(BOONS[k].ic)+' <b>'+BOONS[k].n+'</b><br><small>'+BOONS[k].d+'</small>',primary:0,fn:()=>{S.boons[k]=(S.boons[k]||0)+1;say('Boon gained: '+BOONS[k].n+'.');sig='';save();}})));
@@ -2033,8 +2033,8 @@ function showModal(title,html,btns){
 let spoilsEl=null,spoilsKey='',spoilsLater=false;
 function syncSpoils(){
  if(!S.offer){spoilsLater=false;if(spoilsEl){spoilsEl.remove();spoilsEl=null;spoilsKey='';}return;}
- if(spoilsEl)spoilsEl.style.display=$('modal').hidden?'':'none';
- if(spoilsLater||!$('modal').hidden){return;}
+ if(spoilsEl)spoilsEl.style.display=($('modal').hidden&&!sheet)?'':'none';
+ if(spoilsLater||!$('modal').hidden||sheet){return;}
  const key=S.offer.join()+'|'+pendingTake+'|'+S.deck.join();
  if(spoilsEl&&key===spoilsKey)return;
  spoilsKey=key;
@@ -2052,9 +2052,11 @@ function syncSpoils(){
 }
 /* ---------- loot popups: a celebration whenever a relic or a new card lands ---------- */
 const lootQ=[];let lootEl=null,lootTm=0;
-function loot(o){if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl)nextLoot();}
+let lootNow=false;   // true while applying a reward the player just asked for inside a menu (an ad, a purchase): those show at once
+function loot(o){o.now=o.now||lootNow;if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now))nextLoot();}
 function nextLoot(){
- const o=lootQ.shift();if(!o){lootEl=null;return;}
+ const ix=sheet?lootQ.findIndex(x=>x.now):0;   // in a menu, only popups for what you just did in it come up; the rest wait
+ const o=ix<0?null:lootQ.splice(ix,1)[0];if(!o){lootEl=null;return;}
  SND.play('loot',{rar:o.rar});
  const col=o.col||[255,208,74],big=o.rar>=3,n=big?64:o.rar>=1?42:28;
  const el=document.createElement('div');el.id='loot';el.className=big?'big':'';el.style.setProperty('--lc',col.join(','));
@@ -2097,7 +2099,7 @@ function shopBuy(id){
  const st=shopState();let cost,ok=false;
  if(SUPPLIES[id]){cost=supPrice(id);if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;SUPPLIES[id].fn();st.n[id]=(st.n[id]||0)+1;toast(SUPPLIES[id].n+' used.');ok=true;}
  else if(id[0]==='r'&&id[1]==='_'){const x=st.rel[+id.slice(2)];if(!x||x.sold)return;cost=relPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;x.sold=true;S.relics[x.k]=(S.relics[x.k]||0)+1;lootRelic(x.k,'Relic bought!',true);ok=true;}
- else if(id==='shard'){if(st.sh>=2){toast('Sold out until the next act.');return;}cost=shardPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;st.sh++;shardPopup(addShards(1),'Shop');ok=true;}
+ else if(id==='shard'){if(st.sh>=2){toast('Sold out until the next act.');return;}cost=shardPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;st.sh++;lootNow=true;shardPopup(addShards(1),'Shop');lootNow=false;ok=true;}
  if(ok){save();shopHTML.v='';}
 }
 const shopHTML={v:''};
@@ -2128,7 +2130,7 @@ async function premBuy(sku){
  try{await CC.buy(sku);await loadEnt();const p=PREM[sku];
   if(sku==='shard_bundle'){addShards(25);}
   if(p.eq){const [k,v]=p.eq.split(':');S[k]=v;applyEnt();}
-  save();loot({head:'Purchase complete!',icon:p.ic,name:p.n,sub:'Premium · test mode',desc:p.d,rar:3,col:[176,107,255]});
+  save();loot({now:true,head:'Purchase complete!',icon:p.ic,name:p.n,sub:'Premium · test mode',desc:p.d,rar:3,col:[176,107,255]});
  }catch(e){toast(/already owned/.test(e.message||'')?'You already own that.':'Could not complete the purchase. Try again.');}
  premBusy=false;
 }
@@ -2190,6 +2192,7 @@ function showSheet(n){
  if(sheet){$('sheetTitle').textContent=SHEETS[sheet];document.querySelectorAll('.pane').forEach(p=>p.hidden=p.dataset.pane!==sheet);}
  if(sheet==='clan')CLAN.open();else CLAN.close();
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.sheet===sheet));
+ if(!sheet){if(!lootEl&&lootQ.length)nextLoot();setTimeout(dailyCheck,300);}
 }
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')showSheet(null);});
@@ -2693,11 +2696,14 @@ const boostTxt=s=>s>=3600?Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m':Math
 const longTxt=s=>{const m=Math.ceil(s/60);return m>=60?Math.floor(m/60)+'h '+(m%60)+'m':m+' min';};
 async function adReward(k){
  if(k==='boost'&&(S.boostT||0)>=BOOST_CAP-60){toast('Your boost is already full (4 hours).');return;}
+ const _ln=lootNow;
  if(k==='boost'||k==='shard'||k==='chest'){if(adLeft(k)>0)return;}
  const ok=await ADS.show();if(!ok){toast('No reward: the ad was not finished.');return;}
+ lootNow=true;try{
  if(k==='boost'){S.boostT=Math.min(BOOST_CAP,(S.boostT||0)+BOOST_ADD);(S.adT||(S.adT={})).boost=Date.now()/1000;toast('+30 min gold x2 ('+boostTxt(S.boostT)+' stored)');say('Ad bonus: +30 minutes of gold x2, '+boostTxt(S.boostT)+' stored.');}
  else if(k==='chest'){(S.adT||(S.adT={})).chest=Date.now()/1000;const q=Math.random();gRelic.head='Free chest';const txt=q<.5?chestGold():q<.7?gRelic(1,1):q<.9?gShard(3,1):gRelic(1,1)+', '+gShard(3,1)+' and '+gGold(2,1);gRelic.head=null;toast('Chest: '+txt);say('Free chest: '+txt+'.');}
  else if(k==='shard'){const per=addShards(1);(S.adT||(S.adT={})).shard=Date.now()/1000;say('Ad bonus: '+shardMsg(per)+'.');shardPopup(per,'Ad bonus');}
+ }finally{lootNow=_ln;}
  sig='';save();
 }
 /* ---------- away gains: the company keeps marching while you are gone (8h cap, half your live income, a shard per 2h, and a full rest) ---------- */
@@ -2732,7 +2738,7 @@ const DAILY_R=[   // [short label, icon, long label, give(multiplier)]
 ];
 let dailyOpen=false;
 function dailyCheck(){
- if(dailyOpen||!S.seenIntro||!S.order)return;
+ if(dailyOpen||sheet||!S.seenIntro||!S.order)return;
  const now=new Date(),today=dayKey(now),d=S.daily||(S.daily={last:'',streak:0});
  if(d.last===today)return;
  const gap=d.last?dayNum(today)-dayNum(d.last):99;
@@ -2777,7 +2783,7 @@ document.addEventListener('visibilitychange',holdStop);
 document.addEventListener('click',e=>{if(holdFired){e.stopPropagation();e.preventDefault();holdFired=false;}},true);   // the click that ends a hold must not buy one extra
 document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hero],button[data-lv],button[data-sk]'))e.preventDefault();});
 
-const popupOpen=()=>!!lootEl||lootQ.length>0||!$('modal').hidden||!!document.getElementById('adtest');
+const popupOpen=()=>!!lootEl||(lootQ.length>0&&!sheet)||!$('modal').hidden||!!document.getElementById('adtest');
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
  let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
