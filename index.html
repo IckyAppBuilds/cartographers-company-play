@@ -795,7 +795,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261024174307';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025182112';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -3508,6 +3508,7 @@ function frame(now){
  while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
  if(S.autoLv&&(autoT+=dt)>.35){autoT=0;autoLevel();}
  saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(gained/saveT);st('gold',gained);gained=0;saveT=0;save();}
+ if(S.offer)syncSpoils();   // the boss spoils pick comes up as soon as the screen is free, even if the rest of the screen has not changed (it used to wait for the next redraw, which left the company frozen after an away march)
  if((fitN=(fitN||0)+1)%20===0){fit();navSync();}   // keep the canvas matched to its box
  if(!(drag&&drag.active))build();
  hud();draw(dt);SND.mood(phase,curBoss,S.depth);
