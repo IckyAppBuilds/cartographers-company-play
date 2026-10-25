@@ -696,6 +696,24 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 #hand .hc.sel{background-image:var(--ui-hcsel)!important;box-shadow:none;transform:translateY(-3px)}
 #hand .hc .i{font-size:26px;line-height:1}#hand .hc .n{font-size:12px;line-height:1.1}#hand .hc .r{font-size:8px;line-height:1;color:#4a3520!important;font-weight:700;opacity:.85}#hand .hc .n{text-shadow:0 1px 0 rgba(255,255,255,.35)}#hand .hc .d{font-size:9px;line-height:1.1;-webkit-line-clamp:2}
 
+
+/* act map */
+#actmap{max-height:54vh;overflow:auto;text-align:left;padding-right:2px}
+.amkey{display:flex;gap:14px;justify-content:center;font-size:12px;margin:0 0 6px;opacity:.9}
+.amd{font-style:normal;position:absolute;left:50%;transform:translateX(-50%);font-size:12px;line-height:1;pointer-events:none;z-index:2}
+.amd.cu{top:-12px;color:#ffd24a}.amd.fu{top:-12px;color:#7fd4ff}
+.amkey .amd{position:static;transform:none;display:inline}
+.amr{padding:8px 8px 6px;margin:5px 0;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid transparent}
+.amr.here{background:rgba(255,210,74,.12);border-color:rgba(255,210,74,.5)}
+.amh{display:flex;justify-content:space-between;gap:6px;align-items:baseline;font-size:13px;margin-bottom:12px}.amh span{font-size:11px;white-space:nowrap}
+.amrow{display:flex;gap:3px;align-items:center}
+.amt{position:relative;flex:1;aspect-ratio:1/1;background:var(--ui-stone) center/contain no-repeat}
+.amt.far,.amb.far{opacity:.45}.amt.cur{background-image:var(--ui-stonecur)}
+.amb{position:relative;flex:0 0 22%;aspect-ratio:1/1;background:var(--ui-lair) center/contain no-repeat;display:flex;align-items:center;justify-content:center}
+.amb img{width:78%;height:78%;object-fit:contain;image-rendering:auto}
+.amb.ok img{filter:grayscale(.6) brightness(.7)}
+.amx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#e0322a;font-size:46px;line-height:1;text-shadow:0 0 4px #000,0 2px 6px #000}
+.amw{display:block;margin-top:3px;opacity:.7;font-size:11px}
 </style>
 </head>
 <body>
@@ -795,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025183340';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025183543';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2579,15 +2597,20 @@ function showModal(title,html,btns){
 }
 /* ---------- act map: tap the act name in the top bar for every act, its Warden and the Legend recommended for it ---------- */
 function showActMap(){
- const cur=region(S.depth),have=S.legend||0,top=Math.min(40,Math.max(12,region(Math.max(S.best||0,S.depth))+6));
- let h='<p class="hint" style="margin:0 0 8px">You have <b style="color:#ffd24a">Legend '+have+'</b>. Below the recommended Legend for an act, its enemies grow much tougher; retire to earn more.</p><div id="actmap" style="max-height:52vh;overflow:auto;text-align:left;padding-right:2px">';
+ const cur=region(S.depth),have=S.legend||0,jb=S.jbest||0,top=Math.min(40,Math.max(12,region(Math.max(S.best||0,S.depth))+6));
+ let h='<p class="hint" style="margin:0 0 6px">You have <b style="color:#ffd24a">Legend '+have+'</b>. Below the recommended Legend for an act its enemies grow much tougher.</p><div class="amkey"><span><i class="amd cu">▼</i> You are here</span><span><i class="amd fu">⚑</i> Furthest tile</span></div><div id="actmap">';
  for(let a=0;a<top;a++){
-  const need=Math.ceil(legReq(a)),done=(S.jbest||0)>=a*10+10,here=a===cur,ok=have>=need,rg=RG(a);
-  const st=done?'<span style="color:#8fe39a">✔</span>':here?'<span style="color:#ffd24a">➤</span>':'<span style="opacity:.5">·</span>';
-  h+='<div style="display:flex;gap:8px;align-items:center;padding:6px 8px;margin:3px 0;border-radius:8px;background:'+(here?'rgba(255,210,74,.14);border:1px solid rgba(255,210,74,.5)':'rgba(255,255,255,.04);border:1px solid transparent')+'"><div style="width:16px;text-align:center">'+st+'</div><div style="flex:1;min-width:0"><b>Act '+roman(a+1)+' · '+rg[0]+'</b><br><small style="opacity:.75">Warden: '+rg[2]+'</small></div><div style="text-align:right;white-space:nowrap">'+(need?'<small style="opacity:.7">Recommended</small><br><b style="color:'+(ok?'#8fe39a':'#ffb48a')+'">Legend '+need+'</b>':'<small style="opacity:.7">No Legend needed</small>')+'</div></div>';
+  const need=Math.ceil(legReq(a)),rg=RG(a),done=jb>=a*10+10;let row='';
+  for(let t=0;t<10;t++){
+   const d=a*10+t,isC=d===S.depth,isF=d===jb,cleared=d<jb;
+   const mk=(isC?'<i class="amd cu">▼</i>':'')+(isF?'<i class="amd fu">⚑</i>':'');
+   if(t<9)row+='<div class="amt'+(cleared?' ok':d>jb?' far':'')+(isC?' cur':'')+'">'+mk+'</div>';
+   else row+='<div class="amb'+(done?' ok':jb<d?' far':'')+(isC?' cur':'')+'">'+mk+'<img src="assets/enemies/boss'+bossArt(a)+'.png'+V+'" alt="">'+(done?'<b class="amx">✖</b>':'')+'</div>';
+  }
+  h+='<div class="amr'+(a===cur?' here':'')+'"><div class="amh"><b>Act '+roman(a+1)+' · '+rg[0]+'</b><span style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">'+(need?'Recommended Legend '+need:'No Legend needed')+'</span></div><div class="amrow">'+row+'</div><small class="amw">Warden: '+rg[2]+'</small></div>';
  }
  showModal('Map of the acts',h+'</div>',[{t:'Close',primary:true}]);
- setTimeout(()=>{const c=document.querySelector('#actmap > div:nth-child('+(cur+1)+')');if(c)c.scrollIntoView({block:'center'});},30);
+ setTimeout(()=>{const c=document.querySelector('#actmap > .amr.here');if(c)c.scrollIntoView({block:'center'});},30);
 }
 {const t=document.querySelector('#top .ttl');if(t){t.style.cursor='pointer';t.addEventListener('click',()=>{if(typeof popupOpen==='function'&&popupOpen())return;showActMap();});}}
 /* ---------- boss spoils: the three offered cards appear as a celebratory pick-one popup ---------- */
