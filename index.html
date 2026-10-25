@@ -795,7 +795,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025183204';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025183340';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2577,6 +2577,19 @@ function showModal(title,html,btns){
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
  $('modal').hidden=false;SND.play('popup');
 }
+/* ---------- act map: tap the act name in the top bar for every act, its Warden and the Legend recommended for it ---------- */
+function showActMap(){
+ const cur=region(S.depth),have=S.legend||0,top=Math.min(40,Math.max(12,region(Math.max(S.best||0,S.depth))+6));
+ let h='<p class="hint" style="margin:0 0 8px">You have <b style="color:#ffd24a">Legend '+have+'</b>. Below the recommended Legend for an act, its enemies grow much tougher; retire to earn more.</p><div id="actmap" style="max-height:52vh;overflow:auto;text-align:left;padding-right:2px">';
+ for(let a=0;a<top;a++){
+  const need=Math.ceil(legReq(a)),done=(S.jbest||0)>=a*10+10,here=a===cur,ok=have>=need,rg=RG(a);
+  const st=done?'<span style="color:#8fe39a">✔</span>':here?'<span style="color:#ffd24a">➤</span>':'<span style="opacity:.5">·</span>';
+  h+='<div style="display:flex;gap:8px;align-items:center;padding:6px 8px;margin:3px 0;border-radius:8px;background:'+(here?'rgba(255,210,74,.14);border:1px solid rgba(255,210,74,.5)':'rgba(255,255,255,.04);border:1px solid transparent')+'"><div style="width:16px;text-align:center">'+st+'</div><div style="flex:1;min-width:0"><b>Act '+roman(a+1)+' · '+rg[0]+'</b><br><small style="opacity:.75">Warden: '+rg[2]+'</small></div><div style="text-align:right;white-space:nowrap">'+(need?'<small style="opacity:.7">Recommended</small><br><b style="color:'+(ok?'#8fe39a':'#ffb48a')+'">Legend '+need+'</b>':'<small style="opacity:.7">No Legend needed</small>')+'</div></div>';
+ }
+ showModal('Map of the acts',h+'</div>',[{t:'Close',primary:true}]);
+ setTimeout(()=>{const c=document.querySelector('#actmap > div:nth-child('+(cur+1)+')');if(c)c.scrollIntoView({block:'center'});},30);
+}
+{const t=document.querySelector('#top .ttl');if(t){t.style.cursor='pointer';t.addEventListener('click',()=>{if(typeof popupOpen==='function'&&popupOpen())return;showActMap();});}}
 /* ---------- boss spoils: the three offered cards appear as a celebratory pick-one popup ---------- */
 let spoilsEl=null,spoilsKey='',spoilsLater=false;
 function syncSpoils(){
