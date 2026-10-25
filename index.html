@@ -813,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025183543';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025183748';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2022,7 +2022,7 @@ function bossCast(f){
  }
 }
 /* ---------- encounters ---------- */
-const PACE={6:2.2};   // per-act extra toughness (hp x, damage x its square root); Act VII was a walkover at Legend 38 with the Warden dying in 10s and the party untouched
+const PACE={6:2.2};for(let r=7;r<60;r++)PACE[r]=3;   // per-act extra toughness (hp x, damage x its square root); Act VII was a walkover at Legend 38 with the Warden dying in 10s and the party untouched
 const GROW={from:30,k:.5};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
 /* Legend gate: every act from Act V expects a minimum Legend (about three retires' worth more than the act before); short of it, enemies are tougher in proportion */
 const GATE={p:30,from:4,wall:1};
@@ -2071,7 +2071,7 @@ function startTile(){
  if(t.ev){phase='event';return;}
  const d=S.depth,r=region(d);
  const wl=Math.max(0,(WALL.step?Math.floor(d/10):d)-WALL.from),pm=PACE[r]||1;   // past WALL.from enemies outgrow a single run, so the company has to retire for Legend to get further
- const ax=r>=ACTX.from?ACTX:{hp:1,atk:1},de=effD(d),gm=gateMul(d),hpM=22*1.16**de*pm*WALL.hp**wl*gm*ax.hp,atk=3.2*1.13**de*Math.sqrt(pm)*WALL.atk**wl*Math.sqrt(gm)*ax.atk;
+ const ax=r>=ACTX.from?ACTX:{hp:1,atk:1},de=effD(d),gm=1,hpM=22*1.16**de*pm*WALL.hp**wl*gm*ax.hp,atk=3.2*1.13**de*Math.sqrt(pm)*WALL.atk**wl*Math.sqrt(gm)*ax.atk;
  const synF=curSyn&&curSyn.foe||1;
  const multi=t.boss?(r>=TRIPLE_REGION?3:r>=DUAL_REGION?2:1):1;   // after the ten normal acts the Warden brings a second guardian; from Act XXI, two more
  const dual=multi>1;
@@ -2335,7 +2335,7 @@ function actComplete(cr,first,old){
  if(d)h+='<h3 style="margin:10px 0 2px">Your run through the act</h3><div class="actst">'+tile(fmtT(d.sec),'game time')+tile(fmt(d.fights),'fights won')+tile(fmt(d.kills),'foes slain')+tile(fmt(d.gold),'gold earned')+tile(d.rel,'relics found')+tile(d.sh,'hero shards')+(d.falls?tile(d.falls,'falls'):'')+'</div>';
  const T=(ACTTRAIT[nr%20]||['','']).filter(Boolean),newH=HEROES.map((x,i)=>i).filter(i=>HACT[i]===nn&&!S.owned.includes(i)),wardn=RG(nr);
  h+='<h3 style="margin:10px 0 2px">Next: Act '+roman(nn)+' · '+wardn[0]+'</h3><p style="margin:0 0 4px">Warden: <b>'+wardn[2]+'</b>.</p>';
- if(nr>=GATE.from){const need=legReq(nr),have=S.legend||0,pay=Math.max(1,Math.floor((nr-1)*(nr-1)/2)),left=Math.ceil((need-have)/pay);h+='<div class="syn"><b style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">Recommended Legend '+need+'</b> '+(have>=need?'(you have '+have+').':'(you have '+have+'). About '+left+' more retire'+(left>1?'s':'')+' at about +'+pay+' Legend each; below it the enemies here grow much tougher.')+'</div>';}
+ if(nr>=GATE.from){const need=legReq(nr),have=S.legend||0,pay=Math.max(1,Math.floor((nr-1)*(nr-1)/2)),left=Math.ceil((need-have)/pay);h+='<div class="syn"><b style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">Recommended Legend '+need+'</b> '+(have>=need?'(you have '+have+').':'(you have '+have+'). About '+left+' more retire'+(left>1?'s':'')+' at about +'+pay+' Legend each; below it the enemies here will be a wall.')+'</div>';}
  {const ab=BOSSAB[nr%20],A=ABIL[ab[0]];h+='<div class="syn"><b style="color:'+A.c+'">'+A.g+' '+ab[1]+'</b> '+A.d+'</div>';}
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
@@ -2598,7 +2598,7 @@ function showModal(title,html,btns){
 /* ---------- act map: tap the act name in the top bar for every act, its Warden and the Legend recommended for it ---------- */
 function showActMap(){
  const cur=region(S.depth),have=S.legend||0,jb=S.jbest||0,top=Math.min(40,Math.max(12,region(Math.max(S.best||0,S.depth))+6));
- let h='<p class="hint" style="margin:0 0 6px">You have <b style="color:#ffd24a">Legend '+have+'</b>. Below the recommended Legend for an act its enemies grow much tougher.</p><div class="amkey"><span><i class="amd cu">▼</i> You are here</span><span><i class="amd fu">⚑</i> Furthest tile</span></div><div id="actmap">';
+ let h='<p class="hint" style="margin:0 0 6px">You have <b style="color:#ffd24a">Legend '+have+'</b>. Below the recommended Legend for an act its enemies will be a real wall.</p><div class="amkey"><span><i class="amd cu">▼</i> You are here</span><span><i class="amd fu">⚑</i> Furthest tile</span></div><div id="actmap">';
  for(let a=0;a<top;a++){
   const need=Math.ceil(legReq(a)),rg=RG(a),done=jb>=a*10+10;let row='';
   for(let t=0;t<10;t++){
