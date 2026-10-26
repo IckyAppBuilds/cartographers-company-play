@@ -926,7 +926,7 @@ html.portal #acctSec,html.portal #icky{display:none!important}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026152939';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026161509';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2089,7 +2089,7 @@ function rosterHTML(){
 function drawTrait(f){const t=TRAITN[f.tr].toUpperCase();g.save();g.font='700 10px Cinzel,Georgia,serif';g.textAlign='center';g.textBaseline='middle';const w=g.measureText(t).width+10,x=f.x,y=f.y+12;g.fillStyle='rgba(15,10,6,.78)';g.beginPath();g.roundRect(x-w/2,y-7,w,14,7);g.fill();g.strokeStyle=TRAITC[f.tr];g.lineWidth=1;g.stroke();g.fillStyle=TRAITC[f.tr];g.fillText(t,x,y+.5);g.restore();}
 const spdMul=()=>(1+.08*(S.relics.boots||0))*(1+.08*((S.boons||{}).speed||0));
 const maxRd=()=>3+((S.boons||{}).ink||0)+(S.relics.ink||0);   // redraws per deck cycle; they refill whenever the deck reshuffles
-const legGain=()=>{if(S.depth<30)return 0;const a=Math.min(Math.floor(S.depth/10),gateAct())-1;return Math.floor(a*a/2);};   // retire from tile 30, but the payout grows with the square of how far you got (+2 at Act IV, +8 at Act VI, +32 at Act IX)
+const legGain=()=>{if(S.depth<30)return 0;const a=Math.floor(S.depth/10)-1;return Math.floor(a*a/2);};   // retire from tile 30; the payout grows with the square of how far you got (+2 at Act IV, +8 at Act VI, +18 at Act VIII, +32 at Act IX). Enemies scale off the recommended Legend, so going deep on a low Legend is its own wall and needs no cap here
 const TRIPLE_REGION=20;   // from Act XXI the Warden brings two more guardians (three bosses at once)
 const ART_ACTS=20;   // acts with their own art, music and boss before the cycle repeats
 const DUAL_REGION=10;   // from Act XI the Warden brings a second guardian
