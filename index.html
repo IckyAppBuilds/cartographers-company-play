@@ -723,6 +723,9 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 .amx::before,.amx::after{content:'';position:absolute;left:50%;top:8%;width:9%;height:84%;background:#e0322a;border-radius:3px;box-shadow:0 0 4px #000;transform:translateX(-50%) rotate(45deg)}
 .amx::after{transform:translateX(-50%) rotate(-45deg)}
 #mute svg{display:block;margin:auto}
+#acctbtn{position:absolute;right:42px;top:6px;z-index:6;width:30px;height:30px;padding:0;min-height:0;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.45);color:#fff;line-height:1;cursor:pointer}
+#acctbtn svg{display:block;margin:auto}
+#acctbtn.guest{border-color:#ffd24a;color:#ffd24a}
 #bbar{position:absolute;left:6px;right:96px;bottom:5px;z-index:5;display:flex;gap:4px;pointer-events:none;flex-wrap:nowrap;overflow:hidden}
 #bbar .bf{pointer-events:auto;cursor:pointer}
 #bbar .bmin{padding-left:8px}#bbar .bmin b{color:#ffd24a;margin-left:3px}
@@ -803,7 +806,7 @@ body.newb .row3{grid-template-columns:1fr auto}
  </header>
  <button id="spoils" data-sheet="deck" hidden><img class="ico" src="assets/icons/treasury.png" alt="" draggable="false"> Boss spoils! Tap to choose a tile</button>
  <section id="roadw" class="card"><div class="rl"><b>Road ahead</b><span id="rsub"></span></div><div id="road"></div></section>
- <section id="stage"><canvas id="c" width="800" height="320"></canvas><div id="bbar"></div><button id="mute" aria-label="Sound"></button><button id="retbtn" hidden></button><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
+ <section id="stage"><canvas id="c" width="800" height="320"></canvas><div id="bbar"></div><button id="mute" aria-label="Sound"></button><button id="acctbtn" aria-label="Account"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.2-6.5 8-6.5s7 2 8 6.5"/></svg></button><button id="retbtn" hidden></button><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
  <section id="ctrl" class="card">
   <div class="bar"><i id="inkF" style="background:#6aa8ff"></i><b id="inkT"></b></div>
   <div class="row3"><button id="reroll">Redraw</button><button id="insbtn"></button><span id="spd"></span></div>
@@ -894,7 +897,7 @@ body.newb .row3{grid-template-columns:1fr auto}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025231218';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026102743';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2993,7 +2996,15 @@ function navSync(){
  const seen=S.menuSeen||(S.menuSeen={});
  if(S.menuSeen&&!S.menuInit){S.menuInit=1;for(const k in NAVU)if(navOpen(k))seen[k]=1;return;}   // existing players keep what they already have, silently
  if(zoneFreeze||actPending||sheet||!$('modal').hidden||lootEl||lootQ.length)return;   // a new menu is introduced only once no menu is open, so the player can look at the last one first
- for(const k in NAVINFO){if(navOpen(k)&&!seen[k]){seen[k]=1;unlockShow(k);save();break;}}
+ for(const k in NAVINFO){if(navOpen(k)&&!seen[k]){seen[k]=1;unlockShow(k);save();return;}}
+ guestNudge();
+}
+function guestNudge(){   // still a guest once Act II is done (and again after Act V): recommend an account
+ if(!CC.guest||AWAYSIM)return;
+ const r=region(Math.max(S.best||0,S.depth||0)),lv=r>=5?2:r>=2?1:0;
+ if(!lv||(S.guestNudge||0)>=lv)return;
+ S.guestNudge=lv;save();
+ showModal('Keep your progress safe','<p>You have cleared '+(lv>1?'five acts':'two acts')+' as a guest. '+(CC.user?'Only this device can get back into your save.':'Your save lives on this device only: clearing the browser or switching phones would lose it.')+'</p><p>Create a free account to protect it and play anywhere.</p>',[{t:'Create account',primary:true,fn:()=>{save();CC.upgrade();}},{t:'Maybe later'}]);
 }
 let unPtr=null;
 function unlockShow(k){   // animated reveal: a glowing icon, what the menu does, and a pointer at its button in the bottom bar
@@ -3807,7 +3818,14 @@ sndUI();
 if(CC.guest){$('acct').innerHTML='You are playing as a <b>guest</b>. '+(CC.user?'Your progress is saved, but only this device can get back into it.':'Your progress is saved on this device only.')+' Create an account to keep it safe and play on any device.';$('signout').textContent='Create account';$('signout').onclick=()=>{save();CC.upgrade();};if(!CC.user)$('delacct').hidden=true;}
 else{$('acct').textContent='Signed in as '+CC.email+'. Progress syncs to your account automatically.';
 $('signout').onclick=()=>{save();CC.out();};}
-$('delacct').onclick=()=>showModal('Delete your account?','<p>This <b>permanently deletes</b> your account and your cloud save: progress, heroes, Legend, relics and purchases. It cannot be undone.</p><p class="hint">To start over without deleting your account, use Retire instead.</p>',[{t:'Keep my account',primary:true},{t:'Delete forever',fn:async()=>{try{await CC.del();}catch(e){toast('Could not delete the account. Check your connection and try again.');}}}]);
+function delAcct(){showModal('Delete your account?','<p>This <b>permanently deletes</b> your account and your cloud save: progress, heroes, Legend, relics and purchases. It cannot be undone.</p><p class="hint">To start over without deleting your account, use Retire instead.</p>',[{t:'Keep my account',primary:true},{t:'Delete forever',fn:async()=>{try{await CC.del();}catch(e){toast('Could not delete the account. Check your connection and try again.');}}}]);}
+$('delacct').onclick=delAcct;
+$('acctbtn').classList.toggle('guest',!!CC.guest);
+function showAccount(){
+ if(CC.guest)showModal('Your account','<p>You are playing as a <b>guest</b>. '+(CC.user?'Your progress is saved, but only this device can get back into it.':'Your progress is saved on this device only.')+'</p><p>Create an account to keep it safe and play on any device.</p>',[{t:'Create account',primary:true,fn:()=>{save();CC.upgrade();}},{t:'Not now'}]);
+ else showModal('Your account','<p>Signed in as <b>'+CC.email+'</b>. Progress syncs to your account automatically.</p>',[{t:'Sign out',fn:()=>{save();CC.out();}},{t:'Delete account',fn:delAcct},{t:'Close',primary:true}]);
+}
+$('acctbtn').onclick=showAccount;
 window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase}};
 </script>
 </body>
