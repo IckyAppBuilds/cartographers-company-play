@@ -878,6 +878,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
    <div class="au-or"><span>New to the realm?</span></div>
    <div class="row au-one"><button type="button" id="authUp">Create account</button></div>
    <div class="row au-one" id="authGuestRow"><button type="button" id="authGuest" class="au-guest">Play as guest</button></div>
+   <div id="authCap" hidden></div>
    <p class="legal au-forgot" id="authBackP" hidden><a href="#" id="authBack">Already have an account? Log in</a></p>
    <p class="legal">By creating an account you agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
   </form>
@@ -886,7 +887,8 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025223912';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025224627';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1002,11 +1004,28 @@ const CC=(function(){
   start();
  }
  async function guest(){
+  msg(CAPTCHA_SITE_KEY?'Quick check that you are human...':'Starting a guest game...');
+  let tok=null;try{tok=await captcha();}catch(e){return msg(e.message,1);}
   msg('Starting a guest game...');
-  try{const r=await db.auth.signInAnonymously();if(!r.error&&r.data&&r.data.user){lset('cc-guest','1');return enter(r.data.user);}}catch(e){}
+  try{const r=await db.auth.signInAnonymously(tok?{options:{captchaToken:tok}}:undefined);if(!r.error&&r.data&&r.data.user){lset('cc-guest','1');return enter(r.data.user);}}catch(e){}
   lset('cc-guest','1');start();   // no cloud account: progress stays on this device until the player makes one
  }
  function upgrade(){lset('cc-guest-up','1');location.reload();}   // from the game: back to the card, on its create-account page
+ /* human check (Cloudflare Turnstile): loads only when a site key is set; resolves with a token, or null when there is no key */
+ let tsLoad=null,tsId=null;
+ function captcha(){
+  if(!CAPTCHA_SITE_KEY)return Promise.resolve(null);
+  const box=$('authCap');
+  return new Promise((res,rej)=>{
+   const go=()=>{
+    box.hidden=false;box.innerHTML='';
+    try{tsId=window.turnstile.render(box,{sitekey:CAPTCHA_SITE_KEY,theme:'dark',callback:t=>{box.hidden=true;res(t);},'error-callback':()=>{box.hidden=true;rej(new Error('The human check failed. Reload and try again.'));},'expired-callback':()=>{}});}catch(e){box.hidden=true;rej(new Error('The human check could not start.'));}
+   };
+   if(window.turnstile)return go();
+   if(!tsLoad){tsLoad=new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';sc.async=true;sc.onload=ok;sc.onerror=()=>no(new Error('Could not load the human check. Check your connection.'));document.head.appendChild(sc);});}
+   tsLoad.then(go).catch(rej);
+  });
+ }
  let signup=false;
  function mode(up){   // the card has two pages: log in, and create account (password entered twice)
   signup=up;$('authPass2Wrap').hidden=!up;$('authPass2').required=up;$('authPass2').value='';
@@ -1025,7 +1044,8 @@ const CC=(function(){
   e.preventDefault();const email=$('authEmail').value.trim();
   if(!email)return msg('Type your email above first, then tap Forgot your password.',1);
   msg('Sending a reset link...');
-  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});
+  let tok=null;if(CAPTCHA_SITE_KEY){try{tok=await captcha();}catch(er){return msg(er.message,1);}}
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname,...(tok?{captchaToken:tok}:{})});
   msg(error?error.message:'If that email has an account, a reset link is on its way. Check your inbox and spam.',!!error);
  }
  async function setNewPass(){
@@ -1040,9 +1060,10 @@ const CC=(function(){
   if(!email||password.length<6)return msg('Enter an email and a password of at least 6 characters.',1);
   if(up&&$('authPass2').value!==password)return msg('The two passwords do not match.',1);
   msg(up?'Creating your account...':'Signing in...');
+  let tok=null;if(CAPTCHA_SITE_KEY&&!(up&&user&&user.is_anonymous)){try{tok=await captcha();}catch(e){return msg(e.message,1);}msg(up?'Creating your account...':'Signing in...');}
   if(up&&user&&user.is_anonymous){const r=await db.auth.updateUser({email,password});if(r.error)return msg(r.error.message,1);lset('cc-email',email);try{localStorage.removeItem('cc-guest');}catch(e){}msg('Account saved. Check your email to confirm it.');return enter(r.data.user);}
   if(up&&lget('cc-guest')==='1')lset('cc-keepguest','1');
-  const r=up?await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}}):await db.auth.signInWithPassword({email,password});
+  const r=up?await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname,...(tok?{captchaToken:tok}:{})}}):await db.auth.signInWithPassword({email,password,...(tok?{options:{captchaToken:tok}}:{})});
   if(r.error)return msg(r.error.message,1);
   lset('cc-email',email);
   if(r.data.session)return enter(r.data.user);
