@@ -813,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025201428';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025202925';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2028,7 +2028,7 @@ function bossCast(f){
  }
 }
 /* ---------- encounters ---------- */
-const PACE={2:.8,3:.5,4:.7,6:2.2};
+const PACE={2:.8,3:.5,4:.7};
 const ATKE={2:.9,3:.65,4:.75};   // extra damage easing for the first half hour of play (Acts III-V): dying a lot early loses players   // per-act extra toughness (hp x, damage x its square root); Act VII was a walkover at Legend 38 with the Warden dying in 10s and the party untouched
 const GROW={from:30,k:.5};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
 /* Legend gate: every act from Act V expects a minimum Legend (about three retires' worth more than the act before); short of it, enemies are tougher in proportion */
@@ -2039,7 +2039,7 @@ const legReq=A=>{if(A<GATE.from)return 0;if(!LR.length){LR[GATE.from-1]=0;LR[GAT
 const gateAct=()=>{for(let j=GATE.from;j<400;j++)if(legReq(j)>(S.legend||0))return j;return 999;};   // the first act you are not yet strong enough for; retires pay as if you got no further than this
 const gateReq=d=>{const r=region(d);if(r<GATE.from)return 0;const a=legReq(r-1),b=legReq(r);return a+(b-a)*((d%10)+1)/10;};   // the Legend asked for rises tile by tile through the act, from the previous act's figure at its first tile to this act's figure at the Warden
 const gateMul=d=>{if(region(d)<GATE.from)return 1;const q=(1+.12*gateReq(d))/(1+.12*(S.legend||0));return q>1?Math.min(1e40,GATE.wall*q**GATE.p):1;};   // short of it the enemies toughen quickly, but only from the tile where your Legend runs out
-const FIX={q:1.15,atk:1,ref:2};   // damage follows the same curve but harder still (a healer in the party soaks a lot of it)   // enemies scale off the tile's recommended Legend like heroes scale off Legend (see heroMax/heroAtk) but steeper (the ratio to the power q), because heroes also have levels and relics to even it out; it never looks at your own Legend
+const FIX={q:1,atk:1,ref:2};   // damage follows the same curve but harder still (a healer in the party soaks a lot of it)   // enemies scale off the tile's recommended Legend like heroes scale off Legend (see heroMax/heroAtk) but steeper (the ratio to the power q), because heroes also have levels and relics to even it out; it never looks at your own Legend
 const fixMul=d=>{const r=region(d);if(r<FIX.ref)return 1;const q=(1+.12*gateReq(d))/(1+.12*legReq(FIX.ref));return q>1?q**FIX.q:1;};
 const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
 /* how much tougher a lone Warden is than a normal fight on the same tile (health, damage); dual and triple Wardens split it between them */
@@ -2069,7 +2069,7 @@ function plResult(win){
   party:f.party,gold:Math.round(S.gold),relics:Object.values(S.relics).reduce((a,b)=>a+b,0),act:f.act,syn:f.syn});
 }
 const BOSSX={hp:8,atk:2};
-const bossHpX=r=>r===1?.8:r===2?.7:r===3?.85:r===4?.8:r<6?1:Math.min(40,2.5*1.3**(r-6));   // from Act VII the Warden gets steadily tougher on top of the normal climb: with the Legend an act asks for, the Warden used to fall in 3-10 seconds without a scratch
+const bossHpX=r=>r===1?.8:r===2?.7:r===3?.85:r===4?.8:1;   // from Act VII the Warden gets steadily tougher on top of the normal climb: with the Legend an act asks for, the Warden used to fall in 3-10 seconds without a scratch
 const ACTX={from:3,hp:1.6,atk:1.15};   // extra health and damage from Act IV on (index 3), on top of the normal climb; it stays on so no later act is easier than Act V
 const WALL={from:6,hp:1.1,atk:1.03,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
 function startTile(){
@@ -2089,7 +2089,7 @@ function startTile(){
   const boss=t.boss;
   const hp=hpM*t.pow*synF*(S.weak>0?.75:1)*(boss?(multi===3?3.4:dual?3.5:BOSSX.hp*bossHpX(r)):1)*(.85+.3*Math.random());
   foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],tr:pickTrait(r,boss),
-   hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.15:BOSSX.atk*(r>=6?1.8:r===2?.8:r===1?.85:1)):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
+   hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.15:BOSSX.atk*(r>=6?1.2:r===2?.8:r===1?.85:1)):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
    boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(multi===3?.42:dual?.6:1)*rkM(curRank),art:boss?(j>0?'a'+(r%ART_ACTS)+'_'+j:'boss'+bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%ART_ACTS)+'_'+(Math.random()*3|0):null)});
  }
  if(t.boss){bossM={hpM,atk,r};let bi=0;for(const f of foes){f.ab=bossAbility(r,bi++);f.ch=.2;f.cast=0;f.rage=0;f.shield=0;f.abm=(multi>1?.75:1)*.6;}}   // each Warden gets an ability with its own charge bar
