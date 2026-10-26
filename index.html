@@ -864,7 +864,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025220515';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025220859';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1619,7 +1619,7 @@ const CLAN=(()=>{
   if(R.pending)h+='<div class="clcard" style="border:1px solid #ffd24a;border-radius:12px;padding:8px 10px;margin-bottom:8px"><div><b style="color:#ffe9a0">Your clan beat the boss!</b><small>Claim your share of the spoils.</small></div><button class="clbtn gold" data-cl="claim:'+R.pending.boss_id+'">Claim</button></div>';
   if(!B){
    const when=R.next_at?Math.max(0,(Date.parse(R.next_at)-Date.now())/1000):0;
-   h+='<div class="hint" style="padding:10px 2px">'+(R.reason==='members'?'A clan boss wakes once your clan has <b>3 or more members</b>. Recruit some friends! Each member strikes up to '+STRIKES+' times a day, and the boss is far too big for any one player.':R.reason==='cooldown'?'The next clan boss arrives in <b>'+fmtT(when)+'</b>.'+(R.last_defeated_tier!=null?' The last one fell, so the next is stronger.':''):'No boss right now.')+'</div>';
+   h+=teamBar()+'<div class="hint" style="padding:10px 2px">'+(R.reason==='team'?'The clan boss wakes once a member has a <b>boss team</b> that can really hurt it. Build yours above: pick up to four heroes. Each member strikes up to '+STRIKES+' times a day, and any clan size can take it on.':R.reason==='cooldown'?'The next clan boss arrives in <b>'+fmtT(when)+'</b>.'+(R.last_defeated_tier!=null?' The last one fell, so the next is stronger.':''):'No boss right now.')+'</div>';
    tb.innerHTML=h;return;
   }
   const pct=Math.max(0,Math.min(100,100*B.hp/B.max_hp)),left=Math.max(0,(Date.parse(B.ends_at)-Date.now())/1000),n=bossTeam(),est=strikeAvg(B.tier,B.trait);
