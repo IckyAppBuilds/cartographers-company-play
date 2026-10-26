@@ -813,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025193712';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025194127';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2032,7 +2032,7 @@ const legReq=A=>{if(A<GATE.from)return 0;if(!LR.length){LR[GATE.from-1]=0;LR[GAT
 const gateAct=()=>{for(let j=GATE.from;j<400;j++)if(legReq(j)>(S.legend||0))return j;return 999;};   // the first act you are not yet strong enough for; retires pay as if you got no further than this
 const gateReq=d=>{const r=region(d);if(r<GATE.from)return 0;const a=legReq(r-1),b=legReq(r);return a+(b-a)*((d%10)+1)/10;};   // the Legend asked for rises tile by tile through the act, from the previous act's figure at its first tile to this act's figure at the Warden
 const gateMul=d=>{if(region(d)<GATE.from)return 1;const q=(1+.12*gateReq(d))/(1+.12*(S.legend||0));return q>1?Math.min(1e40,GATE.wall*q**GATE.p):1;};   // short of it the enemies toughen quickly, but only from the tile where your Legend runs out
-const FIX={q:.62,atk:1,ref:2};   // damage follows the same curve but harder still (a healer in the party soaks a lot of it)   // enemies scale off the tile's recommended Legend like heroes scale off Legend (see heroMax/heroAtk) but steeper (the ratio to the power q), because heroes also have levels and relics to even it out; it never looks at your own Legend
+const FIX={q:1.15,atk:1,ref:2};   // damage follows the same curve but harder still (a healer in the party soaks a lot of it)   // enemies scale off the tile's recommended Legend like heroes scale off Legend (see heroMax/heroAtk) but steeper (the ratio to the power q), because heroes also have levels and relics to even it out; it never looks at your own Legend
 const fixMul=d=>{const r=region(d);if(r<FIX.ref)return 1;const q=(1+.12*gateReq(d))/(1+.12*legReq(FIX.ref));return q>1?q**FIX.q:1;};
 const effD=d=>d<=GROW.from?d:GROW.from+(d-GROW.from)*GROW.k;
 /* how much tougher a lone Warden is than a normal fight on the same tile (health, damage); dual and triple Wardens split it between them */
