@@ -926,7 +926,7 @@ html.portal #acctSec,html.portal #icky{display:none!important}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026161509';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026161813';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -3745,11 +3745,11 @@ async function adReward(k){
  }finally{lootNow=_ln;}
  sig='';save();
 }
-/* ---------- away gains: the company keeps marching while you are gone (8h cap, half your live income, a shard per 2h, and a full rest) ---------- */
-const AFK_CAP=8*3600;
+/* ---------- away gains: the company keeps marching while you are gone (4h cap, half your live income, a shard per 2h, and a full rest) ---------- */
+const AFK_CAP=4*3600;
 /* ---------- away march: the company keeps fighting while the app is closed or in the background ----------
    When the app goes to the background the game works out ahead, with a fixed random seed, when the company would finish the act or fall, and asks the phone to send a notification then.
-   When you come back the very same fight is played for however long you were gone (up to 8 hours), so what happens matches what you were told. */
+   When you come back the very same fight is played for however long you were gone (up to 4 hours), so what happens matches what you were told. */
 const AWAY_MIN=45;   // shorter trips (switching apps) just pause the game as before
 function awayMakeRng(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296;};}
 function awayCanMarch(){return !!S.seenIntro&&S.road[0]!=='empty'&&!evState&&!zoneFreeze&&!actPending&&$('modal').hidden&&!lootEl&&!lootQ.length&&!ARENA.live()&&!reviveWait;}
@@ -3811,7 +3811,7 @@ function awayReturn(){   // the app is back: play out the same fight for the tim
   if(reason==='time')for(const i of S.order)if(S.un[i])S.hp[i]=Math.max(S.hp[i],heroMax(i)*.5);
   const L=S.life||{},fights=(L.fights||0)-r.fights0,kills=(L.kills||0)-r.kills0,gg=S.gold-r.gold0,rel=Object.values(S.relics).reduce((a,b)=>a+b,0)-r.relics0,sh=shardTot()-r.shards0;
   const secs=(S.playSec||0)-r.t0,t=secs>=3600?Math.floor(secs/3600)+'h '+Math.floor(secs%3600/60)+'m':Math.max(1,Math.floor(secs/60))+' min';
-  const why=reason==='wait'?'<p><b style="color:#ffd24a">The road ran out.</b> The company is waiting for you to lay the next tiles.</p>':reason==='act'?'<p><b style="color:#8fe39a">The Warden fell and the act is cleared!</b> The company stopped on the battlefield to wait for you.</p>':reason==='fell'?'<p><b style="color:#ff9a8a">The company was routed</b> and retreated to the start of the act. They stopped there to wait for your orders.</p>':'<p class="hint">The company marched for the full time away (8 hours at most) without finishing the act.</p>';
+  const why=reason==='wait'?'<p><b style="color:#ffd24a">The road ran out.</b> The company is waiting for you to lay the next tiles.</p>':reason==='act'?'<p><b style="color:#8fe39a">The Warden fell and the act is cleared!</b> The company stopped on the battlefield to wait for you.</p>':reason==='fell'?'<p><b style="color:#ff9a8a">The company was routed</b> and retreated to the start of the act. They stopped there to wait for your orders.</p>':'<p class="hint">The company marched for the full time away (4 hours at most) without finishing the act.</p>';
   const tile=(v,x)=>'<div><b>'+v+'</b><small>'+x+'</small></div>';
   showModal('While you were away','<p>For <b>'+t+'</b> the company fought on.</p>'+why+'<div class="actst">'+tile(fmt(fights),'battles won')+tile(fmt(kills),'foes slain')+tile('+'+fmt(Math.max(0,gg)),'gold')+tile(rel,'relics found')+tile(sh,'hero shards')+tile((S.deaths||0)-r.d0,'falls')+'</div>',[{t:'Continue',primary:true}]);
   if(reason==='act'&&act)actComplete(act[0],act[1],act[2]);
@@ -3830,7 +3830,7 @@ function claimAway(raw){
  S.gold+=gg;gained+=gg;const perA=sh?addShards(sh):{};
  for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
  const t=secs>=3600?Math.floor(secs/3600)+'h '+Math.floor(secs%3600/60)+'m':Math.floor(secs/60)+' min';
- showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?'<br><small style="color:#8fd8ff;font-size:14px">'+shardMsg(perA)+'</small>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:adIc()+'Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)shardPopup(addShards(sh),'Welcome back');toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' shards':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
+ showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 4h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?'<br><small style="color:#8fd8ff;font-size:14px">'+shardMsg(perA)+'</small>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:adIc()+'Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)shardPopup(addShards(sh),'Welcome back');toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' shards':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
  say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
 }
 if(!(S.awaySeed&&awayReturn()))claimAway((Date.now()-(S.awayAt||S.saved))/1000);
