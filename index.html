@@ -813,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025204049';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025205954';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2867,7 +2867,7 @@ function hud(){
  const ti=S.depth%10;   // tile within the region (the 10th is the boss)
  if(r!==lastRegion&&!zoneFreeze){document.documentElement.style.setProperty('--ui-road','url(assets/ui/road_path_'+(r%ART_ACTS)+'.png'+V+')');document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
- {const gm=gateMul(S.depth),sh=(S.road[0]==='empty'&&phase==='walk'?'🧭 Lay a tile · ':'')+''+((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
+ {const gm=gateMul(S.depth),sh=''+''+((S.streak||0)>0?ic('flame','fl')+'×'+S.streak+' +'+Math.round((fervor()-1)*100)+'%':'Tile '+(ti+1)+'/10')+(S.bless>0?' · ✨ '+S.bless:'')+(S.edge>0?' · ⚔ '+S.edge:'')+(S.plate>0?' · 🛡 '+S.plate:'')+(S.weak>0?' · 🎯 '+S.weak:'')+(S.kb?' · '+KNAME[S.kb.k][0]+'+ '+S.kb.n:'')+(S.merc?' · 💰 '+S.merc.n:'');if(sh!==lastSub){lastSub=sh;$('sub').innerHTML=sh;}}
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
  $('rate').innerHTML='≈ '+fmt(S.rate)+' gold/s'+(S.boostT>0?' · ⚡x2 '+boostTxt(S.boostT):'')+'<br><b style="color:#ffd24a">★ Legend '+(S.legend||0)+'</b>';
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
