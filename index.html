@@ -783,8 +783,9 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
  body{background:radial-gradient(ellipse at 50% 35%,#2a1e12 0%,#120c07 60%,#070503 100%) fixed}
  #app{max-width:min(1680px,188vh);grid-template-columns:minmax(0,1fr) clamp(250px,21vw,360px)}
  #handw{flex:1 1 0;min-height:0}
- #hand{display:flex!important;flex-direction:column;align-items:center;justify-content:space-evenly;gap:8px;flex:1 1 0;min-height:0}
- #hand .hc{flex:1 1 0;min-height:0;max-height:none!important;height:auto!important;width:auto;max-width:100%;aspect-ratio:210/150;align-self:center}
+ #hand{display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:8px;flex:1 1 0;min-height:0;container-type:size}
+ /* a card is never taller than a third of the column and never stretched: with fewer cards they stay the same size and sit in the middle */
+ #hand .hc{flex:0 0 auto;min-height:0;max-height:none!important;height:min(calc(33.33cqh - 6px),calc(100cqw * 150 / 210))!important;width:auto;max-width:100%;aspect-ratio:210/150;align-self:center}
  #hand .hc .i{font-size:clamp(22px,5vh,52px)}#hand .hc .n{font-size:clamp(12px,2.1vh,22px)}#hand .hc .r{font-size:clamp(8px,1.2vh,13px)}#hand .hc .d{font-size:clamp(9px,1.3vh,14px)}
  #hand .hc .ico{width:clamp(30px,7.5vh,84px);height:clamp(30px,7.5vh,84px)}
  #road{max-width:none;margin:0 auto;background-size:auto 100%!important;background-repeat:repeat-x!important;background-position:center!important}
@@ -824,6 +825,7 @@ body.newb .row3{grid-template-columns:1fr auto}
 
 /* portal build: settings only, nothing that leaves the portal */
 html.portal #acctSec,html.portal #icky{display:none!important}
+html.demo,html.demo *{cursor:none!important}
 html.portal body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
 html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text}
 </style>
@@ -928,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026173743';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026180117';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -1511,9 +1513,21 @@ function starterDeck(){return ['wilds','wilds','wilds','wilds','wilds','wilds','
 let S=fresh();
 S.draw=shuffle(S.deck.slice());
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(fresh(),JSON.parse(r));}catch(e){}
+const DEMO=/[?&]demo(=1|&|$)/.test(location.search);   // a ready-made Act VI company for recording the preview video; nothing is saved
+if(DEMO){
+ document.documentElement.classList.add('demo');
+ S=fresh();const dd=new Date();
+ S.owned=[0,1,2,3,4,5,6,7];S.order=[0,1,2,3];S.un=HEROES.map((h,i)=>S.order.includes(i)||i===4||i===5);
+ S.lv=HEROES.map((h,i)=>S.order.includes(i)?44-i:6);S.legend=14;S.gold=3e8;S.rd=3;S.depth=57;S.best=57;S.jbest=57;
+ S.relics={whet:3,oak:2,coin:2,fang:1,boots:1,ink:1};
+ S.deck=['forest','ruins','battlefield','swamp','hunt','forest','ruins','battlefield','swamp','hunt'];S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];
+ S.seenIntro=true;S.coach=9;S.tutDone=1;S.guestNudge=9;S.retHint=1;S.menuInit=1;S.menuSeen={party:1,deck:1,relics:1,log:1,shop:1,stats:1,clan:1,arena:1};
+ S.daily={last:dd.getFullYear()+'-'+String(dd.getMonth()+1).padStart(2,'0')+'-'+String(dd.getDate()).padStart(2,'0'),streak:4};S.saved=Date.now();S.rate=2500;
+}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 if(!S.rmod||S.rmod.length!==S.road.length)S.rmod=S.road.map(()=>null);
+if(DEMO){S.road=[];S.rmod=[];S.rrank=[];}
 if(!S.rrank||S.rrank.length!==S.road.length)S.rrank=S.road.map(()=>1);
 if(!S.boons)S.boons={};
 try{S.wipeEpoch=localStorage.getItem('cc-epoch')||'2026-10-24e';}catch(e){S.wipeEpoch='2026-10-24e';}   // stamped on every save; the server refuses saves from a wiped account that lack it (a stale open session cannot bring an old save back)
@@ -3708,7 +3722,7 @@ function draw(dt){
 /* ---------- loop ---------- */
 let AWAYSIM=false;   // true while the company fights offscreen (away march): no sound, popups, saves or timers
 let resetting=false;
-function save(){if(AWAYSIM||resetting)return;S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}CC.queue();}
+function save(){if(AWAYSIM||resetting||DEMO)return;S.saved=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}CC.queue();}
 if(!S.road||S.road.length!==7)buildRoad();
 fillHand();
 if(S.hp.every(h=>!h))resetHeroes(true);
@@ -3887,6 +3901,7 @@ loadEnt();
 let hidAt=0;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){hidAt=Date.now();save();}else if(hidAt){const d=(Date.now()-hidAt)/1000;hidAt=0;claimAway(d);}});
 if(!S.road.length)buildRoad();
+if(DEMO){for(let j=4;j<S.road.length;j++){S.road[j]='empty';S.rmod[j]=null;}resetHeroes(true);fillHand();}
 say('The company sets out from the village...');
 if(!S.seenIntro)setTimeout(showIntro,700);
 let prev=performance.now(),fitN=0;
