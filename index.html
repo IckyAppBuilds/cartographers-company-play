@@ -813,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025194703';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025195153';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2329,6 +2329,7 @@ function resolveEvent(ch,relicPick){
 const relicCount=()=>Object.values(S.relics||{}).reduce((a,b)=>a+b,0);
 function actSnap(r){const l=S.life||{};return{a:r,sec:S.playSec||0,fights:l.fights||0,kills:l.kills||0,gold:(l.gold||0)+gained,falls:l.falls||0,sh:l.shGot||0,rel:relicCount()};}
 function actComplete(cr,first,old){
+ S.dstreak=null;
  const sn=old&&old.a===cr?old:null,l=S.life||{},nr=cr+1,nn=nr+1;
  plog({t:'act',act:cr+1,secs:sn?Math.round((S.playSec||0)-sn.sec):null,fights:sn?(l.fights||0)-sn.fights:null,falls:sn?(l.falls||0)-sn.falls:null,party:plParty(),relics:relicCount(),gold:Math.round(S.gold),deck:S.deck.join(',')});
  const d=sn?{sec:(S.playSec||0)-sn.sec,fights:(l.fights||0)-sn.fights,kills:(l.kills||0)-sn.kills,gold:(l.gold||0)+gained-sn.gold,falls:(l.falls||0)-sn.falls,sh:(l.shGot||0)-sn.sh,rel:relicCount()-sn.rel}:null;
@@ -2384,11 +2385,20 @@ function offerRevive(){
 function wipe(){
  plog({t:'wipe',act:region(S.depth)+1,gold:Math.round(S.gold)});
  reviveAsked=false;reviveWait=false;
+ const fallAct=region(S.depth);
  const rs=region(S.depth)*10,lost=S.gold*.1;S.gold-=lost;
  say('The company is routed! Retreating to '+RG(region(S.depth))[0]+"'s edge. Lost "+fmt(lost)+' gold.');
  S.streak=0;S.deaths=(S.deaths||0)+1;st('falls');S.depth=rs;S.prev='wilds';buildRoad();resetHeroes(true);S.bless=0;S.edge=S.plate=S.weak=0;S.kb=null;S.merc=null;zoneFreeze=null;phase='walk';pt=0;foes=[];
  // everything goes back into the deck: hand, discard and draw pile are gathered and reshuffled
  reshuffleAll('You died: every tile returns to your pile.');
+ deathTip(fallAct);
+}
+/* falling again and again in the same act: point the player at the Shop (buffs and free gifts); it comes up on the 2nd fall and every 3rd after that, until the act is cleared */
+function deathTip(a){
+ if(AWAYSIM)return;
+ const d=S.dstreak&&S.dstreak.a===a?S.dstreak:(S.dstreak={a,n:0});d.n++;
+ if(d.n<2||(d.n-2)%3||!navOpen('shop'))return;
+ showModal('Need a boost?','<p>Your company has fallen <b>'+d.n+' times</b> in Act '+roman(a+1)+' without clearing it.</p><p>The <b>Shop</b> has buffs and free gifts that can give you an edge: a gold boost, a free chest and bonus hero shards. You can also level up your heroes, or retire for Legend.</p>',[{t:'Open the Shop',primary:true,fn:()=>showSheet('shop')},{t:'Not now'}]);
 }
 
 /* ---------- sim ---------- */
