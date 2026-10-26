@@ -714,6 +714,17 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 .amb.ok img{filter:grayscale(.6) brightness(.7)}
 .amx{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#e0322a;font-size:46px;line-height:1;text-shadow:0 0 4px #000,0 2px 6px #000}
 .amw{display:block;margin-top:3px;opacity:.7;font-size:11px}
+
+.amd.cu::before{content:'';display:block;border:5px solid transparent;border-top:7px solid #ffd24a;border-bottom:0}
+.amd.fu::before{content:'';display:block;width:9px;height:9px;border-radius:50%;background:#7fd4ff;box-shadow:0 0 4px #7fd4ff}
+.amkey .amd.cu::before,.amkey .amd.fu::before{display:inline-block;vertical-align:middle;margin-right:3px}
+.amx{font-size:0!important}
+.amx::before,.amx::after{content:'';position:absolute;left:50%;top:8%;width:9%;height:84%;background:#e0322a;border-radius:3px;box-shadow:0 0 4px #000;transform:translateX(-50%) rotate(45deg)}
+.amx::after{transform:translateX(-50%) rotate(-45deg)}
+#mute svg{display:block;margin:auto}
+#bbar{position:absolute;left:6px;top:6px;z-index:5;display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 52px);pointer-events:none}
+#bbar .bf{display:flex;align-items:center;gap:3px;padding:2px 7px 2px 3px;border-radius:12px;background:rgba(14,10,6,.72);border:1px solid rgba(255,210,74,.45);color:#fff3cf;font-size:12px;font-weight:700;line-height:1;text-shadow:0 1px 2px #000}
+#bbar .bf img{width:18px;height:18px;object-fit:contain}
 </style>
 </head>
 <body>
@@ -724,10 +735,10 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  </header>
  <button id="spoils" data-sheet="deck" hidden><img class="ico" src="assets/icons/treasury.png" alt="" draggable="false"> Boss spoils! Tap to choose a tile</button>
  <section id="roadw" class="card"><div class="rl"><b>Road ahead</b><span id="rsub"></span></div><div id="road"></div></section>
- <section id="stage"><canvas id="c" width="800" height="320"></canvas><button id="mute" aria-label="Sound"></button><button id="retbtn" hidden></button><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
+ <section id="stage"><canvas id="c" width="800" height="320"></canvas><div id="bbar"></div><button id="mute" aria-label="Sound"></button><button id="retbtn" hidden></button><div id="splash" hidden><div class="sa"></div><div class="sn"></div><div class="sb"></div></div></section>
  <section id="ctrl" class="card">
   <div class="bar"><i id="inkF" style="background:#6aa8ff"></i><b id="inkT"></b></div>
-  <div class="row3"><button id="reroll">↻ Redraw</button><button id="insbtn"></button><span id="spd"></span></div>
+  <div class="row3"><button id="reroll">Redraw</button><button id="insbtn"></button><span id="spd"></span></div>
  </section>
  <div id="side">
   <div id="mini"></div>
@@ -737,9 +748,9 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
    <button id="nav-deck" data-sheet="deck"><span class="nv"><img class="ico" src="assets/icons/tiles.png" alt="" draggable="false"></span><small>Tiles</small></button>
    <button id="nav-relics" data-sheet="relics"><span class="nv"><img class="ico" src="assets/icons/relics.png" alt="" draggable="false"></span><small>Relics</small></button>
    <button id="nav-shop" data-sheet="shop"><span class="nv"><img class="ico" src="assets/icons/coin.png" alt="" draggable="false"></span><small>Shop</small></button>
-   <button id="nav-arena" data-sheet="arena"><span class="nv" style="font-size:24px;line-height:1">⚔️</span><small>Arena</small></button>
-   <button id="nav-clan" data-sheet="clan"><span class="nv" style="font-size:24px;line-height:1">🏰</span><small>Clan</small></button>
-   <button id="nav-stats" data-sheet="stats"><span class="nv" style="font-size:24px;line-height:1">📊</span><small>Stats</small></button>
+   <button id="nav-arena" data-sheet="arena"><span class="nv"><img class="ico" src="assets/icons/arena.png" alt="" draggable="false"></span><small>Arena</small></button>
+   <button id="nav-clan" data-sheet="clan"><span class="nv"><img class="ico" src="assets/icons/clan.png" alt="" draggable="false"></span><small>Clan</small></button>
+   <button id="nav-stats" data-sheet="stats"><span class="nv"><img class="ico" src="assets/icons/stats.png" alt="" draggable="false"></span><small>Stats</small></button>
    <button id="nav-log" data-sheet="log"><span class="nv"><img class="ico" src="assets/icons/journal.png" alt="" draggable="false"></span><small>Log</small></button>
   </nav>
  </div>
@@ -751,7 +762,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
  <div class="sp" role="dialog" aria-modal="true">
   <div class="sh"><h3 id="sheetTitle"></h3><button data-close aria-label="Close menu">✕ Close</button></div>
   <div class="sb">
-   <div class="pane" data-pane="party" hidden><div class="row" style="justify-content:center;margin:0 0 8px"><button id="autoLv" type="button" style="min-width:230px">⚡ Auto level up: off</button></div><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div><div id="synergy" style="margin-top:14px"></div>
+   <div class="pane" data-pane="party" hidden><div class="row" style="justify-content:center;margin:0 0 8px"><button id="autoLv" type="button" style="min-width:230px">Auto level up: off</button></div><div class="hint" style="margin-bottom:6px">Formation: the top hero is the front line. They stand nearest the enemy and take about half of all attacks. Use ▲ ▼ to reorder. The hero strip under the battle mirrors the battlefield, front line on the right. Tap a hero icon under the battle to level them up.</div><div id="party"></div><div id="synergy" style="margin-top:14px"></div>
     <h3 style="margin-top:16px">Roster · Hero shards <span id="shd"></span></h3><div class="hint" style="margin-bottom:6px">Bosses drop hero shards (elite fights sometimes do). Every shard belongs to a random hero, and rarer heroes drop less often. Collect enough of a hero's own shards to unlock them (once you reach their act) and to rank up their skill. Skills, unlocked heroes and your party all stay when you retire. Tap Swap in on a hero, then choose which party slot they replace.</div><div id="roster"></div></div>
    <div class="pane" data-pane="deck" hidden>
     <div id="offer" hidden></div><div id="deck"></div><div class="pile" id="insum" style="margin-top:8px"></div>
@@ -813,7 +824,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025210121';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025210542';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1509,7 +1520,7 @@ const CLAN=(()=>{
    +'<div class="cbname">'+cesc(bossName(B.idx))+'</div><div class="cbtrait" style="color:'+TRAITC[B.trait]+'">'+cesc(traitText(B.trait))+'</div>'
    +'<div class="cbbar"><i id="cbFill" style="width:'+pct+'%"></i><b id="cbHp">'+fmt(B.hp)+' / '+fmt(B.max_hp)+'</b></div>'
    +'<small class="hint" id="cbLeft">Tier '+(B.tier+1)+' · retreats in '+fmtT(left)+' · defeat it together for a big reward</small>'
-   +'<button class="clbtn gold" id="cbStrike" data-cl="strike" '+(me.strikes_left>0?'':'disabled')+'>⚔ Strike · '+me.strikes_left+' of '+STRIKES+' left today<br><small style="font-size:12px">Your party deals about '+fmt(est)+'</small></button>'
+   +'<button class="clbtn gold" id="cbStrike" data-cl="strike" '+(me.strikes_left>0?'':'disabled')+'>Strike · '+me.strikes_left+' of '+STRIKES+' left today<br><small style="font-size:12px">Your party deals about '+fmt(est)+'</small></button>'
    +'<h3 style="margin-top:12px">Top damage</h3><div id="cbBoard">'+((R.board||[]).map((m,k)=>'<div class="clmem"><div><b style="color:'+(m.user_id===uid()?'#ffd24a':'#efe3c4')+'">'+(k+1)+'. '+cesc(m.name)+(m.user_id===uid()?' (you)':'')+'</b><small>'+m.hits+' strike'+(m.hits===1?'':'s')+'</small></div><div><b>'+fmt(m.damage)+'</b></div></div>').join('')||'<div class="hint">No strikes yet. Be the first!</div>')+'</div>'
    +'<div class="hint" style="margin-top:6px">Your total: <b>'+fmt(me.damage||0)+'</b> in '+(me.hits||0)+' strike'+((me.hits||0)===1?'':'s')+'. Everyone who hits it shares the reward, and the top damage dealers and the final blow earn extra.</div>';
   tb.innerHTML=h;
@@ -2097,7 +2108,7 @@ function startTile(){
  {const pw=plPower();FL={t0:S.playSec||0,k,boss:!!t.boss,n:foes.length,fhp:Math.round(foes.reduce((a,f)=>a+f.max,0)),fatk:Math.round(foes.reduce((a,f)=>a+f.atk,0)/foes.length),pdps:pw.dps,php:pw.hp,party:plParty(),act:region(d)+1,syn:curSyn?curSyn.n:null};}
  phase='fight';
  if(t.boss)SND.play('boss');
- if(t.boss)say('⚠ '+RG(r)[2]+(multi===3?' and two more guardians block':dual?' and a second guardian block':' blocks')+' the road!');
+ if(t.boss)say(''+RG(r)[2]+(multi===3?' and two more guardians block':dual?' and a second guardian block':' blocks')+' the road!');
 }
 function floatTxt(t,x,y,c){fxT.push({t:0,txt:t,x,y,c});}
 const st=(k,v=1)=>{const l=S.life||(S.life={});l[k]=(l[k]||0)+v;};   // lifetime statistics, kept through Legend retire
@@ -2278,7 +2289,7 @@ function resolveEvent(ch,relicPick){
   if(t.ev==='market'&&ch===2){if(Math.random()<.5){g*=2.6;say('Your haggling pays off!');}else{g*=.3;say('The merchant will not budge.');}}
   if(t.ev==='treasury'&&ch===1){g*=.3;const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;lootRelic(r,'Treasury relic!');}
   S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
-  if(t.ev==='treasury'&&ch===0)loot({head:'Treasure!',icon:'💎',name:'+'+fmt(g)+' gold',sub:'Treasury',desc:'A dragon-sized stash.',rar:3,col:[255,226,122],dbl:()=>{S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');say('Ad bonus: treasure doubled, +'+fmt(g)+' gold.');}});
+  if(t.ev==='treasury'&&ch===0)loot({head:'Treasure!',icon:ic('treasury'),name:'+'+fmt(g)+' gold',sub:'Treasury',desc:'A dragon-sized stash.',rar:3,col:[255,226,122],dbl:()=>{S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');say('Ad bonus: treasure doubled, +'+fmt(g)+' gold.');}});
   say(t.ev==='market'?'The market pays '+fmt(g)+' gold.':'The treasury yields '+fmt(g)+' gold!');
   if(curSyn)say('Combo: '+curSyn.n+'!');
  }else if(t.ev==='leyline'){
@@ -2346,7 +2357,7 @@ function actComplete(cr,first,old){
  const T=(ACTTRAIT[nr%20]||['','']).filter(Boolean),newH=HEROES.map((x,i)=>i).filter(i=>HACT[i]===nn&&!S.owned.includes(i)),wardn=RG(nr);
  h+='<h3 style="margin:10px 0 2px">Next: Act '+roman(nn)+' · '+wardn[0]+'</h3><p style="margin:0 0 4px">Warden: <b>'+wardn[2]+'</b>.</p>';
  if(nr>=GATE.from){const need=legReq(nr),have=S.legend||0,pay=Math.max(1,Math.floor((nr-1)*(nr-1)/2)),left=Math.ceil((need-have)/pay);h+='<div class="syn"><b style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">Recommended Legend '+need+'</b> '+(have>=need?'(you have '+have+').':'(you have '+have+'). About '+left+' more retire'+(left>1?'s':'')+' at about +'+pay+' Legend each; below it the enemies here will be a wall.')+'</div>';}
- {const ab=BOSSAB[nr%20],A=ABIL[ab[0]];h+='<div class="syn"><b style="color:'+A.c+'">'+A.g+' '+ab[1]+'</b> '+A.d+'</div>';}
+ {const ab=BOSSAB[nr%20],A=ABIL[ab[0]];h+='<div class="syn"><b style="color:'+A.c+'">'+ab[1]+'</b> '+A.d+'</div>';}
  h+=T.length?T.map(t=>'<div class="syn"><b style="color:'+TRAITC[t]+'">'+traitText(t)+'</b></div>').join(''):'<div class="hint" style="margin:0">Nothing here resists any kind of attack.</div>';
  if(newH.length)h+='<div style="margin-top:8px">'+newH.map(i=>'<div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:4px 0">'+shardSVG(i,30,'ac'+i)+'<span><b style="color:'+RARCOL[HEROES[i].q]+'">'+HEROES[i].n+'</b> the '+HEROES[i].c+' can be unlocked here ('+HCOST[i]+' shards)</span></div>').join('')+'</div>';
  const lg=legGain();if(lg)h+='<p class="hint" style="margin:8px 0 0">Retiring the company now would grant +'+lg+' Legend.</p>';
@@ -2385,7 +2396,7 @@ let reviveAsked=false,reviveWait=false;
 function offerRevive(){
  reviveAsked=true;reviveWait=true;
  showModal('The company has fallen','<p>Watch a short ad to <b>revive everyone at full health</b> and retry this fight, or retreat and lose 10% of your gold.</p>',[
-  {t:'▶ Revive & retry',primary:true,fn:async()=>{const ok=await ADS.show();reviveWait=false;if(ok){resetHeroes(true);S.bless=0;startTile();say('Revived by the Cartographer! Retry the fight.');sig='';}else{toast('No reward: the ad was not finished.');wipe();}}},
+  {t:'Revive & retry',primary:true,fn:async()=>{const ok=await ADS.show();reviveWait=false;if(ok){resetHeroes(true);S.bless=0;startTile();say('Revived by the Cartographer! Retry the fight.');sig='';}else{toast('No reward: the ad was not finished.');wipe();}}},
   {t:'Retreat',fn:()=>{reviveWait=false;wipe();}}]);
 }
 function wipe(){
@@ -2465,7 +2476,7 @@ let swapId=null;
 function pickReplace(nid){   // a popup shows the newcomer and the party; tap the hero who steps out
  if(!S.owned.includes(nid)||S.order.includes(nid))return;
  const card=(i,pos)=>{const h=HEROES[i],pc=pos===undefined?'':Math.round(100*Math.max(0,S.hp[i])/heroMax(i));
-  return '<'+(pos===undefined?'div':'button')+' class="swc rq'+h.q+'"'+(pos===undefined?'':' data-mb="'+pos+'"')+'><span class="ic rq'+h.q+'">'+heroIcon(i)+'</span><span class="swi"><b>'+h.n+'</b><small>'+h.c+' · Lv'+S.lv[i]+(star(i)?' · '+'★'.repeat(star(i)):'')+(pos===0?' · front':'')+'</small><span class="sws"><em>❤ '+fmt(heroMax(i))+'</em><em>⚔ '+fmt(heroAtk(i))+'</em>'+(pc===''?'':'<em>'+(S.un[i]?pc+'% hp':'resting')+'</em>')+'</span></span></'+(pos===undefined?'div':'button')+'>';};
+  return '<'+(pos===undefined?'div':'button')+' class="swc rq'+h.q+'"'+(pos===undefined?'':' data-mb="'+pos+'"')+'><span class="ic rq'+h.q+'">'+heroIcon(i)+'</span><span class="swi"><b>'+h.n+'</b><small>'+h.c+' · Lv'+S.lv[i]+(star(i)?' · '+'★'.repeat(star(i)):'')+(pos===0?' · front':'')+'</small><span class="sws"><em>HP '+fmt(heroMax(i))+'</em><em>ATK '+fmt(heroAtk(i))+'</em>'+(pc===''?'':'<em>'+(S.un[i]?pc+'% hp':'resting')+'</em>')+'</span></span></'+(pos===undefined?'div':'button')+'>';};
  showModal('Swap in '+HEROES[nid].n,'<div class="swn">'+card(nid)+'</div><p class="swh">Tap the hero who steps out</p><div class="swl">'+S.order.map((o,pos)=>card(o,pos)).join('')+'</div>',
   S.order.map((o,pos)=>({t:'',fn:()=>swapHero(pos,nid)})).concat([{t:'Cancel'}]));
 }
@@ -2539,13 +2550,13 @@ function build(){
   }
  }
  {const cur=region(S.depth),done=Math.floor(Math.max(S.jbest||0,S.best||0)/10),nm=(Math.floor(done/5)+1)*5;
-  const rowOf=(r,state)=>{const rg=RG(r);return `<div class="ob ${state}"><div class="st">${state==='done'?'✔':state==='cur'?'➤':'🔒'}</div><div><div class="nm">Act ${roman(r+1)} · ${rg[0]}</div><div class="hint">${state==='done'?'Warden defeated':state==='cur'?'Warden ahead':'Warden'}: ${rg[2]}${state==='cur'?' · tile '+(S.depth%10+1)+'/10':''}</div></div></div>`;};
+  const rowOf=(r,state)=>{const rg=RG(r);return `<div class="ob ${state}"><div class="st">${state==='done'?'Done':state==='cur'?'Now':'Locked'}</div><div><div class="nm">Act ${roman(r+1)} · ${rg[0]}</div><div class="hint">${state==='done'?'Warden defeated':state==='cur'?'Warden ahead':'Warden'}: ${rg[2]}${state==='cur'?' · tile '+(S.depth%10+1)+'/10':''}</div></div></div>`;};
   const rows=(cur>0?rowOf(cur-1,'done'):'')+rowOf(cur,'cur')+rowOf(cur+1,'lock')+rowOf(cur+2,'lock');
   const bl=Object.keys(S.boons||{}).filter(k=>S.boons[k]).map(k=>BOONS[k].n+(S.boons[k]>1?' ×'+S.boons[k]:'')).join(', ');
   $('objective').innerHTML=`<h3>Objective</h3><div class="obj"><b>Chart the endless realm.</b> The Unmapped keeps spreading and the map has no edge. Every Warden you defeat restores a piece of it and reveals another region beyond. How far can you chart?</div>
    <div class="mstats"><div><b>${done}</b><small>map pieces</small></div><div><b>${Math.floor(Math.max(S.best,S.depth)/10)+1}</b><small>furthest act</small></div><div><b>${S.deaths||0}</b><small>falls</small></div><div><b>${S.legend}</b><small>Legend</small></div></div>
    <div class="hint" style="margin-bottom:6px">Next Cartographer's Boon after Warden ${nm} (${nm-done} to go).${bl?' Boons: '+bl+'.':''}</div>${rows}`;}
- $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic rq${h.q}">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲':'🔒'} ${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
+ $('mini').innerHTML=S.order.slice().reverse().map(i=>{const h=HEROES[i],un=S.un[i],c=un?lvCost(i):recruitCost(i);return `<button class="mc ${un?'':'lock'} ${S.gold>=c?'aff':''}" data-hero="${i}" aria-label="${un?'Level up '+h.n:'Recruit '+h.n}"><span class="ic rq${h.q}">${heroIcon(i)}${S.gold>=c?'<b class="bang" title="You can afford this">!</b>':''}</span><span class="mt">${un?'Lv'+S.lv[i]:'Recruit'}</span><span class="mcost">${un?'▲ ':''}${fmt(c)}</span>${un?`<span class="mbar"><i id="mb${i}"></i></span>`:''}</button>`;}).join('');
  $('nav-party').classList.toggle('dot',S.order.some(i=>S.gold>=(S.un[i]?lvCost(i):recruitCost(i)))||HEROES.some((h,i)=>S.owned.includes(i)?((skr(i)<skMax(i)&&hsh(i)>=skCost(skr(i),i))||(skr(i)>=skMax(i)&&star(i)<STAR_MAX&&hsh(i)>=starCost(star(i),i))):(actOK(i)&&hsh(i)>=HCOST[i])));
  $('nav-deck').classList.toggle('dot',!!S.offer);syncSpoils();
  $('nav-clan').classList.toggle('dot',CLAN.st.unread>0||!!CLAN.st.bossDot);
@@ -2558,11 +2569,11 @@ function build(){
   const keys=RK.slice().sort((a,b)=>(S.relics[b]||0)-(S.relics[a]||0));
   $('relics').innerHTML=keys.map(k=>{const n=S.relics[k]||0,r=RELICS[k];return `<div class="rl ${n?'':'unk'}"><div class="ic">${r.ico}</div><div><div class="nm">${r.n}${n?' <small>×'+n+'</small>':''}</div><div class="hint">${r.d} each, stacks</div></div><div class="eff">${n?EFF[k](n):'Not found yet'}</div></div>`;}).join('');}
  const lg=legGain();$('leg').disabled=!lg;$('leg').textContent=lg?`Retire the company: +${lg} Legend`:'Retire the company';
- {const rb=$('retbtn');rb.hidden=!lg;if(lg){rb.textContent='★ Retire +'+lg;}
-  if(lg&&!S.retHint&&$('modal').hidden&&!sheet){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>★ Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
+ {const rb=$('retbtn');rb.hidden=!lg;if(lg){rb.textContent='Retire +'+lg;}
+  if(lg&&!S.retHint&&$('modal').hidden&&!sheet){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
  $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats, +${S.legend*10}% gold). Unlocks at tile 30. The further you get before retiring, the more Legend it pays.`;
- $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">▶ x${speed}</button>`;
- {const rb=$('reroll'),ad=S.rd<1&&ADS.ok();rb.disabled=S.rd<1&&!ad;const t=ad?'▶ +2 Redraws':'↻ Redraw';if(rb.textContent!==t)rb.textContent=t;}
+ $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">x${speed}</button>`;
+ {const rb=$('reroll'),ad=S.rd<1&&ADS.ok();rb.disabled=S.rd<1&&!ad;const t=ad?'+2 Redraws':'Redraw';if(rb.textContent!==t)rb.textContent=t;}
 }
 /* ---------- story beats: opening card and victory ---------- */
 let modalBtns=[];
@@ -2617,14 +2628,14 @@ function showModal(title,html,btns){
 /* ---------- act map: tap the act name in the top bar for every act, its Warden and the Legend recommended for it ---------- */
 function showActMap(){
  const cur=region(S.depth),have=S.legend||0,jb=Math.max(S.jbest||0,S.best||0),top=Math.min(40,Math.max(12,region(Math.max(S.best||0,S.depth))+6));
- let h='<p class="hint" style="margin:0 0 6px">You have <b style="color:#ffd24a">Legend '+have+'</b>. Below the recommended Legend for an act its enemies will be a real wall.</p><div class="amkey"><span><i class="amd cu">▼</i> You are here</span><span><i class="amd fu">⚑</i> Furthest tile</span></div><div id="actmap">';
+ let h='<p class="hint" style="margin:0 0 6px">You have <b style="color:#ffd24a">Legend '+have+'</b>. Below the recommended Legend for an act its enemies will be a real wall.</p><div class="amkey"><span><i class="amd cu"></i> You are here</span><span><i class="amd fu"></i> Furthest tile</span></div><div id="actmap">';
  for(let a=0;a<top;a++){
   const need=Math.ceil(legReq(a)),rg=RG(a),done=jb>=a*10+10;let row='';
   for(let t=0;t<10;t++){
    const d=a*10+t,isC=d===S.depth,isF=d===jb,cleared=d<jb;
-   const mk=(isC?'<i class="amd cu">▼</i>':'')+(isF?'<i class="amd fu">⚑</i>':'');
+   const mk=(isC?'<i class="amd cu"></i>':'')+(isF?'<i class="amd fu"></i>':'');
    if(t<9)row+='<div class="amt'+(cleared?' ok':d>jb?' far':'')+(isC?' cur':'')+'">'+mk+'</div>';
-   else row+='<div class="amb'+(done?' ok':jb<d?' far':'')+(isC?' cur':'')+'">'+mk+'<img src="assets/enemies/boss'+bossArt(a)+'.png'+V+'" alt="">'+(done?'<b class="amx">✖</b>':'')+'</div>';
+   else row+='<div class="amb'+(done?' ok':jb<d?' far':'')+(isC?' cur':'')+'">'+mk+'<img src="assets/enemies/boss'+bossArt(a)+'.png'+V+'" alt="">'+(done?'<b class="amx"></b>':'')+'</div>';
   }
   h+='<div class="amr'+(a===cur?' here':'')+'"><div class="amh"><b>Act '+roman(a+1)+' · '+rg[0]+'</b><span style="color:'+(have>=need?'#8fe39a':'#ffb48a')+'">'+(need?'Recommended Legend '+need:'No Legend needed')+'</span></div><div class="amrow">'+row+'</div><small class="amw">Warden: '+rg[2]+'</small></div>';
  }
@@ -2667,7 +2678,7 @@ function nextLoot(){
  let ps='';const pal=['#ffd24a','#fff3c4','rgb('+col.join(',')+')','#ffffff'];
  for(let i=0;i<n;i++){const a=Math.random()*TAU,d=90+Math.random()*(big?300:210);ps+='<i class="pt" style="--dx:'+(Math.cos(a)*d|0)+'px;--dy:'+(Math.sin(a)*d-30|0)+'px;--rt:'+(Math.random()*720-360|0)+'deg;--t:'+(.9+Math.random()*.9).toFixed(2)+'s;--dl:'+(Math.random()*.15).toFixed(2)+'s;--pc:'+pal[i%4]+'"></i>';}
  const dbl=o.dbl&&ADS.ok();
- el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div>'+(dbl?'<button class="ldb">▶ Watch ad: double it</button>':'')+'<div class="lh">tap to continue</div></div>'+ps;
+ el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div>'+(dbl?'<button class="ldb">Watch ad: double it</button>':'')+'<div class="lh">tap to continue</div></div>'+ps;
  document.body.appendChild(el);lootEl=el;
  try{navigator.vibrate&&navigator.vibrate(big?[40,40,90]:30);}catch(e){}
  const done=()=>{clearTimeout(lootTm);if(lootEl!==el)return;el.classList.add('out');setTimeout(()=>{el.remove();lootEl=null;nextLoot();},240);};
@@ -2688,10 +2699,10 @@ function showIntro(){
 }
 /* ---------- shop: stock refreshes every act; prices follow the act's income and climb with each purchase ---------- */
 const SUPPLIES={
- potion:{n:'Healing Draught',ic:'🧪',d:'Heal the whole company by 50%.',m:6,fn:()=>{for(const i of S.order)if(S.un[i])healHero(i,heroMax(i)*.5,true);}},
- pages:{n:'Page Bundle',ic:'📜',d:'+3 redraws right now.',m:8,fn:()=>{S.rd=Math.min(maxRd()+6,S.rd+3);}},
- tonic:{n:'Battle Tonic',ic:'⚗️',d:'+30% damage for your next 5 fights.',m:10,fn:()=>{S.bless=Math.max(S.bless,5);}},
- fortune:{n:'Fortune Charm',ic:'🍀',d:'+50% gold from your next 5 fights.',m:14,fn:()=>{S.fort=5;}}
+ potion:{n:'Healing Draught',ic:ic('springs'),d:'Heal the whole company by 50%.',m:6,fn:()=>{for(const i of S.order)if(S.un[i])healHero(i,heroMax(i)*.5,true);}},
+ pages:{n:'Page Bundle',ic:ic('scriptorium'),d:'+3 redraws right now.',m:8,fn:()=>{S.rd=Math.min(maxRd()+6,S.rd+3);}},
+ tonic:{n:'Battle Tonic',ic:ic('whet'),d:'+30% damage for your next 5 fights.',m:10,fn:()=>{S.bless=Math.max(S.bless,5);}},
+ fortune:{n:'Fortune Charm',ic:ic('market'),d:'+50% gold from your next 5 fights.',m:14,fn:()=>{S.fort=5;}}
 };
 function shopState(){const r=region(S.depth);if(!S.shop||S.shop.r!==r){const pool=RK.slice(),rel=[];while(rel.length<3&&pool.length)rel.push({k:pool.splice(Math.random()*pool.length|0,1)[0],sold:false});S.shop={r,rel,sh:0,n:{}};}return S.shop;}
 const supPrice=k=>Math.round(gpt()*SUPPLIES[k].m*1.3**(shopState().n[k]||0));
@@ -2708,11 +2719,11 @@ const shopHTML={v:''};
 /* ---------- premium store (TEST MODE: purchases are free and recorded in the account's purchases table; Stripe comes later) ---------- */
 const CASH_STORE=false;   // paid items are switched off for now; flip to true when Stripe or the app stores are wired in
 const ENT={},PREM={
- deck_slot:{n:'Extra Deck Slot',ic:'🎒',d:'Permanent +1 tile slot, so you can keep 11 tiles.',p:'$2.99',once:1},
- shard_bundle:{n:'Shard Bundle',ic:'💎',d:'+25 hero shards, delivered instantly. Buy as many as you like.',p:'$1.99'},
- skin_gilded:{n:'Gilded Heroes',ic:'✨',d:'A golden colourway for every hero.',p:'$1.99',once:1,eq:'skin:gilded'},
- skin_frost:{n:'Frostbound Heroes',ic:'❄️',d:'An icy colourway for every hero.',p:'$1.99',once:1,eq:'skin:frost'},
- theme_midnight:{n:'Midnight Cards',ic:'🌌',d:'A dark, star-lit look for your tile cards.',p:'$0.99',once:1,eq:'theme:midnight'}
+ deck_slot:{n:'Extra Deck Slot',ic:ic('deck'),d:'Permanent +1 tile slot, so you can keep 11 tiles.',p:'$2.99',once:1},
+ shard_bundle:{n:'Shard Bundle',ic:ic('crucible'),d:'+25 hero shards, delivered instantly. Buy as many as you like.',p:'$1.99'},
+ skin_gilded:{n:'Gilded Heroes',ic:ic('shrine'),d:'A golden colourway for every hero.',p:'$1.99',once:1,eq:'skin:gilded'},
+ skin_frost:{n:'Frostbound Heroes',ic:ic('springs'),d:'An icy colourway for every hero.',p:'$1.99',once:1,eq:'skin:frost'},
+ theme_midnight:{n:'Midnight Cards',ic:ic('starfall'),d:'A dark, star-lit look for your tile cards.',p:'$0.99',once:1,eq:'theme:midnight'}
 };
 const SKINS={gilded:(L,r,g,b)=>[r*.45+Math.min(255,L+65)*.55,g*.45+Math.min(255,L*.85+35)*.55,b*.45+L*.3*.55],frost:(L,r,g,b)=>[r*.4+Math.min(255,L*.7+45)*.6,g*.4+Math.min(255,L*.9+75)*.6,b*.4+Math.min(255,L*1.05+115)*.6]};
 function recolor(im,fn){const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);const d=x.getImageData(0,0,c.width,c.height),p=d.data;
@@ -2739,7 +2750,7 @@ async function premBuy(sku){
 function premEquip(spec){const [k,v]=spec.split(':');S[k]=S[k]===v?'':v;applyEnt();save();}
 function premCard(sku){
  const p=PREM[sku],own=ENT[sku]>0&&p.once;let btn;
- if(own&&p.eq){const [k,v]=p.eq.split(':');btn='<button data-eq="'+p.eq+'">'+(S[k]===v?'✔ Equipped':'Equip')+'</button>';}
+ if(own&&p.eq){const [k,v]=p.eq.split(':');btn='<button data-eq="'+p.eq+'">'+(S[k]===v?'Equipped':'Equip')+'</button>';}
  else if(own)btn='<button disabled>Owned</button>';
  else btn='<button data-prem="'+sku+'"'+(premBusy?' disabled':'')+'>Buy · '+p.p+'</button>';
  return '<div class="sc"><div class="si">'+p.ic+'</div><div class="sd"><b>'+p.n+'</b><small>'+p.d+'</small></div>'+btn+'</div>';
@@ -2752,8 +2763,8 @@ function shopRender(){
  h+='<h3 style="margin-top:14px">Relics</h3>'+st.rel.map((x,i)=>x.sold?card('',RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,0,'','Sold'):card('r_'+i,RELICS[x.k].ico||RELICS[x.k].i,RELICS[x.k].n,RELICS[x.k].d,relPrice())).join('');
  h+='<h3 style="margin-top:14px">Heroes</h3>'+card('shard',shardMix(24,'s'),'Hero Shard','A shard for a random hero. '+(2-st.sh)+' left this act.',shardPrice(),'',st.sh>=2?'Sold out':'');
  if(ADS.ok()){const full=(S.boostT||0)>=BOOST_CAP-60,bl=full?1:adLeft('boost'),sl=adLeft('shard'),cl=adLeft('chest'),mm=longTxt;
-  const ac=(id,ico,name,desc,left,lbl)=>'<div class="sc"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-ad="'+id+'"'+(left>0?' disabled':'')+'>'+(left>0?(lbl||mm(left)):'▶ Watch')+'</button></div>';
-  h+='<h3 style="margin-top:14px">Free rewards</h3>'+ac('chest','🎁','Free Chest','A random reward: gold, a relic or hero shards. Ready every 4 hours.',cl)+ac('boost',ic('coin','coin'),'Gold x2','Each ad adds 30 minutes of double gold, stacking up to 4 hours.'+(S.boostT>0?' Stored: '+boostTxt(S.boostT)+'.':''),bl,full?'Full':null)+ac('shard','◆','Hero Shard','One free shard.',sl);}
+  const ac=(id,ico,name,desc,left,lbl)=>'<div class="sc"><div class="si">'+ico+'</div><div class="sd"><b>'+name+'</b><small>'+desc+'</small></div><button data-ad="'+id+'"'+(left>0?' disabled':'')+'>'+(left>0?(lbl||mm(left)):'Watch')+'</button></div>';
+  h+='<h3 style="margin-top:14px">Free rewards</h3>'+ac('chest',ic('treasury'),'Free Chest','A random reward: gold, a relic or hero shards. Ready every 4 hours.',cl)+ac('boost',ic('coin','coin'),'Gold x2','Each ad adds 30 minutes of double gold, stacking up to 4 hours.'+(S.boostT>0?' Stored: '+boostTxt(S.boostT)+'.':''),bl,full?'Full':null)+ac('shard','◆','Hero Shard','One free shard.',sl);}
  if(CASH_STORE)h+='<h3 style="margin-top:14px">Premium <small style="opacity:.7;font-weight:400">· test mode: nothing is charged</small></h3>'+Object.keys(PREM).map(premCard).join('');
  return h;
 }
@@ -2804,7 +2815,7 @@ let unPtr=null;
 function unlockShow(k){   // animated reveal: a glowing icon, what the menu does, and a pointer at its button in the bottom bar
  const nb=$('nav-'+k),nm=NAVINFO[k][0],vis=[...document.querySelectorAll('#nav button')].filter(b=>!b.hidden),pos=vis.indexOf(nb)+1;
  if(nb)nb.classList.add('nw');SND.play('act');
- const where=pos?'<p class="unw">📍 <b>Where:</b> the <b>'+nm+'</b> button, number '+pos+' of '+vis.length+' along the bottom bar.</p>':'';
+ const where=pos?'<p class="unw"><b>Where:</b> the <b>'+nm+'</b> button, number '+pos+' of '+vis.length+' along the bottom bar.</p>':'';
  showModal('New menu: '+nm,'<div class="unl"><span class="unr"></span><span class="unr r2"></span><span class="unr r3"></span><span class="unic">'+(nb?nb.querySelector('.nv').innerHTML:'')+'</span>'+['a','b','c','d','e','f'].map(c=>'<i class="uns '+c+'"></i>').join('')+'</div><p class="unt">'+NAVINFO[k][1]+'</p>'+where,
   [{t:'Open '+nm,primary:true,fn:()=>setTimeout(()=>showSheet(k),50)},{t:'Later'}]);
  if(nb){const r=nb.getBoundingClientRect(),el=document.createElement('div');el.className='unp';
@@ -2848,7 +2859,7 @@ async function resetRunDo(){
  }catch(e){resetting=false;toast('Reset failed: '+(e&&e.message||e));}
 }
 function showSheet(n){
- {const ab=$('autoLv');if(ab)ab.textContent='⚡ Auto level up: '+(S.autoLv?'ON':'off');}
+ {const ab=$('autoLv');if(ab)ab.textContent='Auto level up: '+(S.autoLv?'ON':'off');}
  {const rb=$('resetRun');if(rb)rb.hidden=!(typeof CC!=='undefined'&&CC.user&&PLAYLOG_USERS.includes(CC.user.id));}
  if(n&&NAVU[n]!==undefined&&!navOpen(n))return;
  sheet=(!n||sheet===n)?null:n;
@@ -2867,14 +2878,24 @@ function hud(){
  const ti=S.depth%10;   // tile within the region (the 10th is the boss)
  if(r!==lastRegion&&!zoneFreeze){document.documentElement.style.setProperty('--ui-road','url(assets/ui/road_path_'+(r%ART_ACTS)+'.png'+V+')');document.documentElement.style.setProperty('--acc',RACC[r%RACC.length]);$('act').textContent='Act '+roman(r+1);$('region').textContent=RG(r)[0];fitRegion();showSplash(r);lastRegion=r;lastPips=null;}
  if(ti!==lastPips){lastPips=ti;$('pips').innerHTML=Array.from({length:10},(_,j)=>'<i class="p'+(j<ti?' done':'')+(j===ti?' cur':'')+(j===9?' boss':'')+'"></i>').join('');}
- {if(lastSub!==''){lastSub='';$('sub').innerHTML='';}}   // the line under the act name (tile count, streak, buffs) was removed: too busy
+ {const B=[];const add=(i,t,ti)=>B.push('<span class="bf" title="'+ti+'">'+ic(i)+t+'</span>');
+  if((S.streak||0)>0)add('flame','x'+S.streak+' +'+Math.round((fervor()-1)*100)+'%','Battle Fervor: more gold for every fight won in a row');
+  if(S.bless>0)add('shrine',S.bless,'Blessing: lasts '+S.bless+' more fights');
+  if(S.fort>0)add('market',S.fort,'Fortune: +50% gold for '+S.fort+' more fights');
+  if(S.edge>0)add('whet',S.edge,'Edge: bonus damage for '+S.edge+' more fights');
+  if(S.plate>0)add('forge',S.plate,'Plate: less damage taken for '+S.plate+' more fights');
+  if(S.weak>0)add('watchtower',S.weak,'Scouted: weaker foes for '+S.weak+' more fights');
+  if(S.kb)add('council',KNAME[S.kb.k]+' +'+S.kb.n,'War Council: bonus for '+KNAME[S.kb.k]+' heroes for '+S.kb.n+' more fights');
+  if(S.merc)add('mercenary',S.merc.n,'Mercenaries: damage boost for '+S.merc.n+' more fights');
+  if(S.boostT>0)add('coin','x2 '+boostTxt(S.boostT),'Gold boost: double gold');
+  const bh=B.join('');if(bh!==lastSub){lastSub=bh;$('bbar').innerHTML=bh;}}   // the dedicated buff bar (top left of the battlefield)
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
- $('rate').innerHTML='≈ '+fmt(S.rate)+' gold/s'+(S.boostT>0?' · ⚡x2 '+boostTxt(S.boostT):'')+'<br><b style="color:#ffd24a">★ Legend '+(S.legend||0)+'</b>';
+ $('rate').innerHTML='≈ '+fmt(S.rate)+' gold/s'+'<br><b style="color:#ffd24a">Legend '+(S.legend||0)+'</b>';
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
  for(const i of S.order){const f=$('hb'+i),t=$('ht'+i);if(!f)continue;const m=heroMax(i);f.style.width=100*Math.max(0,S.hp[i])/m+'%';t.textContent=S.hp[i]<=0?'Fallen':Math.ceil(S.hp[i])+' / '+Math.ceil(m);}
  if(sheet==='stats'){const h=statsRender();if(h!==shopHTML.s){shopHTML.s=h;$('statsBody').innerHTML=h;}}
  if(sheet==='shop'){const h=shopRender();if(h!==shopHTML.v){shopHTML.v=h;$('shopBody').innerHTML=h;}}
- {const left=9-(S.depth%10),bn=RG(region(S.depth))[2],t=left<=0?'☠ Boss fight':'☠ Boss in <em>'+left+'</em>';if(t!==lastRsub){lastRsub=t;$('rsub').innerHTML=t;}}
+ {const left=9-(S.depth%10),bn=RG(region(S.depth))[2],t=left<=0?'Boss fight':'Boss in <em>'+left+'</em>';if(t!==lastRsub){lastRsub=t;$('rsub').innerHTML=t;}}
  $('log').innerHTML=log.map(l=>'<div>'+l+'</div>').join('');
  for(const i of S.order){const m=$('mb'+i);if(m){m.style.width=100*Math.max(0,S.hp[i])/heroMax(i)+'%';m.parentElement.parentElement.classList.toggle('down',S.hp[i]<=0);}}
  if(log[0]!==lastLog)lastLog=log[0];   // log lines live in the Journal; no more text toasts
@@ -2913,7 +2934,7 @@ document.addEventListener('click',e=>{
   else if(b.dataset.replace)replaceCard(b.dataset.replace);
   else if('skip' in b.dataset)skipOffer();
   else if('cancelTake' in b.dataset){pendingTake=null;sig='';}
-  else if(b.id==='autoLv'){S.autoLv=!S.autoLv;if(S.autoLv)autoLevel();b.textContent='⚡ Auto level up: '+(S.autoLv?'ON':'off');save();sig='';}
+  else if(b.id==='autoLv'){S.autoLv=!S.autoLv;if(S.autoLv)autoLevel();b.textContent='Auto level up: '+(S.autoLv?'ON':'off');save();sig='';}
   else if(b.id==='resetRun')resetRunAsk();
   else if(b.dataset.s)speed=+b.dataset.s,sig='';
   else if(b.id==='reroll')reroll();
@@ -3052,7 +3073,7 @@ function bossBars(top){   // big named health bars pinned to the top of the batt
    g.strokeStyle=rgba(A.c,.9*pulse);g.lineWidth=2;g.beginPath();g.roundRect(cx-w/2-3,ab-3,w+6,ah+6,7);g.stroke();
    g.fillStyle='#161018';g.beginPath();g.roundRect(cx-w/2,ab,w,ah,4);g.fill();
    if(p>0){const gr=g.createLinearGradient(0,ab,0,ab+ah);gr.addColorStop(0,rgba(A.c,1));gr.addColorStop(1,rgba(A.c,.55));g.globalAlpha=fade*(ready?pulse:1);g.fillStyle=gr;g.beginPath();g.roundRect(cx-w/2,ab,Math.max(6,w*p),ah,4);g.fill();g.globalAlpha=fade;}
-   g.font='800 10px Cinzel,Georgia,serif';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.9)';const lab=A.g+' '+(f.cast>0?f.ab.n.toUpperCase()+'!':f.ab.n.toUpperCase());g.strokeText(lab,cx,ab+11);g.fillStyle='#fff';g.fillText(lab,cx,ab+11);
+   g.font='800 10px Cinzel,Georgia,serif';g.lineWidth=3;g.strokeStyle='rgba(0,0,0,.9)';const lab=(f.cast>0?f.ab.n.toUpperCase()+'!':f.ab.n.toUpperCase());g.strokeText(lab,cx,ab+11);g.fillStyle='#fff';g.fillText(lab,cx,ab+11);
    used=66;}
   g.restore();y+=used;
  });
@@ -3484,7 +3505,7 @@ function claimAway(raw){
  S.gold+=gg;gained+=gg;const perA=sh?addShards(sh):{};
  for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
  const t=secs>=3600?Math.floor(secs/3600)+'h '+Math.floor(secs%3600/60)+'m':Math.floor(secs/60)+' min';
- showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?'<br><small style="color:#8fd8ff;font-size:14px">'+shardMsg(perA)+'</small>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)shardPopup(addShards(sh),'Welcome back');toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' ◆':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
+ showModal('Welcome back!','<p>The company kept marching for <b>'+t+'</b>'+(raw>AFK_CAP?' (capped at 8h)':'')+' while you were away.</p><p style="font-size:22px;margin:10px 0"><b>+'+fmt(gg)+' gold</b>'+(sh?'<br><small style="color:#8fd8ff;font-size:14px">'+shardMsg(perA)+'</small>':'')+'</p><p class="hint">Away income is half your live rate. Everyone is rested and fully healed.</p>',[{t:'Collect',primary:true}].concat(ADS.ok()?[{t:'Watch ad: double it',fn:async()=>{if(await ADS.show()){S.gold+=gg;gained+=gg;if(sh)shardPopup(addShards(sh),'Welcome back');toast('Doubled: +'+fmt(gg)+' more gold'+(sh?' and '+sh+' ◆':''));say('Ad bonus: away gains doubled.');save();}else toast('No reward: the ad was not finished.');}}]:[]));
  say('Welcome back! +'+fmt(gg)+' gold'+(sh?' and '+sh+' shard'+(sh>1?'s':''):'')+' earned while away.');save();
 }
 if(!(S.awaySeed&&awayReturn()))claimAway((Date.now()-(S.awayAt||S.saved))/1000);
@@ -3498,13 +3519,13 @@ const gRelic=(n,m)=>{n=Math.max(1,Math.round(n*m));const names=[];for(let i=0;i<
 const gBoost=(min,m)=>{S.boostT=Math.max(S.boostT||0,min*60*m);return 'Gold x2 for '+Math.round(min*m)+' minutes';};
 const gRedraw=(n,m)=>{n=Math.round(n*m);S.rd=Math.min(maxRd()+n,S.rd+n);return '+'+n+' redraws';};
 const DAILY_R=[   // [short label, icon, long label, give(multiplier)]
- ['1h gold','🪙','1 hour of income',m=>gGold(1,m)],
+ ['1h gold',ic('coin'),'1 hour of income',m=>gGold(1,m)],
  ['2 shards',()=>shardMix(17,'d'),'2 hero shards',m=>gShard(2,m)],
- ['2h gold','🪙','2 hours of income and 3 redraws',m=>gGold(2,m)+' and '+gRedraw(3,m)],
- ['x2 boost','⚡','A 30-minute gold x2 boost and 2 shards',m=>gBoost(30,m)+' and '+gShard(2,m)],
- ['Relic','🗝️','A random relic and 3 shards',m=>gRelic(1,m)+' and '+gShard(3,m)],
- ['4h gold','🪙','4 hours of income and a 20-minute boost',m=>gGold(4,m)+' and '+gBoost(20,m)],
- ['Jackpot','🎁','JACKPOT: 2 relics, 5 shards and 6 hours of income',m=>gRelic(2,m)+', '+gShard(5,m)+' and '+gGold(6,m)]
+ ['2h gold',ic('coin'),'2 hours of income and 3 redraws',m=>gGold(2,m)+' and '+gRedraw(3,m)],
+ ['x2 boost',ic('coin'),'A 30-minute gold x2 boost and 2 shards',m=>gBoost(30,m)+' and '+gShard(2,m)],
+ ['Relic',ic('vault'),'A random relic and 3 shards',m=>gRelic(1,m)+' and '+gShard(3,m)],
+ ['4h gold',ic('coin'),'4 hours of income and a 20-minute boost',m=>gGold(4,m)+' and '+gBoost(20,m)],
+ ['Jackpot',ic('treasury'),'JACKPOT: 2 relics, 5 shards and 6 hours of income',m=>gRelic(2,m)+', '+gShard(5,m)+' and '+gGold(6,m)]
 ];
 let dailyOpen=false;
 function dailyCheck(){
@@ -3518,8 +3539,8 @@ function dailyCheck(){
  const strip=DAILY_R.map((r,i)=>'<div style="flex:1;min-width:0;padding:5px 1px;border-radius:8px;border:1px solid '+(i===day?'var(--gold)':'rgba(255,255,255,.15)')+';background:'+(i===day?'rgba(255,210,74,.2)':i<day?'rgba(255,255,255,.08)':'none')+';opacity:'+(i<day?.55:1)+'"><small style="display:block;opacity:.7;font-size:10px">Day '+(i+1)+'</small><span style="font-size:17px">'+(i<day?'✓':(typeof r[1]==='function'?r[1]():r[1]))+'</span><small style="display:block;font-size:9px;line-height:1.1;opacity:.85">'+r[0]+'</small></div>').join('');
  const claim=m=>{d.last=today;d.streak=streak;const txt=DAILY_R[day][3](m*bonus);dailyOpen=false;say('Daily reward (day '+(day+1)+', streak '+streak+'): '+txt+'.');toast('Daily reward: '+txt);sig='';save();};
  const next=DAILY_R[(day+1)%7];
- showModal('Daily reward','<p style="margin:0">🔥 <b>'+streak+'-day streak</b>'+(week?' · +'+Math.round((bonus-1)*100)+'% weekly bonus':'')+'</p><div style="display:flex;gap:3px;margin:10px 0">'+strip+'</div><p style="font-size:17px;margin:6px 0"><b>'+DAILY_R[day][2]+'</b></p><p class="hint" style="margin:4px 0">Tomorrow: '+next[2]+'. Miss a day and the streak holds; miss two and it restarts. Each full week adds a permanent +25% to the rewards, up to +100%.</p>',
-  [{t:'Claim',primary:true,fn:()=>claim(1)}].concat(ADS.ok()?[{t:'▶ Watch ad: double it',fn:async()=>{claim(await ADS.show()?2:1);}}]:[]));
+ showModal('Daily reward','<p style="margin:0"><b>'+streak+'-day streak</b>'+(week?' · +'+Math.round((bonus-1)*100)+'% weekly bonus':'')+'</p><div style="display:flex;gap:3px;margin:10px 0">'+strip+'</div><p style="font-size:17px;margin:6px 0"><b>'+DAILY_R[day][2]+'</b></p><p class="hint" style="margin:4px 0">Tomorrow: '+next[2]+'. Miss a day and the streak holds; miss two and it restarts. Each full week adds a permanent +25% to the rewards, up to +100%.</p>',
+  [{t:'Claim',primary:true,fn:()=>claim(1)}].concat(ADS.ok()?[{t:'Watch ad: double it',fn:async()=>{claim(await ADS.show()?2:1);}}]:[]));
 }
 CLAN.init();
 document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('[data-cl]');if(c)CLAN.click(c.dataset.cl);});
@@ -3576,7 +3597,7 @@ window.addEventListener('beforeunload',save);
 /* ---------- sound controls ---------- */
 function sndUI(){
  const c=SND.cfg;$('sfxbtn').textContent='Effects: '+(c.sfx?'On':'Off');$('musbtn').textContent='Music: '+(c.music?'On':'Off');
- $('volr').value=Math.round(c.vol*100);$('mute').textContent=(c.sfx||c.music)?'🔊':'🔇';
+ $('volr').value=Math.round(c.vol*100);$('mute').innerHTML=(c.sfx||c.music)?'<svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M3 9v6h4l5 4V5L7 9z"/><path d="M15 8.5a5 5 0 0 1 0 7M17.5 6a8.5 8.5 0 0 1 0 12" stroke="#fff" stroke-width="2" fill="none"/></svg>':'<svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M3 9v6h4l5 4V5L7 9z"/><path d="M16 9l5 6M21 9l-5 6" stroke="#fff" stroke-width="2" fill="none"/></svg>';
 }
 $('mute').onclick=()=>{const on=!(SND.cfg.sfx||SND.cfg.music);SND.setSfx(on);SND.setMusic(on);sndUI();if(on)SND.play('click');};
 $('sfxbtn').onclick=()=>{SND.setSfx(!SND.cfg.sfx);sndUI();};
