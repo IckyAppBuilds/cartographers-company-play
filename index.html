@@ -801,7 +801,21 @@ body.newb .row3{grid-template-columns:1fr auto}
 /* loading screen: shown until the art the first screen needs has arrived */
 #loading{position:fixed;inset:0;z-index:120;background:#120c07;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;transition:opacity .35s}
 #loading.out{opacity:0;pointer-events:none}
-#loading .ld-logo{width:min(70vw,320px);height:auto}
+#loading .ld-run{position:relative;width:min(88vw,380px);height:170px;overflow:hidden;border-radius:14px;background:linear-gradient(180deg,#2a1d3a 0%,#7a4a2a 62%,#3a2a14 62%,#241709 100%);border:2px solid #6a4a1c}
+#loading .ld-hills{position:absolute;left:0;top:0;width:200%;height:62%;background:radial-gradient(ellipse 60px 34px at 30px 100%,#1a1226 98%,transparent 100%) 0 100%/120px 100% repeat-x;opacity:.85;animation:ldscroll 5s linear infinite}
+#loading .ld-path{position:absolute;left:0;bottom:22px;width:200%;height:4px;background:repeating-linear-gradient(90deg,#c9a45a 0 26px,transparent 26px 54px);opacity:.7;animation:ldscroll .7s linear infinite}
+#loading .ld-heroes{position:absolute;left:0;right:0;bottom:26px;display:flex;justify-content:center;gap:2px}
+#loading .ld-heroes img{height:92px;width:auto;margin:0 -6px;transform-origin:50% 100%;animation:ldrun .46s ease-in-out infinite;filter:drop-shadow(0 4px 3px rgba(0,0,0,.5))}
+#loading .ld-heroes img:nth-child(2){animation-delay:-.12s}
+#loading .ld-heroes img:nth-child(3){animation-delay:-.24s}
+#loading .ld-heroes img:nth-child(4){animation-delay:-.36s}
+#loading .ld-d{position:absolute;bottom:26px;left:22%;width:12px;height:12px;border-radius:50%;background:rgba(220,190,140,.7);animation:lddust .6s ease-out infinite}
+#loading .ld-d.d2{left:30%;animation-delay:-.2s}
+#loading .ld-d.d3{left:38%;animation-delay:-.4s}
+@keyframes ldrun{0%,100%{transform:translateY(0) rotate(-3deg) scaleY(.96)}50%{transform:translateY(-16px) rotate(4deg) scaleY(1.03)}}
+@keyframes ldscroll{to{transform:translateX(-50%)}}
+@keyframes lddust{0%{transform:translate(0,0) scale(.5);opacity:.8}100%{transform:translate(-34px,-14px) scale(1.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){#loading .ld-heroes img,#loading .ld-hills,#loading .ld-path,#loading .ld-d{animation:none}}
 #loading .ld-bar{width:min(70vw,280px);height:10px;border-radius:6px;background:#2a1a0c;border:1px solid #6a4a1c;overflow:hidden}
 #loading .ld-bar i{display:block;height:100%;width:0;background:linear-gradient(180deg,#ffd24a,#c88a1c);transition:width .2s}
 #loading small{font:700 13px Cinzel,Georgia,serif;color:#c9b27a;letter-spacing:.06em}
@@ -880,7 +894,7 @@ body.newb .row3{grid-template-columns:1fr auto}
  <div class="ik-tag">Cartographer's Company</div>
  <div class="ik-skip">tap to continue</div>
 </div>
-<div id="loading" hidden><img class="ld-logo" src="assets/brand/logo.png" alt="" draggable="false"><div class="ld-bar"><i id="ldBar"></i></div><small id="ldTxt">Loading the realm</small></div>
+<div id="loading" hidden><div class="ld-run" aria-hidden="true"><div class="ld-hills"></div><div class="ld-heroes"><img src="assets/heroes/knight.png" alt=""><img src="assets/heroes/ranger.png" alt=""><img src="assets/heroes/mage.png" alt=""><img src="assets/heroes/cleric.png" alt=""></div><div class="ld-path"></div><i class="ld-d d1"></i><i class="ld-d d2"></i><i class="ld-d d3"></i></div><div class="ld-bar"><i id="ldBar"></i></div><small id="ldTxt">Loading the realm</small></div>
 <div id="auth" hidden>
  <div class="au-bg"></div>
  <div class="au-wrap">
@@ -907,7 +921,7 @@ body.newb .row3{grid-template-columns:1fr auto}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026151148';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026151248';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
