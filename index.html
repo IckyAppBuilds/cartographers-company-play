@@ -773,6 +773,18 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 #cbStrike,#sheet .pane #cbStrike{text-shadow:none!important;line-height:1.25;font-weight:800;color:#2a1803!important;padding-top:6px;padding-bottom:6px}
 #cbStrike small{display:block;text-shadow:none!important;font-weight:700;opacity:.9;margin-top:2px}
 #cbStrike:disabled{filter:grayscale(.6) brightness(.8)}
+
+/* computer screens (wide landscape): the game sits centred at a comfortable size, the hand of tiles stands in a column that scales with the window, and the road keeps its painted proportions */
+@media (orientation:landscape) and (min-width:900px) and (min-height:540px){
+ body{background:radial-gradient(ellipse at 50% 35%,#2a1e12 0%,#120c07 60%,#070503 100%) fixed}
+ #app{max-width:min(1680px,188vh);grid-template-columns:minmax(0,1fr) clamp(250px,21vw,360px)}
+ #handw{flex:1 1 0;min-height:0}
+ #hand{display:flex!important;flex-direction:column;align-items:center;justify-content:space-evenly;gap:8px;flex:1 1 0;min-height:0}
+ #hand .hc{flex:1 1 0;min-height:0;max-height:none!important;height:auto!important;width:auto;max-width:100%;aspect-ratio:210/150;align-self:center}
+ #hand .hc .i{font-size:clamp(22px,5vh,52px)}#hand .hc .n{font-size:clamp(12px,2.1vh,22px)}#hand .hc .r{font-size:clamp(8px,1.2vh,13px)}#hand .hc .d{font-size:clamp(9px,1.3vh,14px)}
+ #hand .hc .ico{width:clamp(30px,7.5vh,84px);height:clamp(30px,7.5vh,84px)}
+ #road{max-width:min(100%,920px);margin:0 auto;background-size:auto 100%!important;background-repeat:repeat-x!important;background-position:center!important}
+}
 </style>
 </head>
 <body>
@@ -872,7 +884,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025222132';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025223543';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
