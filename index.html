@@ -824,6 +824,8 @@ body.newb .row3{grid-template-columns:1fr auto}
 
 /* portal build: settings only, nothing that leaves the portal */
 html.portal #acctSec,html.portal #icky{display:none!important}
+html.portal body{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text}
 </style>
 </head>
 <body>
@@ -926,7 +928,7 @@ html.portal #acctSec,html.portal #icky{display:none!important}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026161813';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026172928';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -948,7 +950,7 @@ if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parent
 })();
 /* ---------- crash and usage reporting: uncaught errors go to a write-only table, plus one anonymous ping per device per day (no account, no personal data) ---------- */
 const TELE=(()=>{
- const off=BUILD==='dev'||/^(localhost|127\.|\[::1\])/.test(location.hostname)||/[?&]notele/.test(location.search),plat=window.__ICKY_NATIVE!==undefined?'app':'web',seen={};let sent=0;
+ const off=BUILD==='dev'||/[?&]portal=crazygames/.test(location.search)||/crazygames/i.test(location.hostname)||/crazygames\.com/i.test(document.referrer||'')||(()=>{try{return sessionStorage.getItem('cc-portal')==='1';}catch(e){return false;}})()||/^(localhost|127\.|\[::1\])/.test(location.hostname)||/[?&]notele/.test(location.search),plat=window.__ICKY_NATIVE!==undefined?'app':'web',seen={};let sent=0;
  const post=(table,row)=>{try{fetch(SB_URL+'/rest/v1/'+table,{method:'POST',keepalive:true,headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(row)}).catch(()=>{});}catch(e){}};
  const cut=(s,n)=>String(s==null?'':s).slice(0,n);
  function err(kind,msg,stack,src){
@@ -970,20 +972,20 @@ try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=
 /* ---------- portal build (CrazyGames): ?portal=crazygames, or served from / framed by crazygames.com. Guest play only, no clan or arena, no external links, the portal SDK for ads, loading and gameplay events, and its data store as a second copy of the save ---------- */
 const PORTAL=(()=>{let p=/[?&]portal=crazygames/.test(location.search)||/crazygames/i.test(location.hostname);try{if(!p)p=/crazygames\.com/i.test(document.referrer||'');if(p)sessionStorage.setItem('cc-portal','1');else p=sessionStorage.getItem('cc-portal')==='1';}catch(e){}if(p)document.documentElement.classList.add('portal');return p;})();
 const CG=(()=>{
- let sdk=null,ready=false;
+ let sdk=null,ready=false,offUntil=0;
  const init=!PORTAL?Promise.resolve(false):new Promise(res=>{
   const s=document.createElement('script');s.src='https://sdk.crazygames.com/crazygames-sdk-v3.js';
   s.onload=async()=>{try{await window.CrazyGames.SDK.init();sdk=window.CrazyGames.SDK;ready=true;}catch(e){}res(ready);};
   s.onerror=()=>res(false);document.head.appendChild(s);setTimeout(()=>res(ready),6000);});
  const t=f=>{try{return f();}catch(e){}};
  const mirror=['cartographer-v3','cc-hall','cc-snd'],q={};
- return{init,get on(){return ready;},
+ return{init,get on(){return ready;},get adsOk(){return ready&&Date.now()>offUntil;},
   loading(b){if(ready)t(()=>b?sdk.game.loadingStart():sdk.game.loadingStop());},
   play(b){if(ready)t(()=>b?sdk.game.gameplayStart():sdk.game.gameplayStop());},
   /* a video ad: 'rewarded' resolves true only when it was watched to the end; 'midgame' resolves when it is over */
   ad(type){return new Promise(res=>{
    if(!ready)return res(false);let done=false;const fin=v=>{if(done)return;done=true;try{typeof SND!=='undefined'&&SND.hold(false);}catch(e){}res(v);};
-   try{sdk.ad.requestAd(type,{adStarted:()=>{try{typeof SND!=='undefined'&&SND.hold(true);}catch(e){}},adFinished:()=>fin(true),adError:()=>fin(false)});}catch(e){fin(false);}
+   try{sdk.ad.requestAd(type,{adStarted:()=>{try{typeof SND!=='undefined'&&SND.hold(true);}catch(e){}},adFinished:()=>fin(true),adError:()=>{if(type==='rewarded')offUntil=Date.now()+10*60*1000;fin(false);}});}catch(e){if(type==='rewarded')offUntil=Date.now()+10*60*1000;fin(false);}
    setTimeout(()=>fin(false),180000);});},
   /* the portal keeps a second copy of the save: hydrate from it when this browser has none (or an older one), and write through (throttled) afterwards */
   hydrate(){if(!ready)return;t(()=>{for(const k of mirror){const v=sdk.data.getItem(k);if(!v)continue;const l=localStorage.getItem(k);
@@ -1163,6 +1165,7 @@ const CC=(function(){
  }
  async function init(){
   if(!PORTAL)$('auth').hidden=false;
+  if(PORTAL&&(!window.supabase||SB_URL.startsWith('__'))){db={rpc:async()=>({data:null,error:{message:'offline'}}),from:()=>({select:()=>Promise.resolve({data:[],error:null})})};await CG.init;lset('cc-guest','1');return start();}   // the portal build never depends on the cloud library
   if(!window.supabase||SB_URL.startsWith('__')){msg(SB_URL.startsWith('__')?'Cloud saves are not configured yet.':'Could not load the sign-in service. Check your connection and reload.',1);return;}
   db=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
   if(PORTAL){await CG.init;lset('cc-guest','1');return start();}   // the portal has its own players: no sign-in, a device guest
@@ -2677,7 +2680,7 @@ function step(dt){
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
   if(!wait&&pt>=1.0)startTile();
  }else if(phase==='event'){pt+=dt;if(pt>=1.3){if(evState)evTick(dt);else event();}}
- else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait){if(ADS.ok()&&!reviveAsked){if(!sheet)offerRevive();}else wipe();}}
+ else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait){if(ADS.ok()&&!PORTAL&&!reviveAsked){if(!sheet)offerRevive();}else wipe();}}
  else if(phase==='fight'){
   if(bossCurse>0)bossCurse-=dt;
   H.forEach((h,i)=>{
@@ -2744,7 +2747,7 @@ function swapHero(pos,nid){
  S.un[nid]=S.un[old];S.un[old]=false;S.order[pos]=nid;S.hp[nid]=S.un[nid]?q*heroMax(nid):0;S.hp[old]=0;
  say(HEROES[nid].n+' takes '+HEROES[old].n+"'s place.");save();
 }
-function reroll(){if(S.rd<1){if(ADS.ok())ADS.show().then(ok=>{if(ok){S.rd+=2;sig='';toast('+2 redraws');}});return;}   // out of redraws: an ad buys two more
+function reroll(){if(S.rd<1){if(ADS.ok()&&!PORTAL)ADS.show().then(ok=>{if(ok){S.rd+=2;sig='';toast('+2 redraws');}});return;}   // out of redraws: an ad buys two more
  S.rd-=1;inscribing=false;S.draw=shuffle(S.draw.concat(S.hand));S.hand=[];selCard=-1;fillHand();sig='';}
 function retire(){
  const g=legGain();if(!g)return;
@@ -2822,7 +2825,7 @@ function build(){
   if(lg&&!S.retHint&&$('modal').hidden&&!sheet){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
  $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats, +${S.legend*10}% gold). Unlocks at tile 30. The further you get before retiring, the more Legend it pays.`;
  $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">x${speed}</button>`;
- {const rb=$('reroll'),ad=S.rd<1&&ADS.ok();rb.disabled=S.rd<1&&!ad;const t=ad?adIc()+'+2 Redraws':'Redraw';if(rb.dataset.l!==t){rb.dataset.l=t;rb.innerHTML=t;}}
+ {const rb=$('reroll'),ad=S.rd<1&&ADS.ok()&&!PORTAL;rb.disabled=S.rd<1&&!ad;const t=ad?adIc()+'+2 Redraws':'Redraw';if(rb.dataset.l!==t){rb.dataset.l=t;rb.innerHTML=t;}}
 }
 /* ---------- story beats: opening card and victory ---------- */
 let modalBtns=[];
@@ -3722,10 +3725,10 @@ const ADS=(()=>{
  });
  const nativeAd=async()=>{rewarded=false;try{await A.prepareRewardVideoAd({adId:cap.getPlatform()==='ios'?ADMOB.ios:ADMOB.android,isTesting:ADMOB.test});await A.showRewardVideoAd();}catch(e){return false;}return rewarded;};
  return{
-  ok:()=>PORTAL&&CG.on,   // web first: no ads on our own site. Free gifts are time based (see AD_CD). On the portal build the portal's own rewarded ads come back (revive, double it, +2 redraws)
+  ok:()=>PORTAL&&CG.adsOk,   // web first: no ads on our own site. Free gifts are time based (see AD_CD). On the portal build the portal's own rewarded ads come back (revive, double it, +2 redraws)
   live:()=>busy,
   mid:async()=>{if(!(PORTAL&&CG.on)||busy||document.visibilityState!=='visible')return false;busy=true;try{return await CG.ad('midgame');}finally{busy=false;}},   // a break between acts
-  show:async()=>{if(PORTAL&&CG.on){if(busy)return false;busy=true;try{return await CG.ad('rewarded');}finally{busy=false;}}if(busy||!(native||bridge||demo))return false;busy=true;SND.hold(true);try{return bridge?await bridgeAd():native?await nativeAd():await testAd();}finally{busy=false;SND.hold(false);}}
+  show:async()=>{if(PORTAL&&CG.on){if(busy)return false;busy=true;try{const ok=await CG.ad('rewarded');if(!ok&&!CG.adsOk)toast('No ad is available right now. Try again later.');return ok;}finally{busy=false;}}if(busy||!(native||bridge||demo))return false;busy=true;SND.hold(true);try{return bridge?await bridgeAd():native?await nativeAd():await testAd();}finally{busy=false;SND.hold(false);}}
  };
 })();
 const AD_CD={boost:3600,shard:6*3600,chest:4*3600};   // seconds between uses of the Shop rewards
