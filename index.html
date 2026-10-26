@@ -819,6 +819,9 @@ body.newb .row3{grid-template-columns:1fr auto}
 #loading .ld-bar{width:min(70vw,280px);height:10px;border-radius:6px;background:#2a1a0c;border:1px solid #6a4a1c;overflow:hidden}
 #loading .ld-bar i{display:block;height:100%;width:0;background:linear-gradient(180deg,#ffd24a,#c88a1c);transition:width .2s}
 #loading small{font:700 13px Cinzel,Georgia,serif;color:#c9b27a;letter-spacing:.06em}
+
+/* portal build: settings only, nothing that leaves the portal */
+html.portal #acctSec,html.portal #icky{display:none!important}
 </style>
 </head>
 <body>
@@ -867,8 +870,8 @@ body.newb .row3{grid-template-columns:1fr auto}
     <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
    </div>
    <div class="pane" data-pane="account" hidden><h3>Sound</h3><div class="sndrow"><button id="sfxbtn"></button><button id="musbtn"></button></div><label class="hint" style="display:block;margin:6px 0 2px">Volume</label><input id="volr" type="range" min="0" max="100" step="5" style="width:100%">
-    <h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button> <button id="delacct">Delete account</button>
-    <div class="hint" style="margin-top:8px"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a></div></div>
+    <div id="acctSec"><h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button> <button id="delacct">Delete account</button>
+    <div class="hint" style="margin-top:8px"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a></div></div></div>
    <div class="pane" data-pane="shop" hidden><div id="shopBody"></div></div>
    <div class="pane" data-pane="arena" hidden><div id="arenaBody"></div></div>
    <div class="pane" data-pane="clan" hidden><div id="clanBody"></div></div>
@@ -921,7 +924,7 @@ body.newb .row3{grid-template-columns:1fr auto}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026151248';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026152055';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -962,12 +965,36 @@ const TELE=(()=>{
  return{err};
 })();
 try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=document.documentElement.style;r.setProperty('--ui-road',u('road_path'));['common','uncommon','rare','epic','legend'].forEach((k,i)=>r.setProperty('--ui-hc'+i,u('hc_'+k)));r.setProperty('--ui-hcsel',u('hc_sel'));r.setProperty('--ui-stone',u('road_stone'));r.setProperty('--ui-stonecur',u('road_stone_cur'));r.setProperty('--ui-gap',u('road_gap'));r.setProperty('--ui-lair',u('road_boss'));r.setProperty('--ui-panel',u('panel_dark'));r.setProperty('--ui-ribbon',u('ribbon_red'));for(let q=0;q<5;q++)r.setProperty('--ui-card'+q,u('card'+q));r.setProperty('--ui-ribbonb',u('ribbon_blue'));r.setProperty('--ui-close',u('btn_close'));r.setProperty('--ui-gold',u('btn_gold'));r.setProperty('--ui-blue',u('btn_blue'));r.setProperty('--ui-red',u('btn_red'));r.setProperty('--ui-grey',u('btn_grey'));r.setProperty('--ui-tab',u('tab_off'));r.setProperty('--ui-tabon',u('tab_on'));}catch(e){}
+/* ---------- portal build (CrazyGames): ?portal=crazygames, or served from / framed by crazygames.com. Guest play only, no clan or arena, no external links, the portal SDK for ads, loading and gameplay events, and its data store as a second copy of the save ---------- */
+const PORTAL=(()=>{let p=/[?&]portal=crazygames/.test(location.search)||/crazygames/i.test(location.hostname);try{if(!p)p=/crazygames\.com/i.test(document.referrer||'');if(p)sessionStorage.setItem('cc-portal','1');else p=sessionStorage.getItem('cc-portal')==='1';}catch(e){}if(p)document.documentElement.classList.add('portal');return p;})();
+const CG=(()=>{
+ let sdk=null,ready=false;
+ const init=!PORTAL?Promise.resolve(false):new Promise(res=>{
+  const s=document.createElement('script');s.src='https://sdk.crazygames.com/crazygames-sdk-v3.js';
+  s.onload=async()=>{try{await window.CrazyGames.SDK.init();sdk=window.CrazyGames.SDK;ready=true;}catch(e){}res(ready);};
+  s.onerror=()=>res(false);document.head.appendChild(s);setTimeout(()=>res(ready),6000);});
+ const t=f=>{try{return f();}catch(e){}};
+ const mirror=['cartographer-v3','cc-hall','cc-snd'],q={};
+ return{init,get on(){return ready;},
+  loading(b){if(ready)t(()=>b?sdk.game.loadingStart():sdk.game.loadingStop());},
+  play(b){if(ready)t(()=>b?sdk.game.gameplayStart():sdk.game.gameplayStop());},
+  /* a video ad: 'rewarded' resolves true only when it was watched to the end; 'midgame' resolves when it is over */
+  ad(type){return new Promise(res=>{
+   if(!ready)return res(false);let done=false;const fin=v=>{if(done)return;done=true;try{typeof SND!=='undefined'&&SND.hold(false);}catch(e){}res(v);};
+   try{sdk.ad.requestAd(type,{adStarted:()=>{try{typeof SND!=='undefined'&&SND.hold(true);}catch(e){}},adFinished:()=>fin(true),adError:()=>fin(false)});}catch(e){fin(false);}
+   setTimeout(()=>fin(false),180000);});},
+  /* the portal keeps a second copy of the save: hydrate from it when this browser has none (or an older one), and write through (throttled) afterwards */
+  hydrate(){if(!ready)return;t(()=>{for(const k of mirror){const v=sdk.data.getItem(k);if(!v)continue;const l=localStorage.getItem(k);
+    if(k==='cartographer-v3'){let a=0,b=0;try{a=JSON.parse(v).saved||0;}catch(e){}try{b=JSON.parse(l).saved||0;}catch(e){}if(a>b)localStorage.setItem(k,v);}else if(!l)localStorage.setItem(k,v);}
+   const orig=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){orig.call(this,k,v);if(this===localStorage&&mirror.includes(k)&&!q[k])q[k]=setTimeout(()=>{q[k]=0;t(()=>sdk.data.setItem(k,localStorage.getItem(k)));},8000);};});}
+ };
+})();
 /* ---------- Icky App Builds splash: plays once per session, then hands over to the sign-in gate ---------- */
 (function(){
  const el=document.getElementById('icky');if(!el)return;
  let seen=false;try{seen=sessionStorage.getItem('cc-splash')==='1';}catch(e){}
  const hold=location.hash==='#splash';   // preview helper: stay on the splash
- if((seen||BUILD==='skip')&&!hold){el.remove();return;}
+ if(PORTAL||(seen||BUILD==='skip')&&!hold){el.remove();return;}
  el.hidden=false;
  {const im=el.querySelector('.ik-mascot'),go=()=>el.classList.add('go');(im.decode?im.decode():Promise.resolve()).then(go,go);setTimeout(go,900);}
  [...el.querySelectorAll('.ik-title span')].forEach((s,i)=>s.style.setProperty('--i',i));
@@ -977,7 +1004,7 @@ try{const v=BUILD==='dev'?'':'?v='+BUILD,u=n=>'url(assets/ui/'+n+'.png'+v+')',r=
 })();
 /* ---------- version check: if the server has a newer build than the one running, load it (GitHub Pages and browsers cache aggressively) ---------- */
 (function(){
- if(BUILD==='dev')return;
+ if(BUILD==='dev'||PORTAL)return;
  async function latest(){try{const r=await fetch(location.pathname+'?cb='+Date.now(),{cache:'no-store'});const m=/const BUILD='([^']+)'/.exec(await r.text());return m&&m[1]!==BUILD?m[1]:null;}catch(e){return null;}}
  function banner(){if(document.getElementById('updbar'))return;const b=document.createElement('button');b.id='updbar';b.textContent='A new version is ready · tap to update';b.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:99;padding:10px 16px;border-radius:999px;border:2px solid #ffd24a;background:#4a2a96;color:#fff3c4;font:700 14px Georgia,serif;box-shadow:0 4px 20px rgba(0,0,0,.6)';b.onclick=()=>location.replace(location.pathname+'?b='+Date.now());document.body.appendChild(b);}
  (async()=>{const n=await latest();if(!n)return;let tried=null;try{tried=sessionStorage.getItem('cc-upd');}catch(e){}
@@ -996,7 +1023,7 @@ const CC=(function(){
  function start(){
   if(started)return;started=true;$('auth').hidden=true;
   const go=()=>{const el=document.createElement('script');el.textContent=$('game').textContent;document.body.appendChild(el);setTimeout(()=>{const l=$('loading');if(l){l.classList.add('out');setTimeout(()=>l.remove(),400);}},350);};
-  preload().then(go,go);
+  CG.loading(true);CG.hydrate();preload().then(()=>{CG.loading(false);go();},()=>{CG.loading(false);go();});
  }
  /* the first screen waits for its art (heroes, icons, backgrounds, interface, bosses, the current act's foes) so no placeholder drawing is ever seen; anything slow is given up on after 20 seconds */
  const ASSETS='heroes/alchemist.png heroes/alchemist_p.png heroes/artificer.png heroes/artificer_p.png heroes/bard.png heroes/bard_p.png heroes/berserker.png heroes/berserker_p.png heroes/cleric.png heroes/cleric_p.png heroes/druid.png heroes/druid_p.png heroes/duelist.png heroes/duelist_p.png heroes/huntress.png heroes/huntress_p.png heroes/knight.png heroes/knight_p.png heroes/mage.png heroes/mage_p.png heroes/monk.png heroes/monk_p.png heroes/necromancer.png heroes/necromancer_p.png heroes/oracle.png heroes/oracle_p.png heroes/paladin.png heroes/paladin_p.png heroes/pyromancer.png heroes/pyromancer_p.png heroes/ranger.png heroes/ranger_p.png heroes/rogue.png heroes/rogue_p.png heroes/shieldmaiden.png heroes/shieldmaiden_p.png heroes/stormcaller.png heroes/stormcaller_p.png heroes/templar.png heroes/templar_p.png icons/ad.png icons/arena.png icons/battlefield.png icons/boots.png icons/bounty.png icons/clan.png icons/coin.png icons/company.png icons/council.png icons/crucible.png icons/crypt.png icons/deck.png icons/fang.png icons/flame.png icons/forest.png icons/forge.png icons/graveyard.png icons/hunt.png icons/ink.png icons/journal.png icons/lair.png icons/leyline.png icons/market.png icons/mercenary.png icons/oak.png icons/observatory.png icons/relics.png icons/ruins.png icons/scriptorium.png icons/shrine.png icons/springs.png icons/starfall.png icons/stats.png icons/swamp.png icons/tiles.png icons/training.png icons/treasury.png icons/tut_compass.png icons/tut_place.png icons/tut_road.png icons/tut_tiles.png icons/vault.png icons/village.png icons/warcamp.png icons/watchtower.png icons/whet.png icons/wilds.png bg/act0.jpg bg/act1.jpg bg/act10.jpg bg/act11.jpg bg/act12.jpg bg/act13.jpg bg/act14.jpg bg/act15.jpg bg/act16.jpg bg/act17.jpg bg/act18.jpg bg/act19.jpg bg/act2.jpg bg/act3.jpg bg/act4.jpg bg/act5.jpg bg/act6.jpg bg/act7.jpg bg/act8.jpg bg/act9.jpg bg/battlefield.jpg bg/crypt.jpg bg/forest.jpg bg/lair.jpg bg/lair0.jpg bg/lair1.jpg bg/lair10.jpg bg/lair11.jpg bg/lair12.jpg bg/lair13.jpg bg/lair14.jpg bg/lair15.jpg bg/lair16.jpg bg/lair17.jpg bg/lair18.jpg bg/lair19.jpg bg/lair2.jpg bg/lair3.jpg bg/lair4.jpg bg/lair5.jpg bg/lair6.jpg bg/lair7.jpg bg/lair8.jpg bg/lair9.jpg bg/leyline.jpg bg/market.jpg bg/meadow.jpg bg/ruins.jpg bg/shrine.jpg bg/springs.jpg bg/swamp.jpg bg/treasury.jpg bg/vault.jpg bg/village.jpg ui/bar_hp.png ui/btn_blue.png ui/btn_close.png ui/btn_gold.png ui/btn_grey.png ui/btn_red.png ui/card0.png ui/card1.png ui/card2.png ui/card3.png ui/card4.png ui/hc_common.png ui/hc_epic.png ui/hc_legend.png ui/hc_rare.png ui/hc_sel.png ui/hc_uncommon.png ui/panel_dark.png ui/panel_list.png ui/panel_parch.png ui/ribbon_blue.png ui/ribbon_red.png ui/road_boss.png ui/road_gap.png ui/road_path.png ui/road_stone.png ui/road_stone_cur.png ui/tab_off.png ui/tab_on.png brand/logo.png enemies/boss0.png enemies/boss1.png enemies/boss10.png enemies/boss11.png enemies/boss12.png enemies/boss13.png enemies/boss14.png enemies/boss15.png enemies/boss16.png enemies/boss17.png enemies/boss18.png enemies/boss19.png enemies/boss2.png enemies/boss20.png enemies/boss21.png enemies/boss3.png enemies/boss4.png enemies/boss5.png enemies/boss6.png enemies/boss7.png enemies/boss8.png enemies/boss9.png enemies/boar.png enemies/fox.png enemies/bat.png enemies/wolf.png enemies/spider.png enemies/bear.png enemies/skeleton.png enemies/zombie.png enemies/ghost.png enemies/frog.png enemies/gator.png enemies/leech.png enemies/vampire.png enemies/goblin.png enemies/troll.png enemies/ogre.png enemies/scorpion.png enemies/dragon.png'.split(' ');
@@ -1133,9 +1160,10 @@ const CC=(function(){
   location.reload();
  }
  async function init(){
-  $('auth').hidden=false;
+  if(!PORTAL)$('auth').hidden=false;
   if(!window.supabase||SB_URL.startsWith('__')){msg(SB_URL.startsWith('__')?'Cloud saves are not configured yet.':'Could not load the sign-in service. Check your connection and reload.',1);return;}
   db=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+  if(PORTAL){await CG.init;lset('cc-guest','1');return start();}   // the portal has its own players: no sign-in, a device guest
   $('authForm').addEventListener('submit',e=>{e.preventDefault();if(recovering)setNewPass();else sign(signup);});
   $('authForgot').addEventListener('click',forgot);
   $('authShow').addEventListener('click',()=>{const p=$('authPass'),show=p.type==='password';p.type=$('authPass2').type=show?'text':'password';$('authShow').textContent=show?'Hide':'Show';});
@@ -2592,7 +2620,7 @@ function actComplete(cr,first,old){
  // the popup comes up from the frame loop as soon as nothing else is on screen; the record fills in when the server answers
  actShowT=performance.now()+500;
  actShowFn=()=>{if(shown||performance.now()<actShowT)return;if(sheet||lootEl||lootQ.length)return;shown=true;actShowFn=null;
-  SND.play('act');showModal('Act '+roman(cr+1)+' complete',h.replace('<h3 style="margin:10px 0 2px">Next:','<div id="actrecSlot">'+recHTML()+'</div><h3 style="margin:10px 0 2px">Next:'),[{t:'Onward to Act '+roman(nn),primary:true}]);actPending=false;save();};
+  SND.play('act');showModal('Act '+roman(cr+1)+' complete',h.replace('<h3 style="margin:10px 0 2px">Next:','<div id="actrecSlot">'+recHTML()+'</div><h3 style="margin:10px 0 2px">Next:'),[{t:'Onward to Act '+roman(nn),primary:true,fn:()=>setTimeout(()=>ADS.mid(),600)}]);actPending=false;save();};
  setTimeout(()=>{if(actShowFn)actShowFn();},550);
 }
 function advance(){
@@ -3031,8 +3059,11 @@ function showSplash(r){   // big act title over the battle when a new region beg
 /* ---------- menus unlock as the story goes on (all within the first ten acts) ---------- */
 const NAVU={party:0,deck:0,relics:1,log:1,shop:2,stats:3,clan:5,arena:8};   // act index (0 = Act I) at which each menu opens
 const NAVINFO={relics:['Relics','Relics found in fights make the whole company stronger. Open the Relics menu to see them.'],log:['Log','The Log keeps the story of the company: recent battles, finds and deeds.'],shop:['Shop','The Shop sells free rewards, boosts and extras for the company.'],stats:['Stats','Stats shows how your run and your whole adventure are going.'],clan:['Clan','Join or found a clan: chat with other players and share a bonus.'],arena:['Arena','The Arena pits teams of your heroes against other players on a ladder of ten tiers, with a daily reward.']};
+if(PORTAL){NAVU.clan=NAVU.arena=1e9;}   // portal build: no accounts, so no clans or arena
 const navOpen=k=>region(Math.max(S.best||0,S.depth||0))>=NAVU[k];
+let cgPlay=false;
 function navSync(){
+ if(PORTAL&&CG.on){const p=!sheet&&$('modal').hidden&&!lootEl&&!ADS.live()&&document.visibilityState==='visible';if(p!==cgPlay){cgPlay=p;CG.play(p);}}
  document.body.classList.toggle('newb',region(Math.max(S.best||0,S.depth||0))<1);
  tutTick();
  document.querySelectorAll('#nav button').forEach(b=>{b.hidden=!navOpen(b.dataset.sheet);});
@@ -3043,7 +3074,7 @@ function navSync(){
  guestNudge();
 }
 function guestNudge(){   // still a guest once Act II is done (and again after Act V): recommend an account
- if(!CC.guest||AWAYSIM)return;
+ if(!CC.guest||AWAYSIM||PORTAL)return;
  const r=region(Math.max(S.best||0,S.depth||0)),lv=r>=5?2:r>=2?1:0;
  if(!lv||(S.guestNudge||0)>=lv)return;
  S.guestNudge=lv;save();
@@ -3686,8 +3717,10 @@ const ADS=(()=>{
  });
  const nativeAd=async()=>{rewarded=false;try{await A.prepareRewardVideoAd({adId:cap.getPlatform()==='ios'?ADMOB.ios:ADMOB.android,isTesting:ADMOB.test});await A.showRewardVideoAd();}catch(e){return false;}return rewarded;};
  return{
-  ok:()=>false,   // web first: no ads anywhere. Free gifts are time based (see AD_CD)
-  show:async()=>{if(busy||!(native||bridge||demo))return false;busy=true;SND.hold(true);try{return bridge?await bridgeAd():native?await nativeAd():await testAd();}finally{busy=false;SND.hold(false);}}
+  ok:()=>PORTAL&&CG.on,   // web first: no ads on our own site. Free gifts are time based (see AD_CD). On the portal build the portal's own rewarded ads come back (revive, double it, +2 redraws)
+  live:()=>busy,
+  mid:async()=>{if(!(PORTAL&&CG.on)||busy||document.visibilityState!=='visible')return false;busy=true;try{return await CG.ad('midgame');}finally{busy=false;}},   // a break between acts
+  show:async()=>{if(PORTAL&&CG.on){if(busy)return false;busy=true;try{return await CG.ad('rewarded');}finally{busy=false;}}if(busy||!(native||bridge||demo))return false;busy=true;SND.hold(true);try{return bridge?await bridgeAd():native?await nativeAd():await testAd();}finally{busy=false;SND.hold(false);}}
  };
 })();
 const AD_CD={boost:3600,shard:6*3600,chest:4*3600};   // seconds between uses of the Shop rewards
@@ -3861,7 +3894,7 @@ document.addEventListener('visibilitychange',holdStop);
 document.addEventListener('click',e=>{if(holdFired){e.stopPropagation();e.preventDefault();holdFired=false;}},true);   // the click that ends a hold must not buy one extra
 document.addEventListener('contextmenu',e=>{if(e.target.closest('[data-hero],button[data-lv],button[data-sk]'))e.preventDefault();});
 
-const popupOpen=()=>awayBusy||!!zoneFreeze||!!lootEl||(lootQ.length>0&&!sheet&&!lootBlocked())||!$('modal').hidden||!!document.getElementById('adtest')||!!document.getElementById('arbat');
+const popupOpen=()=>awayBusy||ADS.live()||!!zoneFreeze||!!lootEl||(lootQ.length>0&&!sheet&&!lootBlocked())||!$('modal').hidden||!!document.getElementById('adtest')||!!document.getElementById('arbat');
 function frame(now){
  const dt=Math.min(.25,(now-prev)/1000);prev=now;
  if(actShowFn)actShowFn();
@@ -3897,7 +3930,7 @@ else{$('acct').textContent='Signed in as '+CC.email+'. Progress syncs to your ac
 $('signout').onclick=()=>{save();CC.out();};}
 function delAcct(){showModal('Delete your account?','<p>This <b>permanently deletes</b> your account and your cloud save: progress, heroes, Legend, relics and purchases. It cannot be undone.</p><p class="hint">To start over without deleting your account, use Retire instead.</p>',[{t:'Keep my account',primary:true},{t:'Delete forever',fn:async()=>{try{await CC.del();}catch(e){toast('Could not delete the account. Check your connection and try again.');}}}]);}
 $('delacct').onclick=delAcct;
-$('acctbtn').classList.toggle('guest',!!CC.guest);
+$('acctbtn').classList.toggle('guest',!!CC.guest&&!PORTAL);
 function showAccount(){
  if(CC.guest)showModal('Your account','<p>You are playing as a <b>guest</b>. '+(CC.user?'Your progress is saved, but only this device can get back into it.':'Your progress is saved on this device only.')+'</p><p>Create an account to keep it safe and play on any device.</p>',[{t:'Create account',primary:true,fn:()=>{save();CC.upgrade();}},{t:'Not now'}]);
  else showModal('Your account','<p>Signed in as <b>'+CC.email+'</b>. Progress syncs to your account automatically.</p>',[{t:'Sign out',fn:()=>{save();CC.out();}},{t:'Delete account',fn:delAcct},{t:'Close',primary:true}]);
