@@ -928,7 +928,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026173444';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026173611';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -3491,6 +3491,15 @@ function passiveFx(i,x,y,hh,T){   // Bard's song drifts up continuously; Berserk
  if(i===8&&S.hp[8]>0){g.save();g.font='700 16px Georgia,serif';g.textAlign='center';g.fillStyle='#ffd070';for(let k=0;k<3;k++){const ph=(T*.5+k/3)%1;g.globalAlpha=Math.sin(ph*Math.PI)*.9;g.fillText(k%2?'♫':'♪',x+Math.sin(ph*6+k)*22+10,y-hh*.7-ph*34);}g.restore();}
  if(i===5&&S.hp[5]>0){const q=1-S.hp[5]/heroMax(5);if(q>.15){g.save();g.globalCompositeOperation='lighter';glow(x,y-hh*.5,hh*.6,'rgba(255,60,30,'+(.12+.3*q)*(.8+.2*Math.sin(T*9))+')','rgba(255,60,30,0)');g.restore();}}
 }
+/* where the feet are across a painted sprite (0 = left edge, 1 = right edge): the average position of the opaque pixels in the bottom tenth. Sprites are drawn so this point, not the middle of the picture, stands on the shadow */
+function footFx(im){
+ if(im._fx!==undefined)return im._fx;let fx=.5;
+ try{const w=im.naturalWidth||im.width,h=im.naturalHeight||im.height,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(im,0,0);
+  const y0=Math.floor(h*.9),d=x.getImageData(0,y0,w,h-y0).data;let sx=0,n=0;
+  for(let p=0;p<d.length;p+=4)if(d[p+3]>60){sx+=(p>>2)%w;n++;}
+  if(n>6)fx=(sx/n+.5)/w;}catch(e){}
+ return im._fx=Math.min(.7,Math.max(.3,fx));
+}
 function drawHeroImg(i,x,y){
  const im=IMG['hero'+i],h=H[i]||{lunge:0,flash:0},dead=S.hp[i]<=0,T=performance.now()/1000;
  const hh=HH[i]*(CW===600?.78:active()>=4?.92:1),ww=hh*(im.naturalWidth||im.width)/(im.naturalHeight||im.height),walk=phase==='walk'&&!dead&&!zoneFreeze;
@@ -3504,9 +3513,10 @@ function drawHeroImg(i,x,y){
  g.scale(1/breathe,breathe);                         // breathing squash and stretch around the feet
  g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
  if(q>0&&!dead){g.shadowColor=RARCOL[q];g.shadowBlur=(5+q*4)*(1+.25*Math.sin(T*3+i));}
- g.drawImage(h.flash>0?flashed(im,h.flash*.75):im,-ww/2,-hh,ww,hh);
+ const fx=footFx(im);
+ g.drawImage(h.flash>0?flashed(im,h.flash*.75):im,-ww*fx,-hh,ww,hh);
  g.shadowBlur=0;
- if(q>=2&&!dead){const per=[0,0,5,3.6,2.4][q],ph=((T+i*.7)%per)/per;if(ph<.28){const u=ph/.28,bx=-ww/2+(ww+hh*.5)*u-hh*.25;g.save();g.beginPath();g.moveTo(bx,-hh);g.lineTo(bx+hh*.22,-hh);g.lineTo(bx+hh*.22-hh*.3,0);g.lineTo(bx-hh*.3,0);g.closePath();g.clip();g.globalAlpha=.7;g.drawImage(flashed(im,.9),-ww/2,-hh,ww,hh);g.restore();}}   // a glint sweeps across rare heroes
+ if(q>=2&&!dead){const per=[0,0,5,3.6,2.4][q],ph=((T+i*.7)%per)/per;if(ph<.28){const u=ph/.28,bx=-ww*fx+(ww+hh*.5)*u-hh*.25;g.save();g.beginPath();g.moveTo(bx,-hh);g.lineTo(bx+hh*.22,-hh);g.lineTo(bx+hh*.22-hh*.3,0);g.lineTo(bx-hh*.3,0);g.closePath();g.clip();g.globalAlpha=.7;g.drawImage(flashed(im,.9),-ww*fx,-hh,ww,hh);g.restore();}}   // a glint sweeps across rare heroes
  g.restore();
  if(!dead)rarFront(i,x,y,hh,T,q);
  if(!dead){const h=H[i]||{};
@@ -3559,8 +3569,8 @@ function drawFoeImg(f,nm,im){
  g.rotate(-f.lunge*.07+(dying?dt*.35:0));
  g.scale((1/breathe)*(1+dt*.1),breathe*(1-dt*.25));
  g.globalAlpha=1-dt;g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
- if(FACES_RIGHT.has(nm))g.scale(-1,1);   // heroes stand on the left, so art drawn facing right is mirrored
- g.drawImage(f.flash>0?flashed(im,f.flash*.8):im,-ww/2,-hh,ww,hh);
+ const mir=FACES_RIGHT.has(nm);if(mir)g.scale(-1,1);   // heroes stand on the left, so art drawn facing right is mirrored
+ g.drawImage(f.flash>0?flashed(im,f.flash*.8):im,-ww*(mir?1-footFx(im):footFx(im)),-hh,ww,hh);
  g.restore();
  if(!dying&&!f.boss)hpBar(f.x,f.y-hh-fly-8,48,f.hp/f.max,'#e0584a');
 }
