@@ -787,7 +787,9 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
  #hand .hc{flex:1 1 0;min-height:0;max-height:none!important;height:auto!important;width:auto;max-width:100%;aspect-ratio:210/150;align-self:center}
  #hand .hc .i{font-size:clamp(22px,5vh,52px)}#hand .hc .n{font-size:clamp(12px,2.1vh,22px)}#hand .hc .r{font-size:clamp(8px,1.2vh,13px)}#hand .hc .d{font-size:clamp(9px,1.3vh,14px)}
  #hand .hc .ico{width:clamp(30px,7.5vh,84px);height:clamp(30px,7.5vh,84px)}
- #road{max-width:min(100%,920px);margin:0 auto;background-size:auto 100%!important;background-repeat:repeat-x!important;background-position:center!important}
+ #road{max-width:none;margin:0 auto;background-size:auto 100%!important;background-repeat:repeat-x!important;background-position:center!important}
+ /* the interface around the battle grows with the window height (the battle canvas itself is never zoomed) */
+ #top,#mini,#nav,#piles,.row3{zoom:var(--z,1)}
 }
 
 /* first act: only what a new player needs (no pile line, no Inscribe until Act II) */
@@ -924,7 +926,7 @@ html.portal #acctSec,html.portal #icky{display:none!important}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026152055';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026152939';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -3061,6 +3063,9 @@ const NAVU={party:0,deck:0,relics:1,log:1,shop:2,stats:3,clan:5,arena:8};   // a
 const NAVINFO={relics:['Relics','Relics found in fights make the whole company stronger. Open the Relics menu to see them.'],log:['Log','The Log keeps the story of the company: recent battles, finds and deeds.'],shop:['Shop','The Shop sells free rewards, boosts and extras for the company.'],stats:['Stats','Stats shows how your run and your whole adventure are going.'],clan:['Clan','Join or found a clan: chat with other players and share a bonus.'],arena:['Arena','The Arena pits teams of your heroes against other players on a ladder of ten tiers, with a daily reward.']};
 if(PORTAL){NAVU.clan=NAVU.arena=1e9;}   // portal build: no accounts, so no clans or arena
 const navOpen=k=>region(Math.max(S.best||0,S.depth||0))>=NAVU[k];
+/* wide screens: how much the surrounding interface is enlarged, from the window height (1 at 720px, up to 1.5) */
+function setZoom(){const wide=window.matchMedia('(orientation:landscape) and (min-width:900px) and (min-height:540px)').matches;document.documentElement.style.setProperty('--z',wide?Math.min(1.5,Math.max(1,innerHeight/720)).toFixed(2):'1');}
+window.addEventListener('resize',setZoom);setZoom();
 let cgPlay=false;
 function navSync(){
  if(PORTAL&&CG.on){const p=!sheet&&$('modal').hidden&&!lootEl&&!ADS.live()&&document.visibilityState==='visible';if(p!==cgPlay){cgPlay=p;CG.play(p);}}
