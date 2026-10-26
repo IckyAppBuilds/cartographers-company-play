@@ -813,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025201139';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025201428';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1309,7 +1309,7 @@ const RELIC_RATE=.4,RELIC_BOSS=.6;   // relics were turning up too often: fights
 /* ---------- state ---------- */
 function fresh(keep){
  const S={gold:20,rd:3,depth:keep?keep.regionStart:0,best:keep?keep.best:0,legend:keep?keep.legend:0,
-  lv:HEROES.map(()=>1),un:HEROES.map(()=>false),hp:HEROES.map(()=>0),relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},hs:keep?Object.assign({},keep.hs):{},streak:0,boons:keep?keep.boons:{},jbest:0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
+  lv:HEROES.map(()=>1),un:HEROES.map(()=>false),hp:HEROES.map(()=>0),relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},hs:keep?Object.assign({},keep.hs):{},streak:0,boons:keep?keep.boons:{},jbest:keep?(keep.jbest||0):0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  S.un[S.order[0]]=true;
  if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest','menuSeen','menuInit','autoLv'])if(keep[k]!==undefined)S[k]=keep[k];
@@ -2493,7 +2493,7 @@ function retire(){
 function doRetire(){
  const g=legGain();if(!g)return;
  plog({t:'retire',gain:g,act:region(S.depth)+1,party:plParty()});
- const keep={regionStart:0,best:S.best,legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest,menuSeen:S.menuSeen,menuInit:S.menuInit,autoLv:S.autoLv};   // account-level things that must survive a retire, or the daily reward would come back the same day
+ const keep={regionStart:0,best:S.best,jbest:Math.max(S.jbest||0,S.best||0),legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest,menuSeen:S.menuSeen,menuInit:S.menuInit,autoLv:S.autoLv};   // account-level things that must survive a retire, or the daily reward would come back the same day
  S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
@@ -2538,7 +2538,7 @@ function build(){
    of.innerHTML=`<h3 style="color:var(--gold)">Boss spoils: pick one tile (later bosses drop rarer ones)</h3><div class="row">${S.offer.map(k=>`<button data-offer="${k}" class="oc" style="border:2px solid ${RAR[TILES[k].r].c}"><span class="i">${TILES[k].i}</span><b>${TILES[k].n}</b><small style="color:${RAR[TILES[k].r].d}">${RAR[TILES[k].r].n}</small><span class="od">${TILES[k].d}</span></button>`).join('')}</div><div class="row" style="margin-top:6px"><button data-skip>Leave them</button></div>`;
   }
  }
- {const cur=region(S.depth),done=Math.floor((S.jbest||0)/10),nm=(Math.floor(done/5)+1)*5;
+ {const cur=region(S.depth),done=Math.floor(Math.max(S.jbest||0,S.best||0)/10),nm=(Math.floor(done/5)+1)*5;
   const rowOf=(r,state)=>{const rg=RG(r);return `<div class="ob ${state}"><div class="st">${state==='done'?'✔':state==='cur'?'➤':'🔒'}</div><div><div class="nm">Act ${roman(r+1)} · ${rg[0]}</div><div class="hint">${state==='done'?'Warden defeated':state==='cur'?'Warden ahead':'Warden'}: ${rg[2]}${state==='cur'?' · tile '+(S.depth%10+1)+'/10':''}</div></div></div>`;};
   const rows=(cur>0?rowOf(cur-1,'done'):'')+rowOf(cur,'cur')+rowOf(cur+1,'lock')+rowOf(cur+2,'lock');
   const bl=Object.keys(S.boons||{}).filter(k=>S.boons[k]).map(k=>BOONS[k].n+(S.boons[k]>1?' ×'+S.boons[k]:'')).join(', ');
@@ -2616,7 +2616,7 @@ function showModal(title,html,btns){
 }
 /* ---------- act map: tap the act name in the top bar for every act, its Warden and the Legend recommended for it ---------- */
 function showActMap(){
- const cur=region(S.depth),have=S.legend||0,jb=S.jbest||0,top=Math.min(40,Math.max(12,region(Math.max(S.best||0,S.depth))+6));
+ const cur=region(S.depth),have=S.legend||0,jb=Math.max(S.jbest||0,S.best||0),top=Math.min(40,Math.max(12,region(Math.max(S.best||0,S.depth))+6));
  let h='<p class="hint" style="margin:0 0 6px">You have <b style="color:#ffd24a">Legend '+have+'</b>. Below the recommended Legend for an act its enemies will be a real wall.</p><div class="amkey"><span><i class="amd cu">▼</i> You are here</span><span><i class="amd fu">⚑</i> Furthest tile</span></div><div id="actmap">';
  for(let a=0;a<top;a++){
   const need=Math.ceil(legReq(a)),rg=RG(a),done=jb>=a*10+10;let row='';
