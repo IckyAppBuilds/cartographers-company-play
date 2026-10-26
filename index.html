@@ -391,8 +391,8 @@ button.swc{cursor:pointer;min-height:0}button.swc:active{transform:scale(.98);fi
 .mstats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}.mstats div{background:#150f0a;border:1px solid var(--line);border-radius:8px;padding:6px 2px}
 .mstats b{display:block;font-size:18px;color:var(--gold)}.mstats small{font-size:10px;color:var(--dim)}
 .obj{margin:4px 0 10px;line-height:1.4}
-.ob{display:grid;grid-template-columns:28px 1fr;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #3a2c20}.ob:last-child{border:0}
-.ob .st{text-align:center;font-size:18px}.ob.done .st{color:var(--green)}.ob.cur{background:rgba(255,210,74,.08);border-radius:8px}.ob.cur .st{color:var(--gold)}.ob.lock{opacity:.55}
+.ob{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:center;padding:6px 0;border-bottom:1px solid #3a2c20}.ob:last-child{border:0}
+.ob .st{text-align:center;font:800 11px/1 Cinzel,Georgia,serif;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;padding:5px 0;border-radius:999px;border:1px solid currentColor;background:rgba(0,0,0,.25)}.ob.done .st{color:var(--green)}.ob.cur{background:rgba(255,210,74,.08);border-radius:8px}.ob.cur .st{color:var(--gold)}.ob.lock{opacity:.55}
 .ob .nm{font-weight:700}
 
 #icky{position:fixed;inset:0;z-index:200;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#04100a;cursor:pointer;transition:opacity .7s ease}
@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026181641';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026182124';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
