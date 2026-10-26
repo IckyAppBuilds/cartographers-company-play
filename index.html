@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026181241';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026181641';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -3143,6 +3143,8 @@ function coachAt(el,label,sub){
  p.style.left=(r.left+r.width/2)+'px';p.style.top=r.top+'px';
  const ring=p.querySelector('.unring');ring.style.width=(r.width+8)+'px';ring.style.height=(r.height+8)+'px';
  const bar=p.querySelector('.unar'),w=bar.getBoundingClientRect().width,cx=r.left+r.width/2;bar.style.marginLeft='0px';
+ const bh=bar.getBoundingClientRect().height,flip=r.top<bh+14;   // near the top of the window (the hero row on computer screens) the label would be cut off, so it hangs below instead
+ bar.style.bottom=flip?'auto':'';bar.style.top=flip?(r.height+10)+'px':'';
  const over=Math.max(0,6-(cx-w/2)),under=Math.max(0,cx+w/2-(innerWidth-6));bar.style.marginLeft=(over-under)+'px';   // keep the bubble on screen
 }
 function coachState(){   // 0 lay a tile, 1 level a hero, 2 open Party, 3 open Tiles, 9 done
