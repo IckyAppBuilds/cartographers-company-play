@@ -898,7 +898,7 @@ body.newb .row3{grid-template-columns:1fr auto}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026150459';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026150758';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2796,9 +2796,10 @@ function fitRegion(){   // size the act title to the room it has: grow to a cap,
 }
 window.addEventListener('resize',()=>{if(typeof lastRegion!=='undefined')fitRegion();});
 if(window.ResizeObserver)new ResizeObserver(()=>{if(typeof lastRegion!=='undefined')fitRegion();}).observe($('top'));
-const modalQ=[];
+const modalQ=[],evQ=[],EVT=/^(Need a boost?|While you were away|Welcome back!|You can retire!|Keep your progress safe|Daily reward|Act .* complete|Cartographer's Boon|The company has fallen)/;
 function showModal(title,html,btns){
  if(AWAYSIM)return;
+ if(sheet&&EVT.test(title)){evQ.push([title,html,btns]);return;}   // never over a menu: it comes up when the menu closes
  if(!$('modal').hidden){modalQ.push([title,html,btns]);return;}   // one at a time; the rest wait their turn instead of replacing it
  $('mTitle').textContent=title;$('modal').classList.toggle('tutm',!!window.__tutM);$('modal').classList.toggle('swapm',/^Swap in /.test(title));$('modal').classList.toggle('actdone',/ complete$/i.test(title));$('mBody').innerHTML=html;modalBtns=btns;
  $('mBtns').innerHTML=btns.map((b,i)=>'<button data-mb="'+i+'" class="'+(b.primary?'prim':'')+'">'+b.t+'</button>').join('');
@@ -2847,7 +2848,8 @@ function syncSpoils(){
 const lootQ=[];let lootEl=null,lootTm=0;
 let lootHold=0;const lootBlocked=()=>phase==='fight'||performance.now()<lootHold;   // no reward popups while a fight is going on
 let lootNow=false;   // true while applying a reward the player just asked for inside a menu (an ad, a purchase): those show at once
-function loot(o){if(AWAYSIM)return;o.now=o.now||lootNow;if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now)&&(o.now||!lootBlocked()))nextLoot();}
+function loot(o){if(AWAYSIM)return;o.now=false;   // no reveal over a menu, even for what you just claimed in it: it comes up when the menu closes
+ if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now)&&(o.now||!lootBlocked()))nextLoot();}
 function nextLoot(){
  const ix=sheet?lootQ.findIndex(x=>x.now):0;   // in a menu, only popups for what you just did in it come up; the rest wait
  const o=ix<0?null:lootQ.splice(ix,1)[0];if(!o){lootEl=null;return;}
@@ -2899,7 +2901,7 @@ function shopBuy(id){
  const st=shopState();let cost,ok=false;
  if(SUPPLIES[id]){cost=supPrice(id);if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;SUPPLIES[id].fn();st.n[id]=(st.n[id]||0)+1;toast(SUPPLIES[id].n+' used.');ok=true;}
  else if(id[0]==='r'&&id[1]==='_'){const x=st.rel[+id.slice(2)];if(!x||x.sold)return;cost=relPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;x.sold=true;S.relics[x.k]=(S.relics[x.k]||0)+1;lootRelic(x.k,'Relic bought!',true);ok=true;}
- else if(id==='shard'){if(st.sh>=2){toast('Sold out until the next act.');return;}cost=shardPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;st.sh++;lootNow=true;shardPopup(addShards(1),'Shop');lootNow=false;ok=true;}
+ else if(id==='shard'){if(st.sh>=2){toast('Sold out until the next act.');return;}cost=shardPrice();if(S.gold<cost){toast('Need '+fmt(cost)+' gold.');return;}S.gold-=cost;st.sh++;{const per=addShards(1);toast('Bought a hero shard: '+shardMsg(per));shardPopup(per,'Shop');}ok=true;}
  if(ok){save();shopHTML.v='';}
 }
 const shopHTML={v:''};
@@ -3091,6 +3093,10 @@ async function resetRunDo(){
   location.replace(location.pathname+'?r='+Date.now());
  }catch(e){resetting=false;toast('Reset failed: '+(e&&e.message||e));}
 }
+function flushEv(){   // popups held back while a menu was open: after any reward reveal, and only if no menu was opened again
+ if(sheet)return;if(lootEl||lootQ.length){setTimeout(flushEv,400);return;}
+ while(evQ.length)showModal(...evQ.shift());
+}
 function showSheet(n){
  {const ab=$('autoLv');if(ab)ab.textContent='Auto level up: '+(S.autoLv?'ON':'off');}
  {const rb=$('resetRun');if(rb)rb.hidden=!(typeof CC!=='undefined'&&CC.user&&PLAYLOG_USERS.includes(CC.user.id));}
@@ -3102,7 +3108,7 @@ function showSheet(n){
  if(sheet==='arena')ARENA.open();else ARENA.close();
  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.sheet===sheet));
  if(sheet&&$('nav-'+sheet))$('nav-'+sheet).classList.remove('nw');
- if(!sheet){if(!lootEl&&lootQ.length)nextLoot();setTimeout(dailyCheck,300);}
+ if(!sheet){if(!lootEl&&lootQ.length)nextLoot();flushEv();setTimeout(dailyCheck,300);}
 }
 function toast(m){if(AWAYSIM)return;const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')showSheet(null);});
@@ -3657,7 +3663,7 @@ async function adReward(k){
  lootNow=true;try{
  if(k==='boost'){S.boostT=Math.min(BOOST_CAP,(S.boostT||0)+BOOST_ADD);(S.adT||(S.adT={})).boost=Date.now()/1000;toast('+30 min gold x2 ('+boostTxt(S.boostT)+' stored)');say('Free gift: +30 minutes of gold x2, '+boostTxt(S.boostT)+' stored.');}
  else if(k==='chest'){(S.adT||(S.adT={})).chest=Date.now()/1000;const q=Math.random();gRelic.head='Free chest';const txt=q<.5?chestGold():q<.7?gRelic(1,1):q<.9?gShard(3,1):gRelic(1,1)+', '+gShard(3,1)+' and '+gGold(2,1);gRelic.head=null;toast('Chest: '+txt);say('Free chest: '+txt+'.');}
- else if(k==='shard'){const per=addShards(1);(S.adT||(S.adT={})).shard=Date.now()/1000;say('Free gift: '+shardMsg(per)+'.');shardPopup(per,'Free gift');}
+ else if(k==='shard'){const per=addShards(1);(S.adT||(S.adT={})).shard=Date.now()/1000;say('Free gift: '+shardMsg(per)+'.');toast(shardMsg(per));shardPopup(per,'Free gift');}
  }finally{lootNow=_ln;}
  sig='';save();
 }
