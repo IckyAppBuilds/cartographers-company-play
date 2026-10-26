@@ -864,7 +864,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025220859';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025221030';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1572,7 +1572,7 @@ const CLAN=(()=>{
  const bossTeam=()=>((st.hall&&st.hall.boss_team)||[]).filter(i=>S.owned.includes(i)).slice(0,4);
  function bossSim(team,tier,trait){
   const U=team.map(i=>({i,hp:bHP(i),max:bHP(i),atk:bAtk(i),spd:HEROES[i].spd,role:HEROES[i].r,k:HEROES[i].k,n:0,cd:Math.random()*.6}));
-  let dmg=0,t=0,bn=0,bcd=1.2;const batk=BOSS_ATK*1.12**tier,alive=()=>U.filter(u=>u.hp>0),tm=u=>(TRAIT[trait]||{})[u.k]||1;
+  let dmg=0,t=0,bn=0,bcd=1.2;const batk=BOSS_ATK*1.15**tier,alive=()=>U.filter(u=>u.hp>0),tm=u=>(TRAIT[trait]||{})[u.k]||1;
   while(t<30&&alive().length){
    t+=.1;
    for(const u of U){
@@ -1627,7 +1627,7 @@ const CLAN=(()=>{
   h+='<div class="cbarena" id="cbArena" style="background-image:url('+bg+')"><img id="cbBoss" class="cbboss'+(FACES_RIGHT.has('boss'+BOSS_ART[B.idx%20])?' flip':'')+'" src="'+bimg+'" alt=""><div class="cbheroes">'+n.map(i=>'<img src="assets/heroes/'+HID[i]+'.png'+V+'" alt="" data-h="'+i+'">').join('')+'</div></div>'
    +'<div class="cbname">'+cesc(bossName(B.idx))+'</div><div class="cbtrait" style="color:'+TRAITC[B.trait]+'">'+cesc(traitText(B.trait))+'</div>'
    +'<div class="cbbar"><i id="cbFill" style="width:'+pct+'%"></i><b id="cbHp">'+fmt(B.hp)+' / '+fmt(B.max_hp)+'</b></div>'
-   +'<small class="hint" id="cbLeft">Tier '+(B.tier+1)+' · retreats in '+fmtT(left)+' · defeat it together for a big reward</small>'
+   +'<small class="hint" id="cbLeft">Tier '+(B.tier+1)+' · retreats in '+fmtT(left)+' · every boss you beat makes the next one 35% bigger and 15% harder-hitting</small>'
    +teamBar()+'<button class="clbtn gold" id="cbStrike" data-cl="strike" '+(me.strikes_left>0&&n.length?'':'disabled')+'>'+(n.length?'Strike · '+me.strikes_left+' of '+STRIKES+' left today<br><small style="font-size:12px">Your boss team deals about '+fmt(est)+'</small>':'Build your boss team to strike')+'</button>'
    +'<h3 style="margin-top:12px">Top damage</h3><div id="cbBoard">'+((R.board||[]).map((m,k)=>'<div class="clmem"><div><b style="color:'+(m.user_id===uid()?'#ffd24a':'#efe3c4')+'">'+(k+1)+'. '+cesc(m.name)+(m.user_id===uid()?' (you)':'')+'</b><small>'+m.hits+' strike'+(m.hits===1?'':'s')+'</small></div><div><b>'+fmt(m.damage)+'</b></div></div>').join('')||'<div class="hint">No strikes yet. Be the first!</div>')+'</div>'
    +'<div class="hint" style="margin-top:6px">Your total: <b>'+fmt(me.damage||0)+'</b> in '+(me.hits||0)+' strike'+((me.hits||0)===1?'':'s')+'. Everyone who hits it shares the reward, and the top damage dealers and the final blow earn extra.</div>';
