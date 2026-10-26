@@ -421,7 +421,8 @@ button.swc{cursor:pointer;min-height:0}button.swc:active{transform:scale(.98);fi
 @media (prefers-reduced-motion:reduce){#icky *{animation-duration:.01s!important;animation-delay:0s!important}}
 #auth{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 50% 30%,#3a2a1c,#120c07);display:flex;align-items:center;justify-content:center;padding:16px}
 #auth[hidden]{display:none}
-#auth .ap{width:100%;max-width:380px;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:22px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
+#auth .au-guest{opacity:.92}
+.ap{width:100%;max-width:380px;background:linear-gradient(180deg,#33261b,#1d150e);border:2px solid var(--gold);border-radius:16px;padding:22px 18px;text-align:center;box-shadow:0 0 40px rgba(255,210,74,.25),0 20px 50px rgba(0,0,0,.6)}
 #auth h2{margin:0 0 10px;font:900 clamp(22px,6.5vw,28px)/1.1 Cinzel,Georgia,serif;letter-spacing:.05em;text-transform:uppercase;background:linear-gradient(180deg,#fff3c4,#ffd24a 55%,#c98a1a);-webkit-background-clip:text;background-clip:text;color:transparent}
 #auth p{margin:8px 0 14px;line-height:1.4;color:var(--dim)}#auth p.bad{color:#ff8a7a}
 #auth input{width:100%;box-sizing:border-box;margin:5px 0;padding:12px;font-size:16px;border-radius:10px;border:1px solid var(--line);background:#150f0a;color:inherit}
@@ -876,6 +877,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
    <p class="legal au-forgot"><a href="#" id="authForgot">Forgot your password?</a></p>
    <div class="au-or"><span>New to the realm?</span></div>
    <div class="row au-one"><button type="button" id="authUp">Create account</button></div>
+   <div class="row au-one" id="authGuestRow"><button type="button" id="authGuest" class="au-guest">Play as guest</button></div>
    <p class="legal au-forgot" id="authBackP" hidden><a href="#" id="authBack">Already have an account? Log in</a></p>
    <p class="legal">By creating an account you agree to the <a href="terms.html" target="_blank" rel="noopener">Terms</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</p>
   </form>
@@ -884,7 +886,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025223543';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025223912';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -995,13 +997,20 @@ const CC=(function(){
  }
  async function enter(u){
   user=u;
+  if(lget('cc-keepguest')==='1'&&!u.is_anonymous){lset('cc-uid',u.id);try{localStorage.removeItem('cc-keepguest');localStorage.removeItem('cc-guest');}catch(e){}}   // a guest who just made an account keeps the progress on this device
   try{await pull();}catch(e){msg('Could not reach your cloud save. Check your connection and reload.',1);$('auth').hidden=false;return;}
   start();
  }
+ async function guest(){
+  msg('Starting a guest game...');
+  try{const r=await db.auth.signInAnonymously();if(!r.error&&r.data&&r.data.user){lset('cc-guest','1');return enter(r.data.user);}}catch(e){}
+  lset('cc-guest','1');start();   // no cloud account: progress stays on this device until the player makes one
+ }
+ function upgrade(){lset('cc-guest-up','1');location.reload();}   // from the game: back to the card, on its create-account page
  let signup=false;
  function mode(up){   // the card has two pages: log in, and create account (password entered twice)
   signup=up;$('authPass2Wrap').hidden=!up;$('authPass2').required=up;$('authPass2').value='';
-  $('authUp').parentElement.hidden=up;document.querySelector('#auth .au-or').hidden=up;$('authForgot').parentElement.hidden=up;$('authBackP').hidden=!up;
+  $('authUp').parentElement.hidden=up;$('authGuestRow').hidden=up;document.querySelector('#auth .au-or').hidden=up;$('authForgot').parentElement.hidden=up;$('authBackP').hidden=!up;
   $('authIn').textContent=up?'Create account':'Log in';$('authPass').autocomplete=up?'new-password':'current-password';
   document.querySelector('#auth h2').textContent=up?'Create your account':"Cartographer's Company";
   document.querySelector('#auth .au-sub').hidden=up;
@@ -1031,6 +1040,8 @@ const CC=(function(){
   if(!email||password.length<6)return msg('Enter an email and a password of at least 6 characters.',1);
   if(up&&$('authPass2').value!==password)return msg('The two passwords do not match.',1);
   msg(up?'Creating your account...':'Signing in...');
+  if(up&&user&&user.is_anonymous){const r=await db.auth.updateUser({email,password});if(r.error)return msg(r.error.message,1);lset('cc-email',email);try{localStorage.removeItem('cc-guest');}catch(e){}msg('Account saved. Check your email to confirm it.');return enter(r.data.user);}
+  if(up&&lget('cc-guest')==='1')lset('cc-keepguest','1');
   const r=up?await db.auth.signUp({email,password,options:{emailRedirectTo:location.origin+location.pathname}}):await db.auth.signInWithPassword({email,password});
   if(r.error)return msg(r.error.message,1);
   lset('cc-email',email);
@@ -1058,6 +1069,7 @@ const CC=(function(){
   $('authShow').addEventListener('click',()=>{const p=$('authPass'),show=p.type==='password';p.type=$('authPass2').type=show?'text':'password';$('authShow').textContent=show?'Hide':'Show';});
   {const e=lget('cc-email');if(e&&!$('authEmail').value){$('authEmail').value=e;}}   // remember who last signed in on this device
   $('authUp').addEventListener('click',()=>{mode(true);$('authPass').value='';$('authPass').focus();});
+  $('authGuest').addEventListener('click',guest);
   $('authBack').addEventListener('click',e=>{e.preventDefault();mode(false);});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){if(dirty)push();}else checkOther();});
   window.addEventListener('pagehide',()=>{if(dirty)push();});
@@ -1066,12 +1078,16 @@ const CC=(function(){
   const {data}=await db.auth.getSession();
   if(recovering&&data.session)return;   // wait for the new password before entering the game
   if(recovering){recovering=false;recoveryUI(false);msg('That reset link has expired. Tap Forgot your password to get a new one.',1);return;}
-  if(data.session)enter(data.session.user);else msg('Sign in to chart the realm. Your progress follows you to every device.');
+  const up=lget('cc-guest-up')==='1';if(up){try{localStorage.removeItem('cc-guest-up');}catch(e){}}
+  if(up){if(data.session)user=data.session.user;mode(true);msg('Create an account to keep your guest progress and play on any device.');return;}
+  if(data.session)enter(data.session.user);
+  else if(lget('cc-guest')==='1')start();   // a device-only guest goes straight back in
+  else msg('Sign in to chart the realm. Your progress follows you to every device.');
  }
  document.addEventListener('DOMContentLoaded',init);
  async function purchases(){const {data,error}=await db.from('purchases').select('sku,qty').eq('user_id',user.id);if(error)throw error;return data||[];}
  async function buy(sku){const {error}=await db.rpc('claim_test_purchase',{p_sku:sku});if(error)throw error;}   // TEST MODE: free. Replaced by Stripe Checkout when payments go live
- return {queue,out,del,purchases,buy,testMode:true,get email(){return user?user.email:'';},get db(){return db;},get user(){return user;}};
+ return {queue,out,del,purchases,buy,upgrade,testMode:true,get guest(){return user?!!user.is_anonymous:lget('cc-guest')==='1';},get email(){return user?user.email:'';},get db(){return db;},get user(){return user;}};
 })();
 </script>
 <script type="text/plain" id="game">
@@ -3739,8 +3755,9 @@ $('musbtn').onclick=()=>{SND.setMusic(!SND.cfg.music);sndUI();};
 $('volr').oninput=e=>{SND.setVol(e.target.value/100);};
 $('volr').onchange=()=>SND.play('level');
 sndUI();
-$('acct').textContent='Signed in as '+CC.email+'. Progress syncs to your account automatically.';
-$('signout').onclick=()=>{save();CC.out();};
+if(CC.guest){$('acct').innerHTML='You are playing as a <b>guest</b>. '+(CC.user?'Your progress is saved, but only this device can get back into it.':'Your progress is saved on this device only.')+' Create an account to keep it safe and play on any device.';$('signout').textContent='Create account';$('signout').onclick=()=>{save();CC.upgrade();};if(!CC.user)$('delacct').hidden=true;}
+else{$('acct').textContent='Signed in as '+CC.email+'. Progress syncs to your account automatically.';
+$('signout').onclick=()=>{save();CC.out();};}
 $('delacct').onclick=()=>showModal('Delete your account?','<p>This <b>permanently deletes</b> your account and your cloud save: progress, heroes, Legend, relics and purchases. It cannot be undone.</p><p class="hint">To start over without deleting your account, use Retire instead.</p>',[{t:'Keep my account',primary:true},{t:'Delete forever',fn:async()=>{try{await CC.del();}catch(e){toast('Could not delete the account. Check your connection and try again.');}}}]);
 window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase}};
 </script>
