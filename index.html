@@ -769,6 +769,10 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 /* five clan tabs on a phone: thinner painted borders and smaller type so every label fits inside its button */
 #sheet .pane .cltabs{gap:4px}
 #sheet .pane .cltabs button{border-width:5px!important;border-image-width:5px!important;font-size:12px!important;min-height:34px;overflow:hidden;text-overflow:clip}
+
+#cbStrike,#sheet .pane #cbStrike{text-shadow:none!important;line-height:1.25;font-weight:800;color:#2a1803!important;padding-top:6px;padding-bottom:6px}
+#cbStrike small{display:block;text-shadow:none!important;font-weight:700;opacity:.9;margin-top:2px}
+#cbStrike:disabled{filter:grayscale(.6) brightness(.8)}
 </style>
 </head>
 <body>
@@ -868,7 +872,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025221141';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025221435';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
