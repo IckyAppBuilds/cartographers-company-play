@@ -813,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025203343';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025203601';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2028,8 +2028,8 @@ function bossCast(f){
  }
 }
 /* ---------- encounters ---------- */
-const PACE={2:.8,3:.8,4:1.12};
-const ATKE={2:.9,3:.59,4:.68};   // extra damage easing for the first half hour of play (Acts III-V): dying a lot early loses players   // per-act extra toughness (hp x, damage x its square root); Act VII was a walkover at Legend 38 with the Warden dying in 10s and the party untouched
+const PACE={3:1.6,4:1.6};
+const ATKE={3:.91,4:.91};   // extra damage easing for the first half hour of play (Acts III-V): dying a lot early loses players   // per-act extra toughness (hp x, damage x its square root); Act VII was a walkover at Legend 38 with the Warden dying in 10s and the party untouched
 const GROW={from:30,k:.5};   // from Act IX the per-tile growth of enemy stats slows to this fraction, so each act stays reachable in a few retires
 /* Legend gate: every act from Act V expects a minimum Legend (about three retires' worth more than the act before); short of it, enemies are tougher in proportion */
 const GATE={p:30,from:3,base:4,wall:1};   // the first recommendation is for Act IV (index 3); the later figures keep their old curve (base) plus that first step
@@ -2069,7 +2069,7 @@ function plResult(win){
   party:f.party,gold:Math.round(S.gold),relics:Object.values(S.relics).reduce((a,b)=>a+b,0),act:f.act,syn:f.syn});
 }
 const BOSSX={hp:8,atk:2};
-const bossHpX=r=>r===1?.8:r===2?.7:r===3?.85:r===4?.8:1;   // from Act VII the Warden gets steadily tougher on top of the normal climb: with the Legend an act asks for, the Warden used to fall in 3-10 seconds without a scratch
+const bossHpX=r=>r===1?.8:1;   // from Act VII the Warden gets steadily tougher on top of the normal climb: with the Legend an act asks for, the Warden used to fall in 3-10 seconds without a scratch
 const ACTX={from:3,hp:1,atk:1};   // extra health and damage from Act IV on (index 3), on top of the normal climb; it stays on so no later act is easier than Act V
 const WALL={from:6,hp:1,atk:1,step:1};   // from Act VIII each act is a step up (x2.2 HP, x1.25 damage) on top of the smooth growth
 function startTile(){
@@ -2089,7 +2089,7 @@ function startTile(){
   const boss=t.boss;
   const hp=hpM*t.pow*synF*(S.weak>0?.75:1)*(boss?(multi===3?3.4:dual?3.5:BOSSX.hp*bossHpX(r)):1)*(.85+.3*Math.random());
   foes.push({e:boss?RG(r)[1]:t.foes[Math.random()*t.foes.length|0],tr:pickTrait(r,boss),
-   hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.15:BOSSX.atk*(r>=6?1.2:r===2?.8:r===1?.85:1)):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
+   hp,max:hp,atk:atk*(t.pow**.6)*synF*(boss?(multi===3?1.15:dual?1.15:BOSSX.atk*(r>=6?1.2:r===1?.85:1)):1)*(curMod==='warded'?.65:1),cd:Math.random()*.5,x:boss?(multi===3?[465,550,635][j]:dual?(j?605:495):570):480+j*78,y:230+(j%2?18:-6),
    boss,flash:0,lunge:0,rew:5*1.15**d*t.gold*(multi===3?.42:dual?.6:1)*rkM(curRank),art:boss?(j>0?'a'+(r%ART_ACTS)+'_'+j:'boss'+bossArt(r)):((k==='wilds'||k==='forest'||Math.random()<.6)?'a'+(r%ART_ACTS)+'_'+(Math.random()*3|0):null)});
  }
  if(t.boss){bossM={hpM,atk,r};let bi=0;for(const f of foes){f.ab=bossAbility(r,bi++);f.ch=.2;f.cast=0;f.rage=0;f.shield=0;f.abm=(multi>1?.75:1)*.6;}}   // each Warden gets an ability with its own charge bar
