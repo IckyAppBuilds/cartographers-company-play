@@ -723,6 +723,8 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 .amx::after{transform:translateX(-50%) rotate(-45deg)}
 #mute svg{display:block;margin:auto}
 #bbar{position:absolute;left:6px;right:96px;bottom:5px;z-index:5;display:flex;gap:4px;pointer-events:none;flex-wrap:nowrap;overflow:hidden}
+#bbar .bf{pointer-events:auto;cursor:pointer}
+#bbar .bmin{padding-left:8px}#bbar .bmin b{color:#ffd24a;margin-left:3px}
 #bbar .bf{display:flex;align-items:center;gap:3px;padding:2px 7px 2px 3px;border-radius:12px;background:rgba(14,10,6,.72);border:1px solid rgba(255,210,74,.45);color:#fff3cf;font-size:12px;font-weight:700;line-height:1;text-shadow:0 1px 2px #000}
 #bbar .bf img{width:18px;height:18px;object-fit:contain}
 
@@ -828,7 +830,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025211434';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025211627';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -2892,7 +2894,7 @@ function hud(){
   if(S.kb)add('council',KNAME[S.kb.k]+' +'+S.kb.n,'War Council: bonus for '+KNAME[S.kb.k]+' heroes for '+S.kb.n+' more fights');
   if(S.merc)add('mercenary',S.merc.n,'Mercenaries: damage boost for '+S.merc.n+' more fights');
   if(S.boostT>0)add('coin','x2 '+boostTxt(S.boostT),'Gold boost: double gold');
-  const bh=B.join('');if(bh!==lastSub){lastSub=bh;$('bbar').innerHTML=bh;}}   // the dedicated buff bar (top left of the battlefield)
+  const bh=(bMin&&B.length)?'<span class="bf bmin" title="Tap to show your buffs">Buffs <b>'+B.length+'</b></span>':B.join('');if(bh!==lastSub){lastSub=bh;$('bbar').innerHTML=bh;}}   // the dedicated buff bar (top left of the battlefield)
  {const gs=fmt(S.gold);if(gs!==lastGold){lastGold=gs;$('gold').innerHTML=ic('coin','coin')+' '+gs;}}
  $('rate').innerHTML='≈ '+fmt(S.rate)+' gold/s'+'<br><b style="color:#ffd24a">Legend '+(S.legend||0)+'</b>';
  $('inkF').style.width=100*Math.min(1,S.rd/maxRd())+'%';$('inkT').textContent='Redraws '+S.rd+' / '+maxRd();
@@ -3207,6 +3209,8 @@ for(let a=0;a<ART_ACTS;a++){for(let i=0;i<3;i++)loadImg('f_a'+a+'_'+i,'assets/en
 for(let i=0;i<BOSS_N;i++)loadImg('f_boss'+i,'assets/enemies/boss'+i+'.png'+V);
 const ICONS=['warcamp','arena','observatory','graveyard','mercenary','starfall','hunt','forge','watchtower','council','training','bounty','scriptorium','crucible','wilds','forest','village','ruins','swamp','crypt','shrine','springs','market','battlefield','leyline','treasury','vault','lair','coin','whet','oak','ink','fang','boots','company','deck','relics','journal','flame'];
 ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'+V));
+let bMin=false;try{bMin=localStorage.getItem('cc-bmin')==='1';}catch(e){}
+document.addEventListener('click',e=>{if(!e.target.closest('#bbar .bf'))return;bMin=!bMin;try{localStorage.setItem('cc-bmin',bMin?'1':'0');}catch(x){}lastSub=null;});   // tap a buff to fold them all into one small pill, tap the pill to unfold
 function adIc(){return '<img class="adi" src="assets/icons/ad.png'+V+'" alt="" draggable="false">';}   // the little screen that marks every button that plays an ad
 function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png'+V+'" alt="" draggable="false">';}
 for(const k in TILES)TILES[k].i=ic(k);                // tile icons are now images (HTML), used in every card and tile
