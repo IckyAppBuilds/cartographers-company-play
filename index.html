@@ -813,7 +813,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025195153';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025201139';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1892,8 +1892,13 @@ function applyInscribe(m){
  const di=S.deck.indexOf(old);if(di>=0)S.deck[di]=nw;
  inscribing=false;say('Etched '+MODS[m].n+' onto a '+TILES[k].n+' card.');sig='';
 }
+function laidOnRoad(){   // the spent cards that are still lying on the road ahead: they stay out of every reshuffle until they have been fought
+ const pool=S.disc.slice(),held=[];
+ for(let j=0;j<S.road.length;j++){const k=S.road[j];if(!k||k==='empty'||k==='lair')continue;const key=cardKey(k,S.rmod[j]||null,S.rrank[j]||1),i=pool.indexOf(key);if(i>=0){pool.splice(i,1);held.push(key);}}
+ return held;
+}
 function drawCard(){
- if(!S.draw.length&&S.disc.length){S.draw=shuffle(S.disc);S.disc=[];}   // every slot of the road has to be laid by hand, so spent tiles come round again when the pile runs out
+ if(!S.draw.length&&S.disc.length){const held=laidOnRoad(),rest=S.disc.slice();for(const h of held){const i=rest.indexOf(h);if(i>=0)rest.splice(i,1);}if(rest.length){S.draw=shuffle(rest);S.disc=held;}}   // every slot of the road has to be laid by hand, so tiles that have been fought come round again when the pile runs out; a tile still on the road never does
  return S.draw.length?S.draw.pop():null;
 }
 function fillHand(){while(S.hand.length<3){const c=drawCard();if(!c)break;S.hand.push(c);}}
@@ -1950,7 +1955,8 @@ function replaceCard(kind){   // deck is full: swap one existing card for the ch
 }
 function skipOffer(){S.offer=null;pendingTake=null;say('You leave the spoils behind.');sig='';}
 function reshuffleAll(why){   // every card (hand, draw pile and spent pile) goes back into one shuffled deck
- S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];S.echoed={};selCard=-1;inscribing=false;S.rd=maxRd();fillHand();
+ {const held=laidOnRoad(),rest=S.deck.slice();for(const h of held){const i=rest.indexOf(h);if(i>=0)rest.splice(i,1);}S.draw=shuffle(rest);S.disc=held;}   // tiles already laid on the road ahead are not dealt again
+ S.hand=[];S.echoed={};selCard=-1;inscribing=false;S.rd=maxRd();fillHand();
  say(why);replay($('hand'),'reshuf',1600);replay($('piles'),'flash',1700);sig='';
 }
 const active=()=>S.un.filter(Boolean).length;
@@ -2520,7 +2526,7 @@ function build(){
   const dcard=([c,w])=>{const k=kindOf(c),m=modOf(c),rk=rankOf(c),t=TILES[k],key=c+'|'+w,armed=burnArm===key&&Date.now()<burnArmT;
    return `<div class="dc ${w==='disc'?'spent':''}" data-r="${t.r}" style="--rc:${RAR[t.r].c}"><div class="st ${w}">${LBL[w]}</div><div class="i">${t.i}</div><div class="n">${t.n}${rk>1?' ★'+rk:''}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m">✦ ${MODS[m].n}: ${MODS[m].d}</div>`:''}<div class="d">${rk>1?rankDesc(k,rk):t.d}</div><button data-burn="${key}" ${(!canBurn||S.gold<bc)?'disabled':''}>${armed?'Tap again to burn':'Burn <span class="gold">'+fmt(bc)+'</span>'}</button></div>`;};
   const shop=KINDS.filter(buyable).map(k=>{const t=TILES[k],c=cardCost(k);return `<div class="dc shop" data-r="${t.r}" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div><div class="d">${t.d}</div><button data-buy="${k}" ${(full||S.gold<c)?'disabled':''}>${full?'Tiles full':'Buy <span class="gold">'+fmt(c)+'</span>'}</button></div>`;}).join('');
-  $('deck').innerHTML=`<h3>Your tiles · ${S.deck.length}/${MAX_DECK}</h3><div class="pile">${S.hand.length} in hand · ${S.draw.length} in the pile · ${S.disc.length} laid. Laid tiles come round again when the pile runs out, and all return when you beat a boss or die.</div><div class="dgrid">${loc.map(dcard).join('')}</div>${fuseHTML()}<h3 style="margin-top:16px">Shop</h3><div class="dgrid">${shop}</div>`;}
+  $('deck').innerHTML=`<h3>Your tiles · ${S.deck.length}/${MAX_DECK}</h3><div class="pile">${S.hand.length} in hand · ${S.draw.length} in the pile · ${S.disc.length} laid. A tile you have laid stays out until the road has used it; used tiles come round again when the pile runs out, and all of them return when you beat a boss or die.</div><div class="dgrid">${loc.map(dcard).join('')}</div>${fuseHTML()}<h3 style="margin-top:16px">Shop</h3><div class="dgrid">${shop}</div>`;}
  $('combos').innerHTML=Object.entries(SYN).map(([k,v])=>{const [a,b]=k.split('>');return `<div class="cmb"><div class="cn">★ ${v.n}</div><div class="hint">${TILES[a].i} ${TILES[a].n} then ${TILES[b].i} ${TILES[b].n}: ${v.d}</div></div>`;}).join('');
  $('glyphs').innerHTML=Object.values(MODS).map(m=>`<div class="cmb"><div class="cn">✦ ${m.n}</div><div class="hint">${m.d}</div></div>`).join('');
  const of=$('offer');of.hidden=!S.offer;
