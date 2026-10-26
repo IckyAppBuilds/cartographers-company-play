@@ -797,6 +797,14 @@ body.newb .row3{grid-template-columns:1fr auto}
 
 #coachp .unar{white-space:nowrap;width:auto}#coachp .unar b{white-space:nowrap;text-align:center}
 #coachp .unar b small{display:block;margin-top:3px;font:700 11px/1.1 Georgia,serif;color:#fff3c4}
+
+/* loading screen: shown until the art the first screen needs has arrived */
+#loading{position:fixed;inset:0;z-index:120;background:#120c07;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;transition:opacity .35s}
+#loading.out{opacity:0;pointer-events:none}
+#loading .ld-logo{width:min(70vw,320px);height:auto}
+#loading .ld-bar{width:min(70vw,280px);height:10px;border-radius:6px;background:#2a1a0c;border:1px solid #6a4a1c;overflow:hidden}
+#loading .ld-bar i{display:block;height:100%;width:0;background:linear-gradient(180deg,#ffd24a,#c88a1c);transition:width .2s}
+#loading small{font:700 13px Cinzel,Georgia,serif;color:#c9b27a;letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -872,6 +880,7 @@ body.newb .row3{grid-template-columns:1fr auto}
  <div class="ik-tag">Cartographer's Company</div>
  <div class="ik-skip">tap to continue</div>
 </div>
+<div id="loading" hidden><img class="ld-logo" src="assets/brand/logo.png" alt="" draggable="false"><div class="ld-bar"><i id="ldBar"></i></div><small id="ldTxt">Loading the realm</small></div>
 <div id="auth" hidden>
  <div class="au-bg"></div>
  <div class="au-wrap">
@@ -898,7 +907,7 @@ body.newb .row3{grid-template-columns:1fr auto}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026150758';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026151148';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -972,7 +981,24 @@ const CC=(function(){
  const lset=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
  function start(){
   if(started)return;started=true;$('auth').hidden=true;
-  const el=document.createElement('script');el.textContent=$('game').textContent;document.body.appendChild(el);
+  const go=()=>{const el=document.createElement('script');el.textContent=$('game').textContent;document.body.appendChild(el);setTimeout(()=>{const l=$('loading');if(l){l.classList.add('out');setTimeout(()=>l.remove(),400);}},350);};
+  preload().then(go,go);
+ }
+ /* the first screen waits for its art (heroes, icons, backgrounds, interface, bosses, the current act's foes) so no placeholder drawing is ever seen; anything slow is given up on after 20 seconds */
+ const ASSETS='heroes/alchemist.png heroes/alchemist_p.png heroes/artificer.png heroes/artificer_p.png heroes/bard.png heroes/bard_p.png heroes/berserker.png heroes/berserker_p.png heroes/cleric.png heroes/cleric_p.png heroes/druid.png heroes/druid_p.png heroes/duelist.png heroes/duelist_p.png heroes/huntress.png heroes/huntress_p.png heroes/knight.png heroes/knight_p.png heroes/mage.png heroes/mage_p.png heroes/monk.png heroes/monk_p.png heroes/necromancer.png heroes/necromancer_p.png heroes/oracle.png heroes/oracle_p.png heroes/paladin.png heroes/paladin_p.png heroes/pyromancer.png heroes/pyromancer_p.png heroes/ranger.png heroes/ranger_p.png heroes/rogue.png heroes/rogue_p.png heroes/shieldmaiden.png heroes/shieldmaiden_p.png heroes/stormcaller.png heroes/stormcaller_p.png heroes/templar.png heroes/templar_p.png icons/ad.png icons/arena.png icons/battlefield.png icons/boots.png icons/bounty.png icons/clan.png icons/coin.png icons/company.png icons/council.png icons/crucible.png icons/crypt.png icons/deck.png icons/fang.png icons/flame.png icons/forest.png icons/forge.png icons/graveyard.png icons/hunt.png icons/ink.png icons/journal.png icons/lair.png icons/leyline.png icons/market.png icons/mercenary.png icons/oak.png icons/observatory.png icons/relics.png icons/ruins.png icons/scriptorium.png icons/shrine.png icons/springs.png icons/starfall.png icons/stats.png icons/swamp.png icons/tiles.png icons/training.png icons/treasury.png icons/tut_compass.png icons/tut_place.png icons/tut_road.png icons/tut_tiles.png icons/vault.png icons/village.png icons/warcamp.png icons/watchtower.png icons/whet.png icons/wilds.png bg/act0.jpg bg/act1.jpg bg/act10.jpg bg/act11.jpg bg/act12.jpg bg/act13.jpg bg/act14.jpg bg/act15.jpg bg/act16.jpg bg/act17.jpg bg/act18.jpg bg/act19.jpg bg/act2.jpg bg/act3.jpg bg/act4.jpg bg/act5.jpg bg/act6.jpg bg/act7.jpg bg/act8.jpg bg/act9.jpg bg/battlefield.jpg bg/crypt.jpg bg/forest.jpg bg/lair.jpg bg/lair0.jpg bg/lair1.jpg bg/lair10.jpg bg/lair11.jpg bg/lair12.jpg bg/lair13.jpg bg/lair14.jpg bg/lair15.jpg bg/lair16.jpg bg/lair17.jpg bg/lair18.jpg bg/lair19.jpg bg/lair2.jpg bg/lair3.jpg bg/lair4.jpg bg/lair5.jpg bg/lair6.jpg bg/lair7.jpg bg/lair8.jpg bg/lair9.jpg bg/leyline.jpg bg/market.jpg bg/meadow.jpg bg/ruins.jpg bg/shrine.jpg bg/springs.jpg bg/swamp.jpg bg/treasury.jpg bg/vault.jpg bg/village.jpg ui/bar_hp.png ui/btn_blue.png ui/btn_close.png ui/btn_gold.png ui/btn_grey.png ui/btn_red.png ui/card0.png ui/card1.png ui/card2.png ui/card3.png ui/card4.png ui/hc_common.png ui/hc_epic.png ui/hc_legend.png ui/hc_rare.png ui/hc_sel.png ui/hc_uncommon.png ui/panel_dark.png ui/panel_list.png ui/panel_parch.png ui/ribbon_blue.png ui/ribbon_red.png ui/road_boss.png ui/road_gap.png ui/road_path.png ui/road_stone.png ui/road_stone_cur.png ui/tab_off.png ui/tab_on.png brand/logo.png enemies/boss0.png enemies/boss1.png enemies/boss10.png enemies/boss11.png enemies/boss12.png enemies/boss13.png enemies/boss14.png enemies/boss15.png enemies/boss16.png enemies/boss17.png enemies/boss18.png enemies/boss19.png enemies/boss2.png enemies/boss20.png enemies/boss21.png enemies/boss3.png enemies/boss4.png enemies/boss5.png enemies/boss6.png enemies/boss7.png enemies/boss8.png enemies/boss9.png enemies/boar.png enemies/fox.png enemies/bat.png enemies/wolf.png enemies/spider.png enemies/bear.png enemies/skeleton.png enemies/zombie.png enemies/ghost.png enemies/frog.png enemies/gator.png enemies/leech.png enemies/vampire.png enemies/goblin.png enemies/troll.png enemies/ogre.png enemies/scorpion.png enemies/dragon.png'.split(' ');
+ function preload(){
+  const l=$('loading');if(!l)return Promise.resolve();
+  l.hidden=false;
+  const v=BUILD==='dev'?'':'?v='+BUILD;let list=ASSETS.slice();
+  try{const sv=JSON.parse(lget(KEY)||'null'),d=sv&&Math.max(sv.depth||0,0),a=Math.floor(d/10)%20;for(let i=0;i<3;i++)list.push('enemies/a'+a+'_'+i+'.png');}catch(e){}
+  if(!list.some(x=>x.indexOf("enemies/a")===0&&x.indexOf("_")>0))for(let i=0;i<3;i++)list.push('enemies/a0_'+i+'.png');
+  let n=0;const tot=list.length,bar=$('ldBar'),txt=$('ldTxt');
+  return new Promise(res=>{
+   let fin=false;const done=()=>{if(fin)return;fin=true;bar.style.width='100%';res();};
+   const tick=()=>{n++;bar.style.width=Math.round(100*n/tot)+'%';txt.textContent='Loading the realm '+Math.round(100*n/tot)+'%';if(n>=tot)done();};
+   list.forEach(p=>{const im=new Image();im.onload=im.onerror=tick;im.src='assets/'+p+v;});
+   setTimeout(done,20000);
+  });
  }
  async function pull(){   // bring the account's save into localStorage when it is newer than this device's copy
   const {data,error}=await db.from('saves').select('data,updated_at,device').eq('user_id',user.id).maybeSingle();
