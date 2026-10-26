@@ -765,6 +765,10 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 .hscene .hsp{position:absolute;bottom:34%;width:7px;height:7px;border-radius:50%;background:#ffe27a;box-shadow:0 0 8px #ffd24a;opacity:0;animation:hspark 1.4s ease-out both}
 @keyframes hspark{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.2);opacity:0}}
 @media (prefers-reduced-motion:reduce){.hscene .hpc.built,.hscene .hsp{animation:none}}
+
+/* five clan tabs on a phone: thinner painted borders and smaller type so every label fits inside its button */
+#sheet .pane .cltabs{gap:4px}
+#sheet .pane .cltabs button{border-width:5px!important;border-image-width:5px!important;font-size:12px!important;min-height:34px;overflow:hidden;text-overflow:clip}
 </style>
 </head>
 <body>
@@ -864,7 +868,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025221030';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025221141';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1474,7 +1478,7 @@ const CLAN=(()=>{
   }
   const i=st.info,mine=i.role;
   el.innerHTML='<div class="clhead"><b>['+cesc(i.tag)+'] '+cesc(i.name)+'</b><small>'+i.members+'/'+MAXM+' members · you are '+roleName(mine).toLowerCase()+' · gold bonus +'+Math.round(bonus()*100)+'%</small>'+(i.description?'<small>'+cesc(i.description)+'</small>':'')+'</div>'
-   +'<div class="cltabs"><button class="'+(st.tab==='chat'?'on':'')+'" data-cl="tab:chat">Chat</button><button class="'+(st.tab==='members'?'on':'')+'" data-cl="tab:members">Members</button><button class="'+(st.tab==='hall'?'on':'')+'" data-cl="tab:hall">Hall</button><button class="'+(st.tab==='boss'?'on':'')+'" data-cl="tab:boss">Boss'+(st.bossDot?' ●':'')+'</button><button class="'+(st.tab==='manage'?'on':'')+'" data-cl="tab:manage">Clan</button></div>'
+   +'<div class="cltabs"><button class="'+(st.tab==='chat'?'on':'')+'" data-cl="tab:chat">Chat</button><button class="'+(st.tab==='members'?'on':'')+'" data-cl="tab:members">Roster</button><button class="'+(st.tab==='hall'?'on':'')+'" data-cl="tab:hall">Hall</button><button class="'+(st.tab==='boss'?'on':'')+'" data-cl="tab:boss">Boss'+(st.bossDot?' ●':'')+'</button><button class="'+(st.tab==='manage'?'on':'')+'" data-cl="tab:manage">Clan</button></div>'
    +'<div id="clTab"></div><div class="clerr" id="clanErr">'+cesc(st.err)+'</div>';
   const tb=$('clTab');
   if(st.tab==='chat'){
