@@ -841,11 +841,11 @@ body.newb .row3{grid-template-columns:1fr auto}
    </div>
    <div class="pane" data-pane="relics" hidden>
     <div class="hint" style="margin-bottom:8px">Relics drop from fights (Ruins and Battlefield most often), boss kills and Relic Vaults. Duplicates stack.</div><div id="relics"></div>
-    <h3 style="margin-top:16px">Sound</h3><div class="sndrow"><button id="sfxbtn"></button><button id="musbtn"></button></div><label class="hint" style="display:block;margin:6px 0 2px">Volume</label><input id="volr" type="range" min="0" max="100" step="5" style="width:100%">
-    <h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button> <button id="delacct">Delete account</button>
-    <div class="hint" style="margin-top:8px"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a></div>
     <h3 style="margin-top:16px">Legacy</h3><button id="leg"></button><div class="hint" style="margin-top:5px" id="legh"></div>
    </div>
+   <div class="pane" data-pane="account" hidden><h3>Sound</h3><div class="sndrow"><button id="sfxbtn"></button><button id="musbtn"></button></div><label class="hint" style="display:block;margin:6px 0 2px">Volume</label><input id="volr" type="range" min="0" max="100" step="5" style="width:100%">
+    <h3 style="margin-top:16px">Account</h3><div class="hint" id="acct" style="margin-bottom:6px"></div><button id="signout">Sign out</button> <button id="delacct">Delete account</button>
+    <div class="hint" style="margin-top:8px"><a href="terms.html" target="_blank" rel="noopener">Terms</a> · <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a></div></div>
    <div class="pane" data-pane="shop" hidden><div id="shopBody"></div></div>
    <div class="pane" data-pane="arena" hidden><div id="arenaBody"></div></div>
    <div class="pane" data-pane="clan" hidden><div id="clanBody"></div></div>
@@ -897,7 +897,7 @@ body.newb .row3{grid-template-columns:1fr auto}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026102743';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261026103249';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2974,7 +2974,7 @@ function statsRender(){
  return h;
 }
 /* ---------- menus (bottom sheets) and toasts ---------- */
-const SHEETS={arena:'Arena',clan:'Clan',party:'Company',deck:'Tiles',relics:'Relics & Legacy',shop:'Shop',stats:'Statistics',log:'Journal'};
+const SHEETS={account:'Account and settings',arena:'Arena',clan:'Clan',party:'Company',deck:'Tiles',relics:'Relics & Legacy',shop:'Shop',stats:'Statistics',log:'Journal'};
 const RACC=['111,207,111','95,208,176','255,138,61','122,208,255','176,107,255','255,92,77','215,123,255','64,224,208','240,196,64','120,170,255','170,140,255','255,170,80','170,230,120','220,150,90','150,170,255','120,230,150','255,110,120','150,190,255','255,140,60','190,120,255'];   // per-region accent colours
 const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
 let sheet=null,lastRsub,lastLog,toastT,lastRegion,lastPips,splT,lastSub,lastGold;
@@ -3825,7 +3825,7 @@ function showAccount(){
  if(CC.guest)showModal('Your account','<p>You are playing as a <b>guest</b>. '+(CC.user?'Your progress is saved, but only this device can get back into it.':'Your progress is saved on this device only.')+'</p><p>Create an account to keep it safe and play on any device.</p>',[{t:'Create account',primary:true,fn:()=>{save();CC.upgrade();}},{t:'Not now'}]);
  else showModal('Your account','<p>Signed in as <b>'+CC.email+'</b>. Progress syncs to your account automatically.</p>',[{t:'Sign out',fn:()=>{save();CC.out();}},{t:'Delete account',fn:delAcct},{t:'Close',primary:true}]);
 }
-$('acctbtn').onclick=showAccount;
+$('acctbtn').onclick=()=>showSheet('account');
 window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase}};
 </script>
 </body>
