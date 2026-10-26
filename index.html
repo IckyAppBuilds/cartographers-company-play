@@ -786,6 +786,13 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
  #hand .hc .ico{width:clamp(30px,7.5vh,84px);height:clamp(30px,7.5vh,84px)}
  #road{max-width:min(100%,920px);margin:0 auto;background-size:auto 100%!important;background-repeat:repeat-x!important;background-position:center!important}
 }
+
+/* first act: only what a new player needs (no pile line, no Inscribe until Act II) */
+body.newb #piles{display:none}
+body.newb #insbtn{display:none}
+body.newb .row3{grid-template-columns:1fr auto}
+
+#coachp .unar{white-space:nowrap;width:auto}#coachp .unar b{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -887,7 +894,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025224627';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025231218';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2620,7 +2627,7 @@ function step(dt){
 
 /* ---------- actions ---------- */
 const echoLeft=c=>((S.echoed||{})[c]||0)<S.deck.filter(x=>x===c).length;   // Echo returns each copy to the draw pile once per deck; the next boss kill or wipe resets it
-function placeTile(j){st('tiles');
+function placeTile(j){st('tiles');if(!S.tutDone){S.tutDone=1;coachOff();}
  if(selCard<0||j<0||(j===0&&!(S.road[0]==='empty'&&phase==='walk')))return;
  if((S.depth+j)%10===9)return;
   const c=S.hand[selCard];if(!c)return;
@@ -2862,8 +2869,16 @@ setInterval(()=>{   // remove stray duplicates only; the popup you are looking a
  document.querySelectorAll('#loot:not(.spoils)').forEach(x=>{if(x!==lootEl)x.remove();});
 },2000);
 document.addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(b)closeModal(+b.dataset.mb);});
+function prelay(n){   // the first tiles of the first road come laid, so a new player sees a fight straight away
+ for(let j=0;j<n;j++){
+  if(S.road[j]!=='empty')continue;
+  let pile=S.hand,i=S.hand.indexOf('wilds');if(i<0){pile=S.draw;i=S.draw.indexOf('wilds');}if(i<0)break;
+  pile.splice(i,1);S.disc.push('wilds');S.road[j]='wilds';S.rmod[j]=null;S.rrank[j]=1;
+ }
+ fillHand();sig='';
+}
 function showIntro(){
- showModal("The Cartographer's Oath",'<p>The <b>Unmapped</b> has swallowed the realm\'s roads, and a <b>Warden</b> guards every region it left behind. You are the Royal Cartographer. You do not swing a sword; you lay the tiles, and the Company marches where your map leads.</p><p>Win fights for gold, rest when you must, and defeat each Warden to <span class="gold">restore a piece of the map</span>. The Unmapped never stops spreading, so the road never ends.</p>',[{t:'Begin the journey',primary:1,fn:()=>{S.seenIntro=true;save();}}]);
+ showModal("The Cartographer's Oath",'<p>You are the Royal Cartographer. You never swing a sword: you <b>lay the road tiles</b>, and your Company marches along them, fighting for gold.</p><p>Beat each region\'s Warden to <span class="gold">restore a piece of the map</span>.</p>',[{t:'Begin the journey',primary:1,fn:()=>{S.seenIntro=true;prelay(3);save();}}]);
 }
 /* ---------- shop: stock refreshes every act; prices follow the act's income and climb with each purchase ---------- */
 const SUPPLIES={
@@ -2972,6 +2987,7 @@ const NAVU={party:0,deck:0,relics:1,log:1,shop:2,stats:3,clan:5,arena:8};   // a
 const NAVINFO={relics:['Relics','Relics found in fights make the whole company stronger. Open the Relics menu to see them.'],log:['Log','The Log keeps the story of the company: recent battles, finds and deeds.'],shop:['Shop','The Shop sells free rewards, boosts and extras for the company.'],stats:['Stats','Stats shows how your run and your whole adventure are going.'],clan:['Clan','Join or found a clan: chat with other players and share a bonus.'],arena:['Arena','The Arena pits teams of your heroes against other players on a ladder of ten tiers, with a daily reward.']};
 const navOpen=k=>region(Math.max(S.best||0,S.depth||0))>=NAVU[k];
 function navSync(){
+ document.body.classList.toggle('newb',region(Math.max(S.best||0,S.depth||0))<1);
  tutTick();
  document.querySelectorAll('#nav button').forEach(b=>{b.hidden=!navOpen(b.dataset.sheet);});
  const seen=S.menuSeen||(S.menuSeen={});
@@ -3010,11 +3026,17 @@ function tutShow(i){
   document.body.appendChild(el);unPtr=()=>el.remove();}
 }
 let tutOn=false;
-function tutTick(){
- if(S.tutDone)return;
- if(S.tutDone===undefined&&(S.best>0||S.depth>0)){S.tutDone=1;return;}   // anyone who has already played does not need it
- if(tutOn||!S.seenIntro||!$('modal').hidden||sheet||lootEl||lootQ.length||zoneFreeze||ARENA.live())return;
- tutOn=true;tutShow(0);
+function coachOff(){const e=document.getElementById('coachp');if(e)e.remove();}
+function tutTick(){   // a single pointer until the first tile has been laid by hand: no pop-ups
+ if(S.tutDone){coachOff();return;}
+ if(S.tutDone===undefined&&(S.best>0||S.depth>0)){S.tutDone=1;coachOff();return;}
+ const first=document.querySelector('#hand .hc');
+ if(!S.seenIntro||!$('modal').hidden||sheet||lootEl||lootQ.length||zoneFreeze||ARENA.live()||!first||!S.road.some((k,j)=>k==='empty'&&j>=1)){coachOff();return;}
+ let el=document.getElementById('coachp');
+ const r=first.getBoundingClientRect();
+ if(!el){el=document.createElement('div');el.id='coachp';el.className='unp';el.style.pointerEvents='none';el.innerHTML='<span class="unring"></span><span class="unar"><b>Tap a tile</b>▼</span>';document.body.appendChild(el);}
+ el.style.left=(r.left+r.width/2)+'px';el.style.top=r.top+'px';
+ const ring=el.querySelector('.unring');ring.style.width=(r.width+8)+'px';ring.style.height=(r.height+8)+'px';
 }
 function resetRunAsk(){
  showModal('Reset your run?','<p>This starts a completely fresh run from Act I and <b>deletes</b> your saved game: heroes, levels, Legend, relics, tiles, fastest-clear records and arena entry.</p><p class="hint">It cannot be undone. The play log is kept.</p>',[{t:'Reset my run',primary:true,fn:resetRunDo},{t:'Keep playing'}]);
@@ -3109,12 +3131,18 @@ document.addEventListener('click',e=>{
   else if(b.id==='leg'||b.id==='retbtn')retire();
   return;
  }
- if(h){if(Date.now()<noClickUntil)return;const i=+h.dataset.h;selCard=selCard===i?-1:i;inscribing=false;sig='';}
+ if(h){if(Date.now()<noClickUntil)return;const i=+h.dataset.h;if(quickLay(i))return;selCard=selCard===i?-1:i;inscribing=false;sig='';}
  else if(t)placeTile(+t.dataset.j);
 });
 
 /* ---------- drag a hand card onto the road (touch + mouse); a plain tap still selects ---------- */
 let drag=null,noClickUntil=0;
+function quickLay(i){   // first act only: a tap sends the tile to the next empty slot
+ if(region(Math.max(S.best||0,S.depth||0))>0||!S.hand[i])return false;
+ const t=dropTargets().map(x=>+x.dataset.j).filter(j=>S.road[j]==='empty').sort((a,b)=>a-b)[0];
+ if(t===undefined)return false;
+ selCard=i;placeTile(t);return true;
+}
 function dropTargets(){return [...document.querySelectorAll('#road .tile')].filter(t=>{const j=+t.dataset.j;return (j>=1||(j===0&&S.road[0]==='empty'&&phase==='walk'))&&S.road[j]!=='lair'&&(S.depth+j)%10!==9;});}
 document.addEventListener('pointerdown',e=>{
  if(e.button>0)return;
