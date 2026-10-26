@@ -731,6 +731,40 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 .cs{display:inline-block;width:.85em;height:.85em;margin:0 1px;vertical-align:-1px;background:#ffd24a;clip-path:polygon(50% 0,62% 36%,100% 38%,70% 60%,80% 100%,50% 76%,20% 100%,30% 60%,0 38%,38% 36%)}
 
 .adi{height:1.3em;width:auto;vertical-align:-.3em;margin-right:6px;pointer-events:none}
+
+.btbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}
+.btrow{display:flex;gap:6px;align-items:center;min-height:44px}
+.btrow span{display:inline-block;width:42px;height:42px;border:2px solid;border-radius:50%;overflow:hidden;background:#1b140e}
+.btp{width:100%;height:100%;object-fit:cover;display:block}
+.btgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+button.btc{background:rgba(22,15,9,.88)!important;border:2px solid var(--line)!important;border-image:none!important;box-shadow:none!important;min-height:0}
+button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!important}
+.btc{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.04);color:inherit;text-align:center}
+.btc .btp{width:54px;height:54px;border-radius:50%;border:2px solid var(--rc)}
+.btc small{opacity:.75;font-size:11px;line-height:1.2}
+.btc.on{border-color:#ffd24a;background:rgba(255,210,74,.14)}
+.btc .btn{position:absolute;right:6px;top:6px;width:20px;height:20px;border-radius:50%;background:#ffd24a;color:#2a1c06;font-style:normal;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center}
+.hallhead{display:flex;align-items:baseline;gap:8px;justify-content:center}.hallhead b{font-size:34px;color:#ffd24a}
+.hallcard .hlv{font-size:12px;color:#ffd24a;margin-left:6px}
+.hbar{height:6px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:5px;overflow:hidden}.hbar i{display:block;height:100%;background:linear-gradient(90deg,#c9892a,#ffd24a)}
+
+.hscene{position:relative;width:100%;aspect-ratio:1/1.04;border-radius:12px;overflow:hidden;background-size:cover;background-position:center;border:1px solid var(--line);margin-bottom:8px}
+.hscene .hpc{position:absolute;display:flex;flex-direction:column;align-items:center;pointer-events:none}
+.hscene .hpc img{width:100%;height:auto;display:block;filter:drop-shadow(0 4px 4px rgba(0,0,0,.45))}
+.hscene .hl{margin-top:-4px;padding:1px 8px;border-radius:9px;background:rgba(14,10,6,.78);border:1px solid rgba(255,210,74,.45);color:#fff3cf;font-size:10px;font-weight:700;white-space:nowrap;text-shadow:0 1px 2px #000}
+.hscene .plot img{opacity:.85}
+.hscene .max img{filter:drop-shadow(0 0 8px rgba(255,210,74,.75)) drop-shadow(0 4px 4px rgba(0,0,0,.45))}
+.hscene .hmain{left:27%;width:46%;bottom:50%;z-index:1}
+.hscene .hpa{left:1%;width:31%;bottom:36%;z-index:2}
+.hscene .hpc.hpc.hpb{left:3%;width:31%;bottom:3%;z-index:4}
+.hscene .hpc.hpc.hpc{}
+.hscene #hp-loot{right:1%;width:31%;bottom:36%;z-index:2}
+.hscene #hp-boss{right:3%;width:31%;bottom:3%;z-index:4}
+.hscene .hpc.built{animation:hbuilt 1.5s cubic-bezier(.2,.9,.25,1.2) both;z-index:9}
+@keyframes hbuilt{0%{transform:translateY(26px) scale(.55);filter:brightness(3) saturate(.3);opacity:.1}45%{transform:translateY(-6px) scale(1.12);filter:brightness(1.9);opacity:1}100%{transform:none;filter:none;opacity:1}}
+.hscene .hsp{position:absolute;bottom:34%;width:7px;height:7px;border-radius:50%;background:#ffe27a;box-shadow:0 0 8px #ffd24a;opacity:0;animation:hspark 1.4s ease-out both}
+@keyframes hspark{0%{transform:translate(0,0) scale(.4);opacity:0}15%{opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(1.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.hscene .hpc.built,.hscene .hsp{animation:none}}
 </style>
 </head>
 <body>
@@ -830,7 +864,7 @@ h3{font-weight:700;letter-spacing:.18em;color:#e1c27a}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261025212722';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261025220515';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
 /* ---------- Terms and Privacy open in a full-screen panel over the game with a Close button (new tabs cannot be closed inside the mobile app) ---------- */
@@ -1359,15 +1393,16 @@ while(S.deck.length<5)S.deck.push('forest'),S.disc.push('forest');
 let log=[],selCard=-1,speed=1,sig='',phase='walk',pt=0,foes=[],H=[],fxT=[],scroll=0,gained=0,saveT=0,curSyn=null,curBoss=false,curMod=null,inscribing=false,inscribeOpts=[];
 function say(m){log.unshift(m);log=log.slice(0,6);}
 const region=d=>Math.floor(d/10);
-const heroMax=i=>HEROES[i].hp*RARM[HEROES[i].q]*partyBonus().hp*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0));
-const heroAtk=i=>HEROES[i].atk*RARM[HEROES[i].q]*partyBonus().dmg*bardAura()*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0));
+let HALL={power:0,gold:0,loot:0,boss:0};try{const _h=JSON.parse(localStorage.getItem('cc-hall')||'null');if(_h)HALL=Object.assign(HALL,_h);}catch(e){}   // Clan Hall upgrade levels (0-10 each), set by the clan screen
+const heroMax=i=>HEROES[i].hp*RARM[HEROES[i].q]*partyBonus().hp*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.oak||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).hp||0))*(1+.02*HALL.power);
+const heroAtk=i=>HEROES[i].atk*RARM[HEROES[i].q]*partyBonus().dmg*bardAura()*1.16**(S.lv[i]-1)*(1+.12*star(i))*(1+.12*(S.relics.whet||0))*(1+.12*S.legend)*(1+.15*((S.boons||{}).dmg||0))*(1+.02*HALL.power);
 const lvCost=i=>Math.round(18*1.5**(S.lv[i]-1)*LC[i]);
 const buffTxt=()=>[S.bless>0?'Blessing '+S.bless:'',S.fort>0?'Fortune '+S.fort:'',S.edge>0?'Edge '+S.edge:'',S.plate>0?'Plate '+S.plate:'',S.weak>0?'Scouted '+S.weak:'',S.kb?KNAME[S.kb.k]+' +'+S.kb.n:'',S.merc?'Mercenaries '+S.merc.n:''].filter(Boolean).join(', ');
-const goldMul=()=>partyBonus().gold*(1+CLAN.bonus())*(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
+const goldMul=()=>partyBonus().gold*(1+CLAN.bonus())*(S.boostT>0?2:1)*(S.fort>0?1.5:1)*(1+.1*S.legend)*(1+.03*HALL.gold)*(1+.15*(S.relics.coin||0))*(1+.2*((S.boons||{}).gold||0));
 /* ---------- clans and chat (Supabase): one clan per player, up to 30 members, a chat with report, mute and delete ---------- */
 const cesc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CLAN=(()=>{
- const st={profile:null,info:null,roster:[],msgs:[],tab:'chat',find:'',list:null,loaded:false,unread:0,ch:null,live:false,sel:null,err:'',busy:false,open:false};
+ const st={hall:null,draft:null,profile:null,info:null,roster:[],msgs:[],tab:'chat',find:'',list:null,loaded:false,unread:0,ch:null,live:false,sel:null,err:'',busy:false,open:false};
  const MAXM=30,db=()=>CC.db,uid=()=>CC.user&&CC.user.id;
  let muted=[];try{muted=JSON.parse(localStorage.getItem('cc-mute')||'[]');}catch(e){}
  const saveMute=()=>{try{localStorage.setItem('cc-mute',JSON.stringify(muted));}catch(e){}};
@@ -1378,11 +1413,15 @@ const CLAN=(()=>{
  const roleCol=r=>r==='leader'?'#ffd24a':r==='officer'?'#7ec8ff':'#cdbf9f';
  const hhmm=t=>{const d=new Date(t);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
  const ago=t=>{const s=(Date.now()-Date.parse(t))/1000;return s<300?'online':s<3600?Math.floor(s/60)+'m ago':s<86400?Math.floor(s/3600)+'h ago':Math.floor(s/86400)+'d ago';};
+ const HALLKEYS=['power','gold','loot','boss'];
+ function setHall(h){st.hall=h;const lv=(h&&h.hall)||{};for(const k of HALLKEYS)HALL[k]=Math.max(0,Math.min(10,+lv[k]||0));try{localStorage.setItem('cc-hall',JSON.stringify(HALL));}catch(e){}}
+ async function loadHall(){setHall(await rpc('clan_hall_state'));}
  async function loadMe(){
   if(!db()||!uid())return;
   const p=await db().from('profiles').select('name').eq('user_id',uid()).maybeSingle();st.profile=p.data?p.data.name:null;
   const i=await rpc('my_clan_info');st.info=i&&i[0]?i[0]:null;
   try{localStorage.setItem('cc-clan',JSON.stringify(st.info?{members:st.info.members}:null));}catch(e){}
+  if(st.info)await loadHall().catch(()=>{});else setHall(null);
   st.loaded=true;
   if(st.info)subscribe();else unsubscribe();
  }
@@ -1435,13 +1474,15 @@ const CLAN=(()=>{
   }
   const i=st.info,mine=i.role;
   el.innerHTML='<div class="clhead"><b>['+cesc(i.tag)+'] '+cesc(i.name)+'</b><small>'+i.members+'/'+MAXM+' members · you are '+roleName(mine).toLowerCase()+' · gold bonus +'+Math.round(bonus()*100)+'%</small>'+(i.description?'<small>'+cesc(i.description)+'</small>':'')+'</div>'
-   +'<div class="cltabs"><button class="'+(st.tab==='chat'?'on':'')+'" data-cl="tab:chat">Chat</button><button class="'+(st.tab==='members'?'on':'')+'" data-cl="tab:members">Members</button><button class="'+(st.tab==='boss'?'on':'')+'" data-cl="tab:boss">Boss'+(st.bossDot?' ●':'')+'</button><button class="'+(st.tab==='manage'?'on':'')+'" data-cl="tab:manage">Clan</button></div>'
+   +'<div class="cltabs"><button class="'+(st.tab==='chat'?'on':'')+'" data-cl="tab:chat">Chat</button><button class="'+(st.tab==='members'?'on':'')+'" data-cl="tab:members">Members</button><button class="'+(st.tab==='hall'?'on':'')+'" data-cl="tab:hall">Hall</button><button class="'+(st.tab==='boss'?'on':'')+'" data-cl="tab:boss">Boss'+(st.bossDot?' ●':'')+'</button><button class="'+(st.tab==='manage'?'on':'')+'" data-cl="tab:manage">Clan</button></div>'
    +'<div id="clTab"></div><div class="clerr" id="clanErr">'+cesc(st.err)+'</div>';
   const tb=$('clTab');
   if(st.tab==='chat'){
    tb.innerHTML='<div id="clMsgs" class="clmsgs"></div><div class="clrow"><input id="clIn" class="clin" maxlength="200" placeholder="Say something kind…" autocomplete="off"><button class="clbtn gold" data-cl="send">Send</button></div><div class="hint" style="margin-top:4px">Be kind. Tap a message to report it, mute that player or (for officers) delete it. Chat is kept for 14 days.</div>';
    drawMsgs(true);
    const inp=$('clIn');inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();send();}});
+  }else if(st.tab==='hall'){
+   renderHall();loadHall().then(()=>{if(st.open&&st.tab==='hall')renderHall();}).catch(()=>{});
   }else if(st.tab==='boss'){
    renderBoss();loadBoss();
   }else if(st.tab==='members'){
@@ -1458,6 +1499,28 @@ const CLAN=(()=>{
     +'<h3 style="margin-top:14px">Clan perk</h3><div class="hint">Every member adds +1% gold for everyone in the clan, up to +25% with 25 members. Right now: +'+Math.round(bonus()*100)+'%.</div>'
     +'<h3 style="margin-top:14px">Leave</h3><div class="hint" style="margin-bottom:6px">'+(mine==='leader'?'If you leave, the next officer (or longest-standing member) becomes leader. The last member out closes the clan.':'You can join another clan afterwards.')+'</div><button class="clbtn" data-cl="leave">Leave clan</button>';
   }
+ }
+ const UPG={power:{n:'Hall of Might',d:'+2% hero health and damage per level, for every member',per:2,u:'%'},gold:{n:'Treasury',d:'+3% gold per level',per:3,u:'%'},loot:{n:'Trophy Room',d:'+4% hero shard and relic chance per level',per:4,u:'%'},boss:{n:'War Room',d:'+5% boss team health and damage per level',per:5,u:'%'}};
+ const HCOST=[10,16,26,40,60,90,130,190,270,380];
+ const dStage=l=>l<=0?0:l<=2?1:l<=5?2:l<=9?3:4,hStage=t=>t<=3?0:t<=10?1:t<=20?2:t<=32?3:4,HNAME=['Meeting Hut','Lodge','Great Hall','Keep','Citadel'];
+ const hallTotal=()=>HALLKEYS.reduce((a,k)=>a+HALL[k],0);
+ const hallImg=(n,stg)=>'assets/ui/hall/'+n+'_'+stg+'.png'+V;
+ function hallScene(){
+  const hs=hStage(hallTotal()),P={power:['might','hpa'],gold:['gold','hpb'],loot:['loot','hpc'],boss:['boss','hpd']};
+  return '<div class="hscene" id="hscene" style="background-image:url(assets/ui/hall/bg.jpg'+V+')">'
+   +HALLKEYS.map(k=>{const l=HALL[k],stg=dStage(l);return '<div class="hpc '+P[k][1]+(stg===4?' max':'')+(l===0?' plot':'')+'" id="hp-'+k+'"><img src="'+hallImg(P[k][0],stg)+'" alt="" draggable="false"><span class="hl">'+UPG[k].n+(l?' '+l:'')+'</span></div>';}).join('')
+   +'<div class="hpc hmain'+(hs===4?' max':'')+'" id="hp-main"><img src="'+hallImg('hall',hs)+'" alt="" draggable="false"><span class="hl">'+HNAME[hs]+'</span></div></div>';
+ }
+ function hallPop(keys){   // the buildings that just changed rise with a flash and a burst of sparks
+  for(const k of keys){const el=$('hp-'+k);if(!el)continue;el.classList.remove('built');void el.offsetWidth;el.classList.add('built');
+   for(let n=0;n<10;n++){const sp=document.createElement('i');sp.className='hsp';sp.style.setProperty('--dx',(Math.random()*120-60)+'px');sp.style.setProperty('--dy',(-30-Math.random()*90)+'px');sp.style.left=(35+Math.random()*30)+'%';sp.style.animationDelay=(Math.random()*.25)+'s';el.appendChild(sp);setTimeout(()=>sp.remove(),1700);}}
+ }
+ function renderHall(){
+  const tb=$('clTab');if(!tb)return;const H=st.hall,mine=st.info&&st.info.role,can=mine==='leader'||mine==='officer';
+  if(!H){tb.innerHTML='<div class="hint">Loading the Clan Hall…</div>';return;}
+  tb.innerHTML=hallScene()+'<div class="hallhead"><b>'+H.tokens+'</b><small>clan tokens</small></div><div class="hint" style="margin:4px 0 8px">Defeat clan bosses to earn tokens. '+(can?'Spend them here: every upgrade is a permanent buff for every member.':'Your leader and officers spend them on permanent buffs for every member.')+'</div>'
+   +HALLKEYS.map(k=>{const U=UPG[k],lv=HALL[k],mx=lv>=10,cost=HCOST[lv];return '<div class="clcard hallcard"><div><b>'+U.n+' <span class="hlv">Level '+lv+'/10</span></b><small>'+U.d+'</small><small>Now +'+lv*U.per+'%'+(mx?'':', next level +'+(lv+1)*U.per+'%')+'</small><div class="hbar"><i style="width:'+lv*10+'%"></i></div></div><button class="clbtn gold" data-cl="hall:'+k+'" '+(mx||!can||H.tokens<cost?'disabled':'')+'>'+(mx?'Maxed':cost+' tokens')+'</button></div>';}).join('')
+   +'<div class="hint" style="margin-top:6px">Lifetime tokens earned: '+(H.tokens_total||0)+'.</div>';
  }
  function drawMsgs(scroll){
   const el=$('clMsgs');if(!el)return;
@@ -1486,6 +1549,11 @@ const CLAN=(()=>{
   else if(k==='join'){await act(async()=>{await rpc('join_clan',{p_clan:x});},()=>{st.tab='chat';return refresh();});}
   else if(k==='tab'){st.tab=x;st.sel=null;if(x==='chat')st.unread=0;render();if(x==='members'||x==='chat')refresh();}
   else if(k==='strike'){strike();}
+  else if(k==='hall'){const before=hStage(hallTotal()),bk=dStage(HALL[x]);let ok=false;await act(async()=>{setHall(await rpc('clan_hall_upgrade',{p_key:x}));SND.play('level');ok=true;});if(st.open&&st.tab==='hall'){renderHall();if(ok){const ch=[x];if(hStage(hallTotal())!==before)ch.push('main');hallPop(ch);if(dStage(HALL[x])!==bk||ch.length>1)toast(ch.length>1?'Your clan hall grows into a '+HNAME[hStage(hallTotal())]+'!':UPG[x].n+' grows!');}}}
+  else if(k==='btedit'){st.draft=bossTeam().slice();renderBoss();}
+  else if(k==='btcancel'){st.draft=null;renderBoss();}
+  else if(k==='bt'){const i=+x,d=st.draft||(st.draft=[]),p=d.indexOf(i);if(p>=0)d.splice(p,1);else if(d.length<4)d.push(i);renderBoss();}
+  else if(k==='btsave'){const d=(st.draft||[]).slice();await act(async()=>{setHall(await rpc('set_boss_team',{p_team:d}));st.draft=null;await syncStats();},()=>loadBoss());}
   else if(k==='claim'){claim(x);}
   else if(k==='sel'){st.sel=st.sel===+x?null:+x;drawMsgs(false);}
   else if(k==='send'){send();}
@@ -1495,13 +1563,40 @@ const CLAN=(()=>{
   else if(k==='role'){showModal('Change role?','<p>Make this player '+(y==='leader'?'the clan leader (you become an officer)':y)+'?</p>',[{t:'Yes',primary:true,fn:()=>act(async()=>{await rpc('set_member_role',{p_user:x,p_role:y});},refresh)},{t:'Cancel'}]);}
   else if(k==='kick'){showModal('Remove this player?','<p>They will leave the clan and can join again if it is recruiting.</p>',[{t:'Remove',primary:true,fn:()=>act(async()=>{await rpc('kick_member',{p_user:x});},refresh)},{t:'Cancel'}]);}
   else if(k==='save'){const d=$('clDesc').value,o=$('clOpen').checked;await act(async()=>{await rpc('update_clan',{p_desc:d,p_open:o});toast('Clan updated.');},refresh);}
-  else if(k==='leave'){showModal('Leave your clan?','<p>You will lose the clan gold bonus and chat.</p>',[{t:'Leave',primary:true,fn:()=>act(async()=>{await rpc('leave_clan');st.info=null;unsubscribe();st.msgs=[];st.roster=[];st.list=null;},()=>{st.find='';render();doBrowse('');})},{t:'Stay'}]);}
+  else if(k==='leave'){showModal('Leave your clan?','<p>You will lose the clan gold bonus and chat.</p>',[{t:'Leave',primary:true,fn:()=>act(async()=>{await rpc('leave_clan');st.info=null;setHall(null);unsubscribe();st.msgs=[];st.roster=[];st.list=null;},()=>{st.find='';render();doBrowse('');})},{t:'Stay'}]);}
  }
  /* ----- clan boss: one shared health pool per clan; every member gets 3 strikes a day; far too big for any one player ----- */
  const STRIKES=3;
- const strikeBase=()=>S.order.reduce((a,i)=>S.un[i]?a+heroAtk(i)*HEROES[i].spd*spdMul()*20:a,0);   // what the party deals in a 20-second strike
- const strikeVs=tr=>S.order.reduce((a,i)=>S.un[i]?a+heroAtk(i)*HEROES[i].spd*spdMul()*20*((TRAIT[tr]||{})[HEROES[i].k]||1):a,0);
- const syncStats=()=>rpc('sync_clan_stats',{p_act:Math.floor(Math.max(S.best,S.depth)/10)+1,p_legend:S.legend,p_power:Math.floor(strikeBase())}).catch(()=>{});
+ /* the boss fight: each member sends a boss team of up to four owned heroes (base stats like the arena, plus the Hall's War Room buff) that fights the boss for 30 seconds */
+ const BOSS_ATK=22,bHP=i=>HEROES[i].hp*RARM[HEROES[i].q]*(1+.05*HALL.boss),bAtk=i=>HEROES[i].atk*RARM[HEROES[i].q]*(1+.05*HALL.boss);
+ const bossTeam=()=>((st.hall&&st.hall.boss_team)||[]).filter(i=>S.owned.includes(i)).slice(0,4);
+ function bossSim(team,tier,trait){
+  const U=team.map(i=>({i,hp:bHP(i),max:bHP(i),atk:bAtk(i),spd:HEROES[i].spd,role:HEROES[i].r,k:HEROES[i].k,n:0,cd:Math.random()*.6}));
+  let dmg=0,t=0,bn=0,bcd=1.2;const batk=BOSS_ATK*1.12**tier,alive=()=>U.filter(u=>u.hp>0),tm=u=>(TRAIT[trait]||{})[u.k]||1;
+  while(t<30&&alive().length){
+   t+=.1;
+   for(const u of U){
+    if(u.hp<=0)continue;u.cd-=.1;if(u.cd>0)continue;u.cd+=1.5/u.spd;u.n++;
+    const ally=alive();let v=u.atk*tm(u)*(ally.some(x=>x.role==='Support')?1.08:1);
+    if(u.role==='Marksman'){if(Math.random()<.25)v*=2.2;}
+    else if(u.role==='Caster'){if(u.n%3===0)v*=1.3;}
+    else if(u.role==='Striker')v*=1.5;
+    else if(u.role==='Guardian'){if(u.n%3===0)v*=2;}
+    else if(u.role==='Healer'&&u.n%2===0){const w=ally.reduce((x,y)=>x.hp/x.max<y.hp/y.max?x:y);if(w.hp/w.max<.98){w.hp=Math.min(w.max,w.hp+w.max*.1+2.2*u.atk);continue;}}
+    dmg+=v;
+   }
+   bcd-=.1;
+   if(bcd<=0){
+    bcd+=1.6;bn++;const al=alive();if(!al.length)break;const g=al.find(x=>x.role==='Guardian');
+    if(bn%4===0)al.forEach(x=>{x.hp-=batk*.6*(x.role==='Guardian'?.85:1);});
+    else{const tg=(g&&Math.random()<.5)?g:al[Math.random()*al.length|0];tg.hp-=batk*(tg.role==='Guardian'?.85:1);}
+   }
+  }
+  return{dmg,secs:t,fallen:U.filter(u=>u.hp<=0).length};
+ }
+ const strikeAvg=(tier,trait)=>{const tm=bossTeam();if(!tm.length)return 0;let a=0;for(let n=0;n<4;n++)a+=bossSim(tm,tier,trait).dmg;return a/4;};
+ const bossPower=()=>Math.floor(strikeAvg(0,''));   // what the server uses to cap a strike
+ const syncStats=()=>rpc('sync_clan_stats',{p_act:Math.floor(Math.max(S.best,S.depth)/10)+1,p_legend:S.legend,p_power:bossPower()}).catch(()=>{});
  st.boss=null;st.striking=false;
  const bossName=idx=>'Colossal '+RG(idx%20)[2];
  async function loadBoss(){
@@ -1510,8 +1605,15 @@ const CLAN=(()=>{
   st.bossDot=!!(st.boss&&st.boss.pending);
   if(st.open&&st.tab==='boss'&&!st.striking)renderBoss();
  }
+ const hport=i=>'<img class="btp" src="assets/heroes/'+HID[i]+'_p.png'+V+'" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
+ const teamBar=()=>{const tm=bossTeam();return '<div class="btbar"><div class="btrow">'+(tm.length?tm.map(i=>'<span style="border-color:'+RARCOL[HEROES[i].q]+'">'+hport(i)+'</span>').join(''):'<small class="hint">No boss team yet</small>')+'</div><button class="mini" data-cl="btedit">'+(tm.length?'Edit team':'Build team')+'</button></div>';};
+ function teamEditor(){
+  const d=st.draft||[],own=S.owned.slice().sort((x,y)=>HEROES[y].q-HEROES[x].q||x-y);
+  return '<h3>Your boss team</h3><div class="hint" style="margin-bottom:6px">Pick up to four heroes. They fight the boss with their base stats (levels, relics and Legend do not count) plus the Hall War Room bonus. Guardians soak hits, Healers keep the team up, and the boss fears some kinds of attack more than others.</div><div class="btgrid">'+own.map(i=>{const on=d.indexOf(i)>=0,H=HEROES[i];return '<button class="btc'+(on?' on':'')+'" data-cl="bt:'+i+'" style="--rc:'+RARCOL[H.q]+'">'+hport(i)+'<b>'+cesc(H.n)+'</b><small>'+cesc(H.r)+' · '+cesc(H.k)+'</small><small>HP '+fmt(bHP(i))+' · ATK '+fmt(bAtk(i))+'</small>'+(on?'<i class="btn">'+(d.indexOf(i)+1)+'</i>':'')+'</button>';}).join('')+'</div><div class="clrow" style="margin-top:8px"><button class="clbtn gold" data-cl="btsave">Save team ('+d.length+'/4)</button><button class="clbtn" data-cl="btcancel">Cancel</button></div>';
+ }
  function renderBoss(){
   const tb=$('clTab');if(!tb)return;
+  if(st.draft){tb.innerHTML=teamEditor();return;}
   const R=st.boss;if(!R){tb.innerHTML='<div class="hint">Loading the boss…</div>';return;}
   const B=R.boss,me=R.me||{};let h='';
   if(R.pending)h+='<div class="clcard" style="border:1px solid #ffd24a;border-radius:12px;padding:8px 10px;margin-bottom:8px"><div><b style="color:#ffe9a0">Your clan beat the boss!</b><small>Claim your share of the spoils.</small></div><button class="clbtn gold" data-cl="claim:'+R.pending.boss_id+'">Claim</button></div>';
@@ -1520,13 +1622,13 @@ const CLAN=(()=>{
    h+='<div class="hint" style="padding:10px 2px">'+(R.reason==='members'?'A clan boss wakes once your clan has <b>3 or more members</b>. Recruit some friends! Each member strikes up to '+STRIKES+' times a day, and the boss is far too big for any one player.':R.reason==='cooldown'?'The next clan boss arrives in <b>'+fmtT(when)+'</b>.'+(R.last_defeated_tier!=null?' The last one fell, so the next is stronger.':''):'No boss right now.')+'</div>';
    tb.innerHTML=h;return;
   }
-  const pct=Math.max(0,Math.min(100,100*B.hp/B.max_hp)),left=Math.max(0,(Date.parse(B.ends_at)-Date.now())/1000),n=S.order.filter(i=>S.un[i]),est=strikeVs(B.trait);
+  const pct=Math.max(0,Math.min(100,100*B.hp/B.max_hp)),left=Math.max(0,(Date.parse(B.ends_at)-Date.now())/1000),n=bossTeam(),est=strikeAvg(B.tier,B.trait);
   const bimg='assets/enemies/boss'+BOSS_ART[B.idx%20]+'.png'+V,bg='assets/bg/lair'+(B.idx%20)+'.jpg'+V;
   h+='<div class="cbarena" id="cbArena" style="background-image:url('+bg+')"><img id="cbBoss" class="cbboss'+(FACES_RIGHT.has('boss'+BOSS_ART[B.idx%20])?' flip':'')+'" src="'+bimg+'" alt=""><div class="cbheroes">'+n.map(i=>'<img src="assets/heroes/'+HID[i]+'.png'+V+'" alt="" data-h="'+i+'">').join('')+'</div></div>'
    +'<div class="cbname">'+cesc(bossName(B.idx))+'</div><div class="cbtrait" style="color:'+TRAITC[B.trait]+'">'+cesc(traitText(B.trait))+'</div>'
    +'<div class="cbbar"><i id="cbFill" style="width:'+pct+'%"></i><b id="cbHp">'+fmt(B.hp)+' / '+fmt(B.max_hp)+'</b></div>'
    +'<small class="hint" id="cbLeft">Tier '+(B.tier+1)+' · retreats in '+fmtT(left)+' · defeat it together for a big reward</small>'
-   +'<button class="clbtn gold" id="cbStrike" data-cl="strike" '+(me.strikes_left>0?'':'disabled')+'>Strike · '+me.strikes_left+' of '+STRIKES+' left today<br><small style="font-size:12px">Your party deals about '+fmt(est)+'</small></button>'
+   +teamBar()+'<button class="clbtn gold" id="cbStrike" data-cl="strike" '+(me.strikes_left>0&&n.length?'':'disabled')+'>'+(n.length?'Strike · '+me.strikes_left+' of '+STRIKES+' left today<br><small style="font-size:12px">Your boss team deals about '+fmt(est)+'</small>':'Build your boss team to strike')+'</button>'
    +'<h3 style="margin-top:12px">Top damage</h3><div id="cbBoard">'+((R.board||[]).map((m,k)=>'<div class="clmem"><div><b style="color:'+(m.user_id===uid()?'#ffd24a':'#efe3c4')+'">'+(k+1)+'. '+cesc(m.name)+(m.user_id===uid()?' (you)':'')+'</b><small>'+m.hits+' strike'+(m.hits===1?'':'s')+'</small></div><div><b>'+fmt(m.damage)+'</b></div></div>').join('')||'<div class="hint">No strikes yet. Be the first!</div>')+'</div>'
    +'<div class="hint" style="margin-top:6px">Your total: <b>'+fmt(me.damage||0)+'</b> in '+(me.hits||0)+' strike'+((me.hits||0)===1?'':'s')+'. Everyone who hits it shares the reward, and the top damage dealers and the final blow earn extra.</div>';
   tb.innerHTML=h;
@@ -1547,7 +1649,8 @@ const CLAN=(()=>{
  async function strike(){
   if(st.striking||!st.boss||!st.boss.boss||st.boss.me.strikes_left<=0)return;
   st.striking=true;say2('');const btn=$('cbStrike');if(btn)btn.disabled=true;
-  const dmg=Math.floor(strikeVs(st.boss.boss.trait)*(.92+Math.random()*.16));
+  const tm=bossTeam();if(!tm.length){st.striking=false;say2('Build your boss team first.');return;}
+  const sr=bossSim(tm,st.boss.boss.tier,st.boss.boss.trait),dmg=Math.max(1,Math.floor(sr.dmg));
   let res=null,err=null;
   const call=rpc('clan_boss_strike',{p_damage:dmg}).then(r=>{res=r;}).catch(e=>{err=e;});
   await Promise.all([animateStrike(dmg),call]);
@@ -1555,7 +1658,8 @@ const CLAN=(()=>{
   if(err){say2(err.message||'The strike failed.');await loadBoss();return;}
   st.boss=res;st.bossDot=!!res.pending;
   if(st.open&&st.tab==='boss')renderBoss();
-  if(res.defeated){SND.play('bossWin');showModal('The boss falls!','<p>Your final blow felled the clan boss. Claim your reward!</p>',[{t:'Claim reward',primary:true,fn:()=>{if(res.pending)claim(res.pending.boss_id);}}]);}
+  if(!res.defeated)toast('Your team dealt '+fmt(res.dealt||dmg)+' and lasted '+Math.round(sr.secs)+'s'+(sr.fallen?' ('+sr.fallen+' fell)':'')+'.');
+  if(res.defeated){loadHall().catch(()=>{});SND.play('bossWin');showModal('The boss falls!','<p>Your final blow felled the clan boss.</p>'+(res.tokens?'<p><b>+'+res.tokens+' clan tokens</b> were added to the Clan Hall for upgrades.</p>':'')+'<p>Claim your reward!</p>',[{t:'Claim reward',primary:true,fn:()=>{if(res.pending)claim(res.pending.boss_id);}}]);}
  }
  function relicsGive(n){const names=[];for(let i=0;i<n;i++){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;names.push(RELICS[r].i+' '+RELICS[r].n);}return names;}
  async function claim(id){
@@ -2185,8 +2289,9 @@ function win(){
  let rew=((curSyn&&curSyn.rew)||1)*modGold();
  let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
  S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;st('fights');{const l=S.life;if(S.streak>(l.bstreak||0))l.bstreak=S.streak;}
- {let sh=t.boss?4+2*region(S.depth):((Math.random()<(t.shard||(t.gold>=2.5?.15:.05))+.03*(curRank-1)||(curSyn&&curSyn.shard))?1:0);if(t.flawless&&flawless)sh+=2;if(sh){{const per=addShards(sh);say('Found '+shardMsg(per)+'!');shardPopup(per,t.boss?'Boss spoils':'Hero shards');}}}
+ {let sh=t.boss?4+2*region(S.depth):((Math.random()<((t.shard||(t.gold>=2.5?.15:.05))+.03*(curRank-1))*(1+.04*HALL.loot)||(curSyn&&curSyn.shard))?1:0);if(t.flawless&&flawless)sh+=2;if(sh){{const per=addShards(sh);say('Found '+shardMsg(per)+'!');shardPopup(per,t.boss?'Boss spoils':'Hero shards');}}}
  let rc=(t.boss?RELIC_BOSS:t.relic*RELIC_RATE)+.05*(curRank-1)+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
+ rc*=1+.04*HALL.loot;
  if(t.flawless){if(flawless){rc=1;say('Bounty claimed: nobody fell!');}else say('Bounty missed: someone fell.');}
  if(Math.random()<rc){const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;say('Found relic: '+RELICS[r].i+' '+RELICS[r].n+'!');lootRelic(r);}
  // revive fallen at 30%, small heal
