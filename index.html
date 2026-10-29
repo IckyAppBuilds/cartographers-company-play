@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029174318';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029175730';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2120,7 +2120,7 @@ function synFor(p,k){return SYN[p+'>'+k]||null;}
 const AUTO_REPLAY=true;   // acts you have already cleared in an earlier run build themselves from your deck's fighting tiles, so retiring does not mean laying hundreds of tiles again
 function kindAt(d){
  if(d%10===9)return 'lair';
- if(AUTO_REPLAY&&S&&S.deck&&region(d)<region(S.best||0)){const f=S.deck.map(kindOf).filter(k=>TILES[k]&&!TILES[k].ev&&!TILES[k].boss&&k!=='empty');return f.length?f[(d*5+3)%f.length]:'wilds';}
+ if(AUTO_REPLAY&&S&&S.deck&&region(d)<region(S.best||0)){const f=S.deck.map(kindOf).filter(k=>TILES[k]&&!TILES[k].ev&&!TILES[k].boss&&k!=='empty');if(!f.length)return 'wilds';const gcd=(x,y)=>y?gcd(y,x%y):x,st=[7,11,13,17,19,23].find(k=>gcd(k,f.length)===1)||1;return f[(d*st+3)%f.length];}   // the step shares no factor with the deck, so the road cycles through every fighting tile (a step of 5 used to repeat one tile when the deck held 5, 10 or 15)
  return 'empty';   // an empty slot: the company waits here until a tile is laid
 }
 function buildRoad(){S.road=[];S.rmod=[];S.rrank=[];for(let j=0;j<7;j++){S.road.push(kindAt(S.depth+j));S.rmod.push(null);S.rrank.push(1);}}
