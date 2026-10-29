@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029172736';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029174318';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -1920,7 +1920,7 @@ const ARENA=(()=>{
  }
  function drawBattle(dt,TOPY){
   const T=performance.now()/1000;
-  if(!drawBG('battlefield')){g.fillStyle='#6a5a48';g.fillRect(0,-EX,800,320+EX);}
+  if(!drawBG('battlefield')){g.fillStyle='#6a5a48';g.fillRect(-OX,-EX,CW,320+EX);}
   ambient('battlefield');
   if(!ARB.fin){ARB.acc+=dt;while(ARB.acc>=.4&&ARB.fi<ARB.F.length){ARB.acc-=.4;applyFrame(ARB.F[ARB.fi++]);}if(ARB.fi>=ARB.F.length){ARB.fin=true;ARB.onEnd();}}
   for(const side of ARB.U)for(const u of side){u.f+=(u.tf-u.f)*Math.min(1,dt*8);u.lunge=Math.max(0,u.lunge-dt*4);u.flash=Math.max(0,u.flash-dt*5);}
@@ -3355,9 +3355,10 @@ function fit(){
  const st=$('stage');if(!st)return;
  const w=st.clientWidth,h=st.clientHeight;if(!w||!h)return;
  const dpr=Math.min(3,window.devicePixelRatio||1);
- const tall=h/w>.62,wc=tall?600:800,ex=Math.max(-70,Math.min(420,Math.round(wc*h/w)-320));
+ // a wide, short stage (a small embedded browser window) shows more of the scene at the sides instead of cropping the top, so tall bosses are never cut off
+ const tall=h/w>.62,wc=tall?600:Math.max(800,Math.min(1400,Math.round(320*w/h))),ex=Math.max(0,Math.min(420,Math.round(wc*h/w)-320));
  const k=w*dpr/wc,bw=Math.round(w*dpr),bh=Math.round((320+ex)*k);
- if(wc!==CW||ex!==EX||cv.width!==bw||cv.height!==bh){CW=wc;EX=ex;OX=tall?-95:0;K=k;cv.width=bw;cv.height=bh;}
+ if(wc!==CW||ex!==EX||cv.width!==bw||cv.height!==bh){CW=wc;EX=ex;OX=tall?-95:(wc-800)/2;K=k;cv.width=bw;cv.height=bh;}
 }
 if(window.ResizeObserver)new ResizeObserver(fit).observe($('stage'));
 window.addEventListener('resize',fit);
@@ -3641,7 +3642,7 @@ BGNAMES.forEach(n=>{const im=new Image();im.onload=()=>{BGB[n]=im;buildBGV();};i
 function drawBG(k){
  const im=getBG(k);if(!im)return false;
  const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,T=performance.now()/1000;
- const vw=CW,left=-OX,wide=CW===800;
+ const vw=CW,left=-OX,wide=CW>=800;
  const H=Math.max(vw/iw*ih*(wide?.62:1),(250+EX)/.86,500),W=vw*1.06;   // keep the path under the heroes' feet (y~250)
  const yTop=250-.86*H,pan=Math.sin(T*.12+scroll*.002)*(W-vw)/2*.9;
  g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
@@ -3672,7 +3673,7 @@ function draw(dt){
  if(ARENA.live()){ARENA.draw(dt,TOPY);return;}   // an arena fight takes over the battle canvas
  const bgk=bgKeyFor(k),usedBG=drawBG(bgk);
  if(!usedBG){
- g.fillStyle=t.bg[0];g.fillRect(0,-EX,800,320+EX);
+ g.fillStyle=t.bg[0];g.fillRect(-OX,-EX,CW,320+EX);
  // drifting clouds fill the extra sky on tall screens
  g.fillStyle='rgba(255,255,255,.55)';
  for(let k=0;k<6;k++){const cx=((k*190-scroll*.06-performance.now()/900*(k%2+1))%1100+1100)%1100-150,cy=-EX+28+(k*53)%Math.max(60,EX+120);
@@ -3681,14 +3682,14 @@ function draw(dt){
  g.fillStyle='rgba(0,0,0,.18)';
  for(let i=-1;i<7;i++){const x=i*160-(scroll*.2%160);g.beginPath();g.ellipse(x+80,235,110,60,0,Math.PI,0);g.fill();}
  // ground
- g.fillStyle=t.bg[1];g.fillRect(0,236,800,84);
- g.fillStyle='rgba(0,0,0,.2)';g.fillRect(0,236,800,4);
+ g.fillStyle=t.bg[1];g.fillRect(-OX,236,CW,84);
+ g.fillStyle='rgba(0,0,0,.2)';g.fillRect(-OX,236,CW,4);
  // scenery
  g.font='44px serif';g.textAlign='center';
  {const sim=IMG['i_'+(k==='lair'?'ruins':k)];for(let i=-1;i<8;i++){const x=i*130-(scroll*.7%130);if(sim){const hh=66+(i&3)*8,ww=hh*sim.width/sim.height;g.globalAlpha=.62;g.drawImage(sim,x-ww/2,238-hh,ww,hh);}else{g.globalAlpha=.9;g.fillText(t.sc,x,226);}}}
  g.globalAlpha=1;
  // path
- g.fillStyle='rgba(255,230,170,.15)';g.fillRect(0,262,800,22);
+ g.fillStyle='rgba(255,230,170,.15)';g.fillRect(-OX,262,CW,22);
  }
  else ambient(bgk);
  // heroes
@@ -3711,8 +3712,8 @@ function draw(dt){
  // (blessing shows in the header counter, not over the battle)
  if(phase==='dead'){
   const p=Math.min(1,pt/DEATH_TIME);
-  g.fillStyle='rgba(110,0,12,'+(.5*Math.min(1,p*2.5))+')';g.fillRect(0,-EX,800,320+EX);
-  const v=g.createRadialGradient(400,160,80,400,160,420);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,'+(.75*p)+')');g.fillStyle=v;g.fillRect(0,-EX,800,320+EX);
+  g.fillStyle='rgba(110,0,12,'+(.5*Math.min(1,p*2.5))+')';g.fillRect(-OX,-EX,CW,320+EX);
+  const v=g.createRadialGradient(400,160,80,400,160,420);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,'+(.75*p)+')');g.fillStyle=v;g.fillRect(-OX,-EX,CW,320+EX);
   if(p>.3){   // the deck's cards spiral in to be gathered and reshuffled
    const q=(p-.3)/.7;
    for(let k=0;k<14;k++){
