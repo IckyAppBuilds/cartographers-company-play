@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029090459';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029111316';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -1029,22 +1029,24 @@ const CC=(function(){
  const lset=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
  function start(){
   if(started)return;started=true;$('auth').hidden=true;
-  const go=()=>{const el=document.createElement('script');el.textContent=$('game').textContent;document.body.appendChild(el);setTimeout(()=>{const l=$('loading');if(l){l.classList.add('out');setTimeout(()=>l.remove(),400);}},350);};
-  CG.loading(true);CG.hydrate();preload().then(()=>{CG.loading(false);go();},()=>{CG.loading(false);go();});
+  /* the game starts once the interface art is in; the loading screen then stays until the game says the art its opening view shows has arrived (__artReady), at most 15 seconds */
+  const go=()=>{const el=document.createElement('script');el.textContent=$('game').textContent;document.body.appendChild(el);
+   Promise.race([window.__artReady||Promise.resolve(),new Promise(r=>setTimeout(r,15000))]).then(()=>{CG.loading(false);const l=$('loading');if(l){l.classList.add('out');setTimeout(()=>l.remove(),400);}});};
+  const sdk=CG.init.then(()=>{CG.loading(true);CG.hydrate();});   // the portal SDK starts up while the art downloads; its save copy is in place before the game reads the save
+  Promise.all([sdk,preload()]).then(go,go);
  }
- /* the first screen waits for its art (heroes, icons, backgrounds, interface, bosses, the current act's foes) so no placeholder drawing is ever seen; anything slow is given up on after 20 seconds */
+ /* the interface pieces drawn by the style sheet (cards, buttons, panels, the road); the game itself fetches the art its opening view needs first and the rest after */
  const ASSETS='heroes/alchemist.png heroes/alchemist_p.png heroes/artificer.png heroes/artificer_p.png heroes/bard.png heroes/bard_p.png heroes/berserker.png heroes/berserker_p.png heroes/cleric.png heroes/cleric_p.png heroes/druid.png heroes/druid_p.png heroes/duelist.png heroes/duelist_p.png heroes/huntress.png heroes/huntress_p.png heroes/knight.png heroes/knight_p.png heroes/mage.png heroes/mage_p.png heroes/monk.png heroes/monk_p.png heroes/necromancer.png heroes/necromancer_p.png heroes/oracle.png heroes/oracle_p.png heroes/paladin.png heroes/paladin_p.png heroes/pyromancer.png heroes/pyromancer_p.png heroes/ranger.png heroes/ranger_p.png heroes/rogue.png heroes/rogue_p.png heroes/shieldmaiden.png heroes/shieldmaiden_p.png heroes/stormcaller.png heroes/stormcaller_p.png heroes/templar.png heroes/templar_p.png icons/ad.png icons/arena.png icons/battlefield.png icons/boots.png icons/bounty.png icons/clan.png icons/coin.png icons/company.png icons/council.png icons/crucible.png icons/crypt.png icons/deck.png icons/fang.png icons/flame.png icons/forest.png icons/forge.png icons/graveyard.png icons/hunt.png icons/ink.png icons/journal.png icons/lair.png icons/leyline.png icons/market.png icons/mercenary.png icons/oak.png icons/observatory.png icons/relics.png icons/ruins.png icons/scriptorium.png icons/shrine.png icons/springs.png icons/starfall.png icons/stats.png icons/swamp.png icons/tiles.png icons/training.png icons/treasury.png icons/tut_compass.png icons/tut_place.png icons/tut_road.png icons/tut_tiles.png icons/vault.png icons/village.png icons/warcamp.png icons/watchtower.png icons/whet.png icons/wilds.png bg/act0.jpg bg/act1.jpg bg/act10.jpg bg/act11.jpg bg/act12.jpg bg/act13.jpg bg/act14.jpg bg/act15.jpg bg/act16.jpg bg/act17.jpg bg/act18.jpg bg/act19.jpg bg/act2.jpg bg/act3.jpg bg/act4.jpg bg/act5.jpg bg/act6.jpg bg/act7.jpg bg/act8.jpg bg/act9.jpg bg/battlefield.jpg bg/crypt.jpg bg/forest.jpg bg/lair.jpg bg/lair0.jpg bg/lair1.jpg bg/lair10.jpg bg/lair11.jpg bg/lair12.jpg bg/lair13.jpg bg/lair14.jpg bg/lair15.jpg bg/lair16.jpg bg/lair17.jpg bg/lair18.jpg bg/lair19.jpg bg/lair2.jpg bg/lair3.jpg bg/lair4.jpg bg/lair5.jpg bg/lair6.jpg bg/lair7.jpg bg/lair8.jpg bg/lair9.jpg bg/leyline.jpg bg/market.jpg bg/meadow.jpg bg/ruins.jpg bg/shrine.jpg bg/springs.jpg bg/swamp.jpg bg/treasury.jpg bg/vault.jpg bg/village.jpg ui/bar_hp.png ui/btn_blue.png ui/btn_close.png ui/btn_gold.png ui/btn_grey.png ui/btn_red.png ui/card0.png ui/card1.png ui/card2.png ui/card3.png ui/card4.png ui/hc_common.png ui/hc_epic.png ui/hc_legend.png ui/hc_rare.png ui/hc_sel.png ui/hc_uncommon.png ui/panel_dark.png ui/panel_list.png ui/panel_parch.png ui/ribbon_blue.png ui/ribbon_red.png ui/road_boss.png ui/road_gap.png ui/road_path.png ui/road_stone.png ui/road_stone_cur.png ui/tab_off.png ui/tab_on.png brand/logo.png enemies/boss0.png enemies/boss1.png enemies/boss10.png enemies/boss11.png enemies/boss12.png enemies/boss13.png enemies/boss14.png enemies/boss15.png enemies/boss16.png enemies/boss17.png enemies/boss18.png enemies/boss19.png enemies/boss2.png enemies/boss20.png enemies/boss21.png enemies/boss3.png enemies/boss4.png enemies/boss5.png enemies/boss6.png enemies/boss7.png enemies/boss8.png enemies/boss9.png enemies/boar.png enemies/fox.png enemies/bat.png enemies/wolf.png enemies/spider.png enemies/bear.png enemies/skeleton.png enemies/zombie.png enemies/ghost.png enemies/frog.png enemies/gator.png enemies/leech.png enemies/vampire.png enemies/goblin.png enemies/troll.png enemies/ogre.png enemies/scorpion.png enemies/dragon.png'.split(' ');
  function preload(){
   const l=$('loading');if(!l)return Promise.resolve();
   l.hidden=false;
-  /* only the current act's backdrop, road and foes are waited for; other acts' backdrops, lairs and bosses arrive in the background while the game runs (it requests every image itself), long before they are reached (the act's boss sprite follows BOSS_ART, which skips 7 and 8) */
   const v=BUILD==='dev'?'':'?v='+BUILD;let a=0;
   try{const sv=JSON.parse(lget(KEY)||'null'),d=sv&&Math.max(sv.depth||0,0);a=Math.floor((d||0)/10)%20;}catch(e){}
-  const list=ASSETS.filter(p=>!/^bg\/(act|lair)\d|^enemies\/boss\d/.test(p)).concat(['bg/act'+a+'.jpg','bg/lair'+a+'.jpg','enemies/boss'+(a<7?a:a+2)+'.png','ui/road_path_'+a+'.png'],[0,1,2].map(i=>'enemies/a'+a+'_'+i+'.png'));
+  const list=ASSETS.filter(p=>/^ui\//.test(p)&&p!=='ui/road_path.png').concat(['ui/road_path_'+a+'.png']);
   let n=0;const tot=list.length,bar=$('ldBar'),txt=$('ldTxt');
   return new Promise(res=>{
-   let fin=false;const done=()=>{if(fin)return;fin=true;bar.style.width='100%';res();};
-   const tick=()=>{n++;bar.style.width=Math.round(100*n/tot)+'%';txt.textContent='Loading the realm '+Math.round(100*n/tot)+'%';if(n>=tot)done();};
+   let fin=false;const done=()=>{if(fin)return;fin=true;res();};
+   const tick=()=>{n++;const p=Math.round(40*n/tot);bar.style.width=p+'%';txt.textContent='Loading the realm '+p+'%';if(n>=tot)done();};   // the first 40%: the game's own opening art fills the rest
    list.forEach(p=>{const im=new Image();im.onload=im.onerror=tick;im.src='assets/'+p+v;});
    setTimeout(done,20000);
   });
@@ -1169,10 +1171,10 @@ const CC=(function(){
  }
  async function init(){
   if(!PORTAL)$('auth').hidden=false;
-  if(PORTAL&&(!window.supabase||SB_URL.startsWith('__'))){db={rpc:async()=>({data:null,error:{message:'offline'}}),from:()=>({select:()=>Promise.resolve({data:[],error:null})})};await CG.init;lset('cc-guest','1');return start();}   // the portal build never depends on the cloud library
+  if(PORTAL&&(!window.supabase||SB_URL.startsWith('__'))){db={rpc:async()=>({data:null,error:{message:'offline'}}),from:()=>({select:()=>Promise.resolve({data:[],error:null})})};lset('cc-guest','1');return start();}   // the portal build never depends on the cloud library
   if(!window.supabase||SB_URL.startsWith('__')){msg(SB_URL.startsWith('__')?'Cloud saves are not configured yet.':'Could not load the sign-in service. Check your connection and reload.',1);return;}
   db=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
-  if(PORTAL){await CG.init;lset('cc-guest','1');return start();}   // the portal has its own players: no sign-in, a device guest
+  if(PORTAL){lset('cc-guest','1');return start();}   // the portal has its own players: no sign-in, a device guest
   $('authForm').addEventListener('submit',e=>{e.preventDefault();if(recovering)setNewPass();else sign(signup);});
   $('authForgot').addEventListener('click',forgot);
   $('authShow').addEventListener('click',()=>{const p=$('authPass'),show=p.type==='password';p.type=$('authPass2').type=show?'text':'password';$('authShow').textContent=show?'Hide':'Show';});
@@ -1781,7 +1783,7 @@ const CLAN=(()=>{
   }
   const pct=Math.max(0,Math.min(100,100*B.hp/B.max_hp)),left=Math.max(0,(Date.parse(B.ends_at)-Date.now())/1000),n=bossTeam(),est=strikeAvg(B.tier,B.trait);
   const bimg='assets/enemies/boss'+BOSS_ART[B.idx%20]+'.png'+V,bg='assets/bg/lair'+(B.idx%20)+'.jpg'+V;
-  h+='<div class="cbarena" id="cbArena" style="background-image:url('+bg+')"><img id="cbBoss" class="cbboss'+(FACES_RIGHT.has('boss'+BOSS_ART[B.idx%20])?' flip':'')+'" src="'+bimg+'" alt=""><div class="cbheroes">'+n.map(i=>'<img src="assets/heroes/'+HID[i]+'.png'+V+'" alt="" data-h="'+i+'">').join('')+'</div></div>'
+  h+='<div class="cbarena" id="cbArena" style="background-image:url('+bg+')"><img id="cbBoss" class="cbboss'+(FACES_RIGHT.has('boss'+BOSS_ART[B.idx%20])?' flip':'')+'" src="'+bimg+'" alt=""><div class="cbheroes">'+n.map(i=>'<img loading="lazy" src="assets/heroes/'+HID[i]+'.png'+V+'" alt="" data-h="'+i+'">').join('')+'</div></div>'
    +'<div class="cbname">'+cesc(bossName(B.idx))+'</div><div class="cbtrait" style="color:'+TRAITC[B.trait]+'">'+cesc(traitText(B.trait))+'</div>'
    +'<div class="cbbar"><i id="cbFill" style="width:'+pct+'%"></i><b id="cbHp">'+fmt(B.hp)+' / '+fmt(B.max_hp)+'</b></div>'
    +'<small class="hint" id="cbLeft">Tier '+(B.tier+1)+' · retreats in '+fmtT(left)+' · every boss you beat makes the next one 35% bigger and 15% harder-hitting</small>'
@@ -1852,7 +1854,7 @@ const ARENA=(()=>{
  const tierName=t=>TIERS[t-1]||'Initiate';
  const tg=t=>t?'<span class="artag">['+cesc(t)+']</span> ':'',nm=(n,t)=>tg(t)+cesc(n),plain=(n,t)=>(t?'['+t+'] ':'')+n;
  const chip=t=>'<span class="artier" style="--tc:'+TCOL[t-1]+'">'+tierName(t)+'</span>';
- const portrait=(i,cls)=>'<img class="'+(cls||'arp')+'" src="assets/heroes/'+HID[i]+'_p.png'+V+'" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
+ const portrait=(i,cls)=>'<img loading="lazy" class="'+(cls||'arp')+'" src="assets/heroes/'+HID[i]+'_p.png'+V+'" alt="" draggable="false" onerror="this.style.visibility=\'hidden\'">';
  const teamRow=t=>'<span class="artm">'+(t||[]).map(i=>'<span style="border-color:'+RARCOL[HEROES[i].q]+'">'+portrait(i)+'</span>').join('')+'</span>';
  const reward=t=>({sh:1+Math.floor((10-t)/2)+(t===1?2:0),h:.5+.25*(10-t)});
  /* ----- battle simulation: base stats only; every role has one simple skill ----- */
@@ -3088,7 +3090,7 @@ function setZoom(){const wide=window.matchMedia('(orientation:landscape) and (mi
 window.addEventListener('resize',setZoom);setZoom();
 let cgPlay=false;
 function navSync(){
- if(PORTAL&&CG.on){const p=!sheet&&$('modal').hidden&&!lootEl&&!ADS.live()&&document.visibilityState==='visible';if(p!==cgPlay){cgPlay=p;CG.play(p);}}
+ if(PORTAL&&CG.on){const p=!$('loading')&&!sheet&&$('modal').hidden&&!lootEl&&!ADS.live()&&document.visibilityState==='visible';if(p!==cgPlay){cgPlay=p;CG.play(p);}}
  document.body.classList.toggle('newb',region(Math.max(S.best||0,S.depth||0))<1);
  tutTick();
  document.querySelectorAll('#nav button').forEach(b=>{b.hidden=!navOpen(b.dataset.sheet);});
@@ -3377,12 +3379,15 @@ function drawHero(i,x,y){
  if(!dead){const m=heroMax(i),w=36;g.fillStyle='#150f0a';g.fillRect(x-w/2,y+8,w,5);g.fillStyle='#4caf6a';g.fillRect(x-w/2,y+8,w*Math.max(0,S.hp[i])/m,5);}
 }
 /* ---------- painted sprite assets (generated art). If an image is missing the simple drawn version is used. ---------- */
+/* art requests wait in ARTQ until the opening view's art is chosen (see firstArt at the end), so that art is not queued behind every other act's */
+const ARTQ=[];let artHold=true;
+function artSrc(im,src){if(artHold)ARTQ.push([im,src]);else im.src=src;}
 const HERO0={},IMG={},HID=['knight','ranger','mage','cleric','rogue','berserker','druid','paladin','bard','monk','necromancer','artificer','duelist','pyromancer','huntress','shieldmaiden','alchemist','stormcaller','templar','oracle'],PORT={};
 function loadImg(key,src){const im=new Image();im.onload=()=>{IMG[key]=im;{const m=/^hero(\d+)$/.exec(key);if(m){HERO0[+m[1]]=im;applySkin();}}
  if(key==='f_bear')IMG.f_icebear=tintImg(im,L=>[Math.min(255,L*.75+55),Math.min(255,L*.9+90),Math.min(255,L*1.05+130)],'f_icebear');
- if(key==='f_ogre')IMG.f_void=tintImg(im,L=>[Math.min(255,L*.7+45),Math.min(255,L*.35+5),Math.min(255,L*1.0+95)],'f_void');};im.onerror=()=>{};im.src=src;}
+ if(key==='f_ogre')IMG.f_void=tintImg(im,L=>[Math.min(255,L*.7+45),Math.min(255,L*.35+5),Math.min(255,L*1.0+95)],'f_void');};im.onerror=()=>{};artSrc(im,src);}
 HID.forEach((id,i)=>loadImg('hero'+i,'assets/heroes/'+id+'.png'+V));
-function heroIcon(i){const src='assets/heroes/'+HID[i]+'_p.png'+V;return src?'<img class="pt" src="'+src+'" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">':HEROES[i].w;}
+function heroIcon(i){const src='assets/heroes/'+HID[i]+'_p.png'+V;return src?'<img loading="lazy" class="pt" src="'+src+'" alt="" draggable="false" onerror="this.outerHTML=\''+HEROES[i].w+'\'">':HEROES[i].w;}
 const _fc={};
 function flashed(im,f){   // the sprite washed toward white (hit flash)
  const key=im.src||im._k,w=im.naturalWidth||im.width,h=im.naturalHeight||im.height;let c=_fc[key];if(!c){c=document.createElement('canvas');c.width=w;c.height=h;_fc[key]=c;}
@@ -3558,8 +3563,8 @@ const ICONS=['warcamp','arena','observatory','graveyard','mercenary','starfall',
 ICONS.forEach(n=>loadImg('i_'+n,'assets/icons/'+n+'.png'+V));
 let bMin=false;try{bMin=localStorage.getItem('cc-bmin')==='1';}catch(e){}
 document.addEventListener('click',e=>{if(!e.target.closest('#bbar .bf'))return;bMin=!bMin;try{localStorage.setItem('cc-bmin',bMin?'1':'0');}catch(x){}lastSub=null;});   // tap a buff to fold them all into one small pill, tap the pill to unfold
-function adIc(){return '<img class="adi" src="assets/icons/ad.png'+V+'" alt="" draggable="false">';}   // the little screen that marks every button that plays an ad
-function ic(n,cls){return '<img class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png'+V+'" alt="" draggable="false">';}
+function adIc(){return '<img loading="lazy" class="adi" src="assets/icons/ad.png'+V+'" alt="" draggable="false">';}   // the little screen that marks every button that plays an ad
+function ic(n,cls){return '<img loading="lazy" class="ico'+(cls?' '+cls:'')+'" src="assets/icons/'+n+'.png'+V+'" alt="" draggable="false">';}
 for(const k in TILES)TILES[k].i=ic(k);                // tile icons are now images (HTML), used in every card and tile
 for(const k in RELICS)RELICS[k].ico=ic(k);
 function glow(x,y,r,c0,c1){const gr=g.createRadialGradient(x,y,0,x,y,r);gr.addColorStop(0,c0);gr.addColorStop(1,c1||'rgba(0,0,0,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y,r,0,TAU);g.fill();}
@@ -3631,7 +3636,7 @@ function buildBGV(){
   x.globalCompositeOperation='source-over';BGV[k]=c;
  }
 }
-BGNAMES.forEach(n=>{const im=new Image();im.onload=()=>{BGB[n]=im;buildBGV();};im.onerror=()=>{};im.src='assets/bg/'+n+'.jpg'+V;});
+BGNAMES.forEach(n=>{const im=new Image();im.onload=()=>{BGB[n]=im;buildBGV();};im.onerror=()=>{};artSrc(im,'assets/bg/'+n+'.jpg'+V);});
 function drawBG(k){
  const im=getBG(k);if(!im)return false;
  const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height,T=performance.now()/1000;
@@ -3974,6 +3979,26 @@ function showAccount(){
  else showModal('Your account','<p>Signed in as <b>'+CC.email+'</b>. Progress syncs to your account automatically.</p>',[{t:'Sign out',fn:()=>{save();CC.out();}},{t:'Delete account',fn:delAcct},{t:'Close',primary:true}]);
 }
 $('acctbtn').onclick=()=>showSheet('account');
+/* ---------- opening view: fetch only the art it shows (the party, this act's foes and backdrop, the tiles on the road ahead, the pictures on screen), let the loading screen go when that is in, then fetch everything else ---------- */
+function firstArt(){
+ const r=region(S.depth),a=r%ART_ACTS,need=new Set(),add=p=>need.add('assets/'+p),foeArt=n=>add('enemies/'+(n==='icebear'?'bear':n==='void'?'ogre':n)+'.png');
+ for(const i of S.order)add('heroes/'+HID[i]+'.png');
+ add('bg/act'+a+'.jpg');for(let i=0;i<3;i++)add('enemies/a'+a+'_'+i+'.png');
+ for(const k of S.road.slice(0,4)){const t=TILES[k];if(!t||k==='empty')continue;
+  add('bg/'+bgKeyFor(k).split('#')[0]+'.jpg');add('icons/'+(k==='lair'?'ruins':k)+'.png');
+  if(t.boss)add('enemies/boss'+bossArt(r)+'.png');for(const e of t.foes||[])foeArt(FOEFILE[e]||'boar');}
+ for(const f of foes)foeArt(foeKey(f));
+ return need;
+}
+window.__artReady=new Promise(res=>setTimeout(()=>{   // after the first frame, so the hand, hero row and menus are on the page
+ const need=firstArt(),wait=[],on=im=>new Promise(r=>{im.addEventListener('load',r);im.addEventListener('error',r);});
+ for(const q of ARTQ)if(need.has(q[1].split('?')[0])){q[2]=1;wait.push(on(q[0]));q[0].src=q[1];}
+ for(const im of document.images)if(!im.complete&&im.offsetParent&&/\/assets\//.test(im.src))wait.push(on(im));
+ let n=0;const bar=$('ldBar'),txt=$('ldTxt');
+ wait.forEach(p=>p.then(()=>{n++;const v=40+Math.round(60*n/wait.length);if(bar)bar.style.width=v+'%';if(txt)txt.textContent='Loading the realm '+v+'%';}));
+ const go=()=>{if(!artHold)return;artHold=false;for(const q of ARTQ)if(!q[2])q[0].src=q[1];ARTQ.length=0;res();};
+ Promise.all(wait).then(go);setTimeout(go,12000);
+},150));
 window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase}};
 </script>
 </body>
