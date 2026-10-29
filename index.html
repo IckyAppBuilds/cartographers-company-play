@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029175730';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029180909';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -1510,7 +1510,7 @@ function fresh(keep){
   lv:HEROES.map(()=>1),un:HEROES.map(()=>false),hp:HEROES.map(()=>0),relics:{},road:[],hand:[],deck:starterDeck(),draw:[],disc:[],offer:null,bless:0,prev:'wilds',rate:0,rmod:[],order:keep?keep.order.slice():[0,1,2,3],owned:keep?keep.owned.slice():[0,1,2,3],sk:keep?Object.assign({},keep.sk):{},star:keep&&keep.star?Object.assign({},keep.star):{},hs:keep?Object.assign({},keep.hs):{},streak:0,boons:keep?keep.boons:{},jbest:keep?(keep.jbest||0):0,deaths:0,playSec:0,seenIntro:!!keep,life:keep?keep.life:{},saved:Date.now()};
  S.draw=shuffle(S.deck.slice());
  S.un[S.order[0]]=true;
- if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest','menuSeen','menuInit','autoLv'])if(keep[k]!==undefined)S[k]=keep[k];
+ if(keep)for(const k of ['daily','adT','boostT','seen','skin','theme','retHint','actBest','menuSeen','menuInit','autoLv','built'])if(keep[k]!==undefined)S[k]=keep[k];
  return S;
 }
 function starterDeck(){return ['wilds','wilds','wilds','wilds','wilds','wilds','forest','forest','village'];}   // Wilds is the free default road tile, never a card
@@ -2123,7 +2123,9 @@ function kindAt(d){
  if(AUTO_REPLAY&&S&&S.deck&&region(d)<region(S.best||0)){const f=S.deck.map(kindOf).filter(k=>TILES[k]&&!TILES[k].ev&&!TILES[k].boss&&k!=='empty');if(!f.length)return 'wilds';const gcd=(x,y)=>y?gcd(y,x%y):x,st=[7,11,13,17,19,23].find(k=>gcd(k,f.length)===1)||1;return f[(d*st+3)%f.length];}   // the step shares no factor with the deck, so the road cycles through every fighting tile (a step of 5 used to repeat one tile when the deck held 5, 10 or 15)
  return 'empty';   // an empty slot: the company waits here until a tile is laid
 }
-function buildRoad(){S.road=[];S.rmod=[];S.rrank=[];for(let j=0;j<7;j++){S.road.push(kindAt(S.depth+j));S.rmod.push(null);S.rrank.push(1);}}
+// an act cleared in an earlier run comes back exactly as you last built it (tile, glyph and rank, events too); a slot never built there falls back to your deck
+function roadAt(d){const b=(d%10!==9)&&region(d)<region(S.best||0)&&S.built&&S.built[d];return b&&TILES[b[0]]?[b[0],b[1]&&MODS[b[1]]?b[1]:null,b[2]||1]:[kindAt(d),null,1];}
+function buildRoad(){S.road=[];S.rmod=[];S.rrank=[];for(let j=0;j<7;j++){const [k,m,r]=roadAt(S.depth+j);S.road.push(k);S.rmod.push(m);S.rrank.push(r);}}
 /* ---- tile deck: draw pile -> hand -> discard, reshuffle when the draw pile is empty ---- */
 const KINDS=['forest','village','springs','shrine','ruins','swamp','market','hunt','forge','watchtower','council','warcamp','training','arena','observatory','graveyard','mercenary','starfall','battlefield','crypt','bounty','scriptorium','leyline','treasury','crucible','vault'];
 const buyable=k=>TILES[k].r<=1&&unlocked(k);   // rare and above only come from bosses
@@ -2647,10 +2649,11 @@ function actComplete(cr,first,old){
  setTimeout(()=>{if(actShowFn)actShowFn();},550);
 }
 function advance(){
+ {const k=S.road[0],L=S.laidAt||{};if(L[S.depth]&&k&&k!=='empty'&&k!=='lair')(S.built||(S.built={}))[S.depth]=[k,S.rmod[0]||null,S.rrank[0]||1];delete L[S.depth];}   // remember a tile you laid yourself once it is marched, so after a retire this act's road is the one you built (tiles filled in for you are not remembered)
  S.prev=S.road[0];
  S.depth++;S.best=Math.max(S.best,S.depth);S.jbest=Math.max(S.jbest||0,S.depth);
  if(S.depth%10===0&&(S.depth/10)%5===0)setTimeout(showBoon,1300);   // a boon every 5th Warden
- S.road.shift();S.road.push(kindAt(S.depth+6));S.rmod.shift();S.rmod.push(null);S.rrank.shift();S.rrank.push(1);
+ {const [k,m,r]=roadAt(S.depth+6);S.road.shift();S.road.push(k);S.rmod.shift();S.rmod.push(m);S.rrank.shift();S.rrank.push(r);}
  if(selCard>=0&&S.hand.length<=selCard)selCard=-1;
  phase='walk';pt=0;foes=[];
  if(S.depth%10===0){say('Entered '+RG(region(S.depth))[0]+'.');S.actSnap=actSnap(region(S.depth));}
@@ -2675,7 +2678,7 @@ function wipe(){
  const fallAct=region(S.depth);
  const rs=region(S.depth)*10,lost=S.gold*.1;S.gold-=lost;
  say('The company is routed! Retreating to '+RG(region(S.depth))[0]+"'s edge. Lost "+fmt(lost)+' gold.');
- S.streak=0;S.deaths=(S.deaths||0)+1;st('falls');S.depth=rs;S.prev='wilds';buildRoad();resetHeroes(true);S.bless=0;S.edge=S.plate=S.weak=0;S.kb=null;S.merc=null;zoneFreeze=null;phase='walk';pt=0;foes=[];
+ S.streak=0;S.deaths=(S.deaths||0)+1;st('falls');S.depth=rs;S.prev='wilds';S.laidAt={};buildRoad();resetHeroes(true);S.bless=0;S.edge=S.plate=S.weak=0;S.kb=null;S.merc=null;zoneFreeze=null;phase='walk';pt=0;foes=[];
  // everything goes back into the deck: hand, discard and draw pile are gathered and reshuffled
  reshuffleAll('You died: every tile returns to your pile.');
  deathTip(fallAct);
@@ -2728,7 +2731,7 @@ function placeTile(j){st('tiles');if(S.coach===0||S.coach===undefined&&!S.tutDon
  if((S.depth+j)%10===9)return;
   const c=S.hand[selCard];if(!c)return;
  if(S.road[j]===kindOf(c)&&(S.rmod[j]||null)===modOf(c)&&(S.rrank[j]||1)===rankOf(c))return;
- S.road[j]=kindOf(c);S.rmod[j]=modOf(c);S.rrank[j]=rankOf(c);SND.play('place');
+ S.road[j]=kindOf(c);S.rmod[j]=modOf(c);S.rrank[j]=rankOf(c);(S.laidAt||(S.laidAt={}))[S.depth+j]=1;SND.play('place');
  if(modOf(c)==='echo'&&echoLeft(c)){const u=S.echoed||(S.echoed={});u[c]=(u[c]||0)+1;S.draw.splice(Math.random()*(S.draw.length+1)|0,0,c);say('Echo: the tile is shuffled back into your pile (once per round).');}else S.disc.push(c);
  S.hand.splice(selCard,1);selCard=-1;inscribing=false;fillHand();sig='';
  save();   // the road you build is part of the saved run (and goes up to the account with it), so store it the moment a tile is laid
@@ -2775,7 +2778,7 @@ function retire(){
 function doRetire(){
  const g=legGain();if(!g)return;
  plog({t:'retire',gain:g,act:region(S.depth)+1,party:plParty()});
- const keep={regionStart:0,best:S.best,jbest:Math.max(S.jbest||0,S.best||0),legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest,menuSeen:S.menuSeen,menuInit:S.menuInit,autoLv:S.autoLv};   // account-level things that must survive a retire, or the daily reward would come back the same day
+ const keep={regionStart:0,best:S.best,jbest:Math.max(S.jbest||0,S.best||0),legend:S.legend+g,hs:Object.assign({},S.hs||{}),boons:S.boons||{},order:S.order.slice(),owned:S.owned.slice(),sk:Object.assign({},S.sk),star:Object.assign({},S.star||{}),life:S.life||{},daily:S.daily,adT:S.adT,boostT:S.boostT,seen:S.seen,skin:S.skin,theme:S.theme,retHint:S.retHint,actBest:S.actBest,menuSeen:S.menuSeen,menuInit:S.menuInit,autoLv:S.autoLv,built:S.built};   // account-level things that must survive a retire, or the daily reward would come back the same day
  S=fresh(keep);SND.play('retire');st('retires');buildRoad();fillHand();resetHeroes(true);phase='walk';pt=0;foes=[];say('A new company sets out. Legend '+S.legend+'.');sig='';save();
 }
 
