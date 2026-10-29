@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029172437';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029172736';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -1549,7 +1549,7 @@ if(!Array.isArray(S.order)||S.order.length!==4||new Set(S.order).size!==4||S.ord
 while(S.deck.length>10){const c=S.deck.pop();for(const p of ['draw','disc','hand'])if(removeOne(S[p],c))break;}
 if(S.hand.length+S.draw.length+S.disc.length!==S.deck.length){S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}   // repair an inconsistent save
 while(S.deck.length<5)S.deck.push('forest'),S.disc.push('forest');
-let log=[],selCard=-1,speed=1,sig='',phase='walk',pt=0,foes=[],H=[],fxT=[],scroll=0,gained=0,earned=0,saveT=0,curSyn=null,curBoss=false,curMod=null,inscribing=false,inscribeOpts=[];
+let log=[],selCard=-1,speed=1,sig='',phase='walk',pt=0,foes=[],H=[],fxT=[],scroll=0,gained=0,earned=0,heldT=0,saveT=0,curSyn=null,curBoss=false,curMod=null,inscribing=false,inscribeOpts=[];
 function say(m){log.unshift(m);log=log.slice(0,6);}
 const region=d=>Math.floor(d/10);
 let HALL={power:0,gold:0,loot:0,boss:0};try{const _h=JSON.parse(localStorage.getItem('cc-hall')||'null');if(_h)HALL=Object.assign(HALL,_h);}catch(e){}   // Clan Hall upgrade levels (0-10 each), set by the clan screen
@@ -2689,6 +2689,7 @@ function deathTip(a){
 }
 
 /* ---------- sim ---------- */
+const holding=()=>heldT&&!AWAYSIM&&performance.now()-heldT<20000;   // a tile is being dragged: the road waits so it cannot shift under the finger (20s at most, in case a release is missed)
 function step(dt){
  if(S.boostT>0)S.boostT=Math.max(0,S.boostT-dt);
  S.playSec=(S.playSec||0)+dt;st('sec',dt);
@@ -2697,8 +2698,8 @@ function step(dt){
   if(!wait){scroll+=dt*140;pt+=dt;}
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
   if(!wait&&pt>=1.0)startTile();
- }else if(phase==='event'){pt+=dt;if(pt>=1.3){if(evState)evTick(dt);else event();}}
- else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait){if(ADS.ok()&&!PORTAL&&!reviveAsked){if(!sheet)offerRevive();}else wipe();}}
+ }else if(phase==='event'){pt+=dt;if(pt>=1.3&&!holding()){if(evState)evTick(dt);else event();}}
+ else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait&&!holding()){if(ADS.ok()&&!PORTAL&&!reviveAsked){if(!sheet)offerRevive();}else wipe();}}
  else if(phase==='fight'){
   if(bossCurse>0)bossCurse-=dt;
   H.forEach((h,i)=>{
@@ -2715,7 +2716,7 @@ function step(dt){
    if(f.ab){bossTick(f,dt);if(f.cast>0)continue;}   // a Warden winding up its ability pauses its normal attacks
    f.cd+=dt*.75*(f.rage>0?1.25:1);if(f.cd>=1){f.cd-=1;foeAct(f);}
   }
-  if(foes.length&&foes.every(f=>f.hp<=0)){win();}
+  if(foes.length&&foes.every(f=>f.hp<=0)){if(!holding())win();}
   else if(S.hp.every((h,i)=>!S.un[i]||h<=0))startDeath();
  }
 }
@@ -3302,7 +3303,7 @@ document.addEventListener('pointermove',e=>{
  if(!drag||e.pointerId!==drag.id)return;
  if(!drag.active){
   if(Math.hypot(e.clientX-drag.x0,e.clientY-drag.y0)<10)return;
-  drag.active=true;inscribing=false;
+  drag.active=true;heldT=performance.now();inscribing=false;
   const ref=document.querySelector('#road .tile'),r=ref?ref.getBoundingClientRect():drag.el.getBoundingClientRect();
   const cd=S.hand[drag.i],ck=kindOf(cd),cm=modOf(cd),ct=TILES[ck],g=document.createElement('div');
   g.className='tile dragghost';g.style.setProperty('--rc',RAR[ct.r].c);g.style.width=r.width+'px';g.style.height=r.height+'px';
@@ -3334,7 +3335,7 @@ function tileAtPoint(x,y){   // road tile under a point (small tolerance covers 
 }
 function endDrag(e,cancel){
  if(!drag||e.pointerId!==drag.id)return;
- const d=drag;drag=null;
+ const d=drag;drag=null;heldT=0;
  if(!d.active)return;
  noClickUntil=Date.now()+350;
  let target=null;
@@ -3999,7 +4000,7 @@ window.__artReady=new Promise(res=>setTimeout(()=>{   // after the first frame, 
  const go=()=>{if(!artHold)return;artHold=false;for(const q of ARTQ)if(!q[2])q[0].src=q[1];ARTQ.length=0;res();};
  Promise.all(wait).then(go);setTimeout(go,12000);
 },150));
-window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase}};
+window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase},get foes(){return foes}};
 </script>
 </body>
 </html>
