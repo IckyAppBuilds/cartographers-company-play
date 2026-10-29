@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029111316';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029172410';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -1549,7 +1549,7 @@ if(!Array.isArray(S.order)||S.order.length!==4||new Set(S.order).size!==4||S.ord
 while(S.deck.length>10){const c=S.deck.pop();for(const p of ['draw','disc','hand'])if(removeOne(S[p],c))break;}
 if(S.hand.length+S.draw.length+S.disc.length!==S.deck.length){S.draw=shuffle(S.deck.slice());S.disc=[];S.hand=[];}   // repair an inconsistent save
 while(S.deck.length<5)S.deck.push('forest'),S.disc.push('forest');
-let log=[],selCard=-1,speed=1,sig='',phase='walk',pt=0,foes=[],H=[],fxT=[],scroll=0,gained=0,saveT=0,curSyn=null,curBoss=false,curMod=null,inscribing=false,inscribeOpts=[];
+let log=[],selCard=-1,speed=1,sig='',phase='walk',pt=0,foes=[],H=[],fxT=[],scroll=0,gained=0,earned=0,saveT=0,curSyn=null,curBoss=false,curMod=null,inscribing=false,inscribeOpts=[];
 function say(m){log.unshift(m);log=log.slice(0,6);}
 const region=d=>Math.floor(d/10);
 let HALL={power:0,gold:0,loot:0,boss:0};try{const _h=JSON.parse(localStorage.getItem('cc-hall')||'null');if(_h)HALL=Object.assign(HALL,_h);}catch(e){}   // Clan Hall upgrade levels (0-10 each), set by the clan screen
@@ -2447,7 +2447,7 @@ function win(){
  const flawless=S.order.every(i=>!S.un[i]||S.hp[i]>0);   // nobody went down in this fight (checked before the fallen are revived)
  let rew=((curSyn&&curSyn.rew)||1)*modGold();
  let g=foes.reduce((a,f)=>a+f.rew,0)*rew*fervor()*goldMul();
- S.gold+=g;gained+=g;S.streak=(S.streak||0)+1;st('fights');{const l=S.life;if(S.streak>(l.bstreak||0))l.bstreak=S.streak;}
+ S.gold+=g;gained+=g;earned+=g;S.streak=(S.streak||0)+1;st('fights');{const l=S.life;if(S.streak>(l.bstreak||0))l.bstreak=S.streak;}
  {let sh=t.boss?4+2*region(S.depth):((Math.random()<((t.shard||(t.gold>=2.5?.15:.05))+.03*(curRank-1))*(1+.04*HALL.loot)||(curSyn&&curSyn.shard))?1:0);if(t.flawless&&flawless)sh+=2;if(sh){{const per=addShards(sh);say('Found '+shardMsg(per)+'!');shardPopup(per,t.boss?'Boss spoils':'Hero shards');}}}
  let rc=(t.boss?RELIC_BOSS:t.relic*RELIC_RATE)+.05*(curRank-1)+((curSyn&&curSyn.relic)||0)+(curMod==='lucky'?.3:0)+.08*((S.boons||{}).relic||0);
  rc*=1+.04*HALL.loot;
@@ -2539,7 +2539,7 @@ function resolveEvent(ch,relicPick){
   let g=6*1.15**S.depth*1*rkM(curRank)*((curSyn&&curSyn.rew)||1)*modGold()*goldMul(),heal=Math.min(1,.6+.2*(curRank-1));
   if(ch===1){g*=2;heal=.2;}
   if(ch===2){const fee=S.gold*.15;S.gold-=fee;heal=1;S.bless=Math.max(S.bless,2);g*=.5;say('The company feasts for '+fmt(fee)+' gold.');}
-  S.gold+=g;gained+=g;
+  S.gold+=g;gained+=g;earned+=g;
   for(const i of S.order){if(!S.un[i])continue;S.hp[i]=Math.min(heroMax(i),Math.max(S.hp[i],0)+heroMax(i)*heal);S.hp[i]=Math.max(S.hp[i],heroMax(i)*Math.min(.3,heal));}
   if(curSyn&&curSyn.heal)for(const i of S.order)if(S.un[i])S.hp[i]=heroMax(i);
   floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
@@ -2558,7 +2558,7 @@ function resolveEvent(ch,relicPick){
   if(t.ev==='market'&&ch===1){g*=.5;const q=['potion','pages','tonic'][Math.random()*3|0];SUPPLIES[q].fn();say('You buy a '+SUPPLIES[q].n+' at the market.');}
   if(t.ev==='market'&&ch===2){if(Math.random()<.5){g*=2.6;say('Your haggling pays off!');}else{g*=.3;say('The merchant will not budge.');}}
   if(t.ev==='treasury'&&ch===1){g*=.3;const r=RK[Math.random()*RK.length|0];S.relics[r]=(S.relics[r]||0)+1;lootRelic(r,'Treasury relic!');}
-  S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
+  S.gold+=g;gained+=g;earned+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');
   if(t.ev==='treasury'&&ch===0)loot({head:'Treasure!',icon:ic('treasury'),name:'+'+fmt(g)+' gold',sub:'Treasury',desc:'A dragon-sized stash.',rar:3,col:[255,226,122],dbl:()=>{S.gold+=g;gained+=g;floatTxt('+'+fmt(g)+' gold',330,170,'#ffd24a');say('Ad bonus: treasure doubled, +'+fmt(g)+' gold.');}});
   say(t.ev==='market'?'The market pays '+fmt(g)+' gold.':'The treasury yields '+fmt(g)+' gold!');
   if(curSyn)say('Combo: '+curSyn.n+'!');
@@ -3798,10 +3798,10 @@ function awayBegin(seed){
  AWAYSIM=true;window.setTimeout=()=>0;Math.random=awayMakeRng(seed);SND.play=()=>{};ADS.ok=()=>false;
  const cap={act:null};actComplete=(a,b,c)=>{cap.act=[a,b,c];};showBoon=()=>{};
  phase='walk';pt=0;foes=[];evState=null;winLock=false;bossCurse=0;reviveAsked=false;reviveWait=false;
- return {keep,cap,d0:S.deaths||0,fights0:(S.life&&S.life.fights)||0,kills0:(S.life&&S.life.kills)||0,gold0:S.gold,relics0:Object.values(S.relics).reduce((a,b)=>a+b,0),shards0:shardTot(),depth0:S.depth,t0:S.playSec||0};
+ return {keep,cap,e0:earned,d0:S.deaths||0,fights0:(S.life&&S.life.fights)||0,kills0:(S.life&&S.life.kills)||0,gold0:S.gold,relics0:Object.values(S.relics).reduce((a,b)=>a+b,0),shards0:shardTot(),depth0:S.depth,t0:S.playSec||0};
 }
 function awayEnd(r){{const h=$('hand'),p=$('piles');if(h)h.classList.remove('reshuf');if(p)p.classList.remove('flash');if(typeof cv!=='undefined')cv.classList.remove('shake');}
- AWAYSIM=false;window.setTimeout=r.keep.st;Math.random=r.keep.rnd;SND.play=r.keep.play;ADS.ok=r.keep.adok;actComplete=r.keep.ac;showBoon=r.keep.bb;}
+ AWAYSIM=false;earned=r.e0;window.setTimeout=r.keep.st;Math.random=r.keep.rnd;SND.play=r.keep.play;ADS.ok=r.keep.adok;actComplete=r.keep.ac;showBoon=r.keep.bb;}
 // advances the march by up to maxSteps; returns the stop reason once there is one ('act' Warden fell, 'fell' company routed, 'time') or null to keep going
 function awayAdvance(r,maxSteps,limit){
  for(let n=0;n<maxSteps;n++){
@@ -3947,7 +3947,7 @@ function frame(now){
  let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
  while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
  if(S.autoLv&&(autoT+=dt)>.35){autoT=0;autoLevel();}
- saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(gained/saveT);st('gold',gained);gained=0;saveT=0;save();}
+ saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(earned/saveT);st('gold',gained);gained=0;earned=0;saveT=0;save();}
  if(S.offer)syncSpoils();   // the boss spoils pick comes up as soon as the screen is free, even if the rest of the screen has not changed (it used to wait for the next redraw, which left the company frozen after an away march)
  if((fitN=(fitN||0)+1)%20===0){fit();navSync();}   // keep the canvas matched to its box
  if(!(drag&&drag.active))build();
