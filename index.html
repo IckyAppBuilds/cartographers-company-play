@@ -930,7 +930,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261026185826';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029090459';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -1037,9 +1037,10 @@ const CC=(function(){
  function preload(){
   const l=$('loading');if(!l)return Promise.resolve();
   l.hidden=false;
-  const v=BUILD==='dev'?'':'?v='+BUILD;let list=ASSETS.slice();
-  try{const sv=JSON.parse(lget(KEY)||'null'),d=sv&&Math.max(sv.depth||0,0),a=Math.floor(d/10)%20;for(let i=0;i<3;i++)list.push('enemies/a'+a+'_'+i+'.png');}catch(e){}
-  if(!list.some(x=>x.indexOf("enemies/a")===0&&x.indexOf("_")>0))for(let i=0;i<3;i++)list.push('enemies/a0_'+i+'.png');
+  /* only the current act's backdrop, road and foes are waited for; other acts' backdrops, lairs and bosses arrive in the background while the game runs (it requests every image itself), long before they are reached (the act's boss sprite follows BOSS_ART, which skips 7 and 8) */
+  const v=BUILD==='dev'?'':'?v='+BUILD;let a=0;
+  try{const sv=JSON.parse(lget(KEY)||'null'),d=sv&&Math.max(sv.depth||0,0);a=Math.floor((d||0)/10)%20;}catch(e){}
+  const list=ASSETS.filter(p=>!/^bg\/(act|lair)\d|^enemies\/boss\d/.test(p)).concat(['bg/act'+a+'.jpg','bg/lair'+a+'.jpg','enemies/boss'+(a<7?a:a+2)+'.png','ui/road_path_'+a+'.png'],[0,1,2].map(i=>'enemies/a'+a+'_'+i+'.png'));
   let n=0;const tot=list.length,bar=$('ldBar'),txt=$('ldTxt');
   return new Promise(res=>{
    let fin=false;const done=()=>{if(fin)return;fin=true;bar.style.width='100%';res();};
@@ -2971,8 +2972,9 @@ function prelay(n){   // the first tiles of the first road come laid, so a new p
  }
  fillHand();sig='';
 }
-function showIntro(){
- showModal("The Cartographer's Oath",'<p>You are the Royal Cartographer. You never swing a sword: you <b>lay the road tiles</b>, and your Company marches along them, fighting for gold.</p><p>Beat each region\'s Warden to <span class="gold">restore a piece of the map</span>.</p>',[{t:'Begin the journey',primary:1,fn:()=>{S.seenIntro=true;prelay(3);save();}}]);
+function showIntro(){   // no opening pop-up: the march starts at once and the first pointer explains the one thing to do
+ S.seenIntro=true;prelay(3);save();
+ setTimeout(()=>toast('You lay the road. Your company marches it and fights.'),3000);   // after the act title has faded
 }
 /* ---------- shop: stock refreshes every act; prices follow the act's income and climb with each purchase ---------- */
 const SUPPLIES={
