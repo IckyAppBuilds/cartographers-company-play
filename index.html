@@ -94,9 +94,10 @@ canvas{display:block;width:100%;height:100%;object-fit:contain;touch-action:mani
 .bar{position:relative;height:18px;background:#150f0a;border:1px solid var(--line);border-radius:9px;overflow:hidden}
 .bar i{position:absolute;inset:0 auto 0 0}
 .bar b{position:absolute;inset:0;text-align:center;font-size:11px;line-height:17px;text-shadow:0 1px 2px #000}
-.row3{display:grid;grid-template-columns:1fr 1fr auto;gap:6px}
+.row3{display:grid;grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-auto-columns:auto;gap:6px}
 .row3 button{min-height:38px;font-size:13px;padding:3px 6px}
 #spd{display:contents}
+#boostBtn.on{border-image-source:var(--ui-gold);color:#3a2205;text-shadow:none}
 
 /* hand */
 #hand{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;flex:1;min-height:0;align-items:center}
@@ -796,7 +797,7 @@ button.btc.on{border-color:#ffd24a!important;background:rgba(70,48,12,.9)!import
 /* first act: only what a new player needs (no pile line, no Inscribe until Act II) */
 body.newb #piles{display:none}
 body.newb #insbtn{display:none}
-body.newb .row3{grid-template-columns:1fr auto}
+body.newb .row3{grid-template-columns:1fr}
 
 #coachp .unar{white-space:nowrap;width:auto}#coachp .unar b{white-space:nowrap;text-align:center}
 #coachp .unar b small{display:block;margin-top:3px;font:700 11px/1.1 Georgia,serif;color:#fff3c4}
@@ -930,7 +931,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029180909';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029193147';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2512,7 +2513,7 @@ const EVOPT={
 let evState=null,evEl=null;
 function event(){
  const k=S.road[0],t=TILES[k];
- if(!EVOPT[t.ev]){resolveEvent(0);return;}
+ if(!EVOPT[t.ev]||boosting()){resolveEvent(0);return;}   // while boosting the first option is taken without opening the event
  if(!evState){evState={k,t:0,stage:0,offer:null};renderEv();}
 }
 function evTick(dt){}   // event tiles wait for your choice; nothing is picked for you
@@ -2692,6 +2693,8 @@ function deathTip(a){
 }
 
 /* ---------- sim ---------- */
+const replayAct=()=>region(S.depth)<region(S.best||0)&&!ARENA.live();   // an act this company's Legend has already beaten in an earlier run
+const boosting=()=>!!S.boost&&replayAct();   // Boost: 10x speed and events pick their first option, only while replaying a beaten act
 const holding=()=>heldT&&!AWAYSIM&&performance.now()-heldT<20000;   // a tile is being dragged: the road waits so it cannot shift under the finger (20s at most, in case a release is missed)
 function step(dt){
  if(S.boostT>0)S.boostT=Math.max(0,S.boostT-dt);
@@ -2701,7 +2704,7 @@ function step(dt){
   if(!wait){scroll+=dt*140;pt+=dt;}
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
   if(!wait&&pt>=1.0)startTile();
- }else if(phase==='event'){pt+=dt;if(pt>=1.3&&!holding()){if(evState)evTick(dt);else event();}}
+ }else if(phase==='event'){pt+=dt;if(pt>=1.3&&!holding()){if(evState){if(boosting())evChoose(0);else evTick(dt);}else event();}}
  else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait&&!holding()){if(ADS.ok()&&!PORTAL&&!reviveAsked){if(!sheet)offerRevive();}else wipe();}}
  else if(phase==='fight'){
   if(bossCurse>0)bossCurse-=dt;
@@ -2789,7 +2792,7 @@ function fmt(n){
 }
 function build(){
  const g=Math.floor(S.gold);
- const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.map(c=>S.gold>=fuseCost(c)?1:0).join(""),S.rrank,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost(),S.rd,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):recruitCost(i))]),S.relics,legGain(),speed,S.owned,S.sk,S.hs,swapId,S.prev,S.depth,S.bless]);
+ const s=JSON.stringify([S.jbest,S.boons,S.deaths,S.deck.map(c=>S.gold>=fuseCost(c)?1:0).join(""),S.rrank,S.deck.join(),S.disc.join(),S.draw.join(),burnArm,S.order,pendingTake,S.road,S.rmod,inscribing,inscribeOpts,S.gold>=inscribeCost(),S.rd,S.hand,S.deck.length,S.draw.length,S.disc.length,S.offer,KINDS.map(k=>[S.gold>=cardCost(k),S.gold>=burnCost()]),selCard,S.un,S.lv.map((l,i)=>[l,S.gold>=(S.un[i]?lvCost(i):recruitCost(i))]),S.relics,legGain(),speed,S.owned,S.sk,S.hs,swapId,S.prev,S.depth,S.bless,S.boost,replayAct()]);
  if(s===sig)return;sig=s;
  // road
  $('road').innerHTML=S.road.map((k,j)=>{
@@ -2846,7 +2849,7 @@ function build(){
  {const rb=$('retbtn');rb.hidden=!lg;if(lg){rb.textContent='Retire +'+lg;}
   if(lg&&!S.retHint&&$('modal').hidden&&!sheet){S.retHint=1;showModal('You can retire!','<p>You have gone far enough to become a <b>Legend</b>. Retiring restarts the run but gives <b>+'+lg+' Legend</b> (+12% to every hero and +10% gold each, permanently). Retire any time with the glowing <b>Retire</b> button over the battle.</p><p class="hint">The longer you push before retiring, the bigger the reward.</p>',[{t:'Got it',primary:true}]);}}
  $('legh').textContent=`Legend ${S.legend} (+${S.legend*12}% all stats, +${S.legend*10}% gold). Unlocks at tile 30. The further you get before retiring, the more Legend it pays.`;
- $('spd').innerHTML=`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">x${speed}</button>`;
+ $('spd').innerHTML=(boosting()?'':`<button data-s="${speed===1?2:1}" class="on" title="Change game speed">x${speed}</button>`)+(replayAct()?`<button id="boostBtn" class="${S.boost?'on':''}" title="Already beaten: race through at 10x and let events pick for you">${S.boost?'Boost x10':'Boost'}</button>`:'');
  {const rb=$('reroll'),ad=S.rd<1&&ADS.ok()&&!PORTAL;rb.disabled=S.rd<1&&!ad;const t=ad?adIc()+'+2 Redraws':'Redraw';if(rb.dataset.l!==t){rb.dataset.l=t;rb.innerHTML=t;}}
 }
 /* ---------- story beats: opening card and victory ---------- */
@@ -2943,7 +2946,7 @@ function syncSpoils(){
 const lootQ=[];let lootEl=null,lootTm=0;
 let lootHold=0;const lootBlocked=()=>phase==='fight'||performance.now()<lootHold;   // no reward popups while a fight is going on
 let lootNow=false;   // true while applying a reward the player just asked for inside a menu (an ad, a purchase): those show at once
-function loot(o){if(AWAYSIM)return;o.now=false;   // no reveal over a menu, even for what you just claimed in it: it comes up when the menu closes
+function loot(o){if(AWAYSIM)return;if(boosting()){toast(o.head+': '+o.name);return;}o.now=false;   // no reveal over a menu, even for what you just claimed in it: it comes up when the menu closes
  if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now)&&(o.now||!lootBlocked()))nextLoot();}
 function nextLoot(){
  const ix=sheet?lootQ.findIndex(x=>x.now):0;   // in a menu, only popups for what you just did in it come up; the rest wait
@@ -3280,6 +3283,7 @@ document.addEventListener('click',e=>{
   else if(b.id==='autoLv'){S.autoLv=!S.autoLv;if(S.autoLv)autoLevel();b.textContent='Auto level up: '+(S.autoLv?'ON':'off');save();sig='';}
   else if(b.id==='resetRun')resetRunAsk();
   else if(b.dataset.s)speed=+b.dataset.s,sig='';
+  else if(b.id==='boostBtn'){S.boost=!S.boost;save();sig='';toast(S.boost?'Boost on: 10x through beaten acts, events choose for you.':'Boost off.');}
   else if(b.id==='reroll')reroll();
   else if(b.id==='leg'||b.id==='retbtn')retire();
   return;
@@ -3949,7 +3953,7 @@ function frame(now){
  if(awayPump)awayPump();
  if(!lootEl&&lootQ.length&&!sheet&&!lootBlocked())nextLoot();   // popups held back during a fight come up now
  if(zoneFreeze){const w=performance.now()-zoneFreeze.t0;if(w>1500&&!lootEl&&!lootQ.length&&$('modal').hidden&&!actPending&&(!S.offer||spoilsLater)||w>180000)zoneFreeze=null;}   // everything cleared: on to the next zone
- let rem=popupOpen()?0:dt*speed;   // the game waits while a reward popup, a dialog or an ad is on screen
+ let rem=popupOpen()?0:dt*(boosting()?10:speed);   // the game waits while a reward popup, a dialog or an ad is on screen
  while(rem>0){const d=Math.min(rem,.05);step(d);rem-=d;}
  if(S.autoLv&&(autoT+=dt)>.35){autoT=0;autoLevel();}
  saveT+=dt;if(saveT>5){S.rate=S.rate*.8+.2*(earned/saveT);st('gold',gained);gained=0;earned=0;saveT=0;save();}
