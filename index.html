@@ -891,7 +891,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
    <div class="pane" data-pane="stats" hidden><div id="statsBody"></div><p class="hint" id="buildTag" style="text-align:center;opacity:.6"></p><div class="row" style="justify-content:center;margin:8px 0 14px"><button id="resetRun" hidden style="max-width:240px">Reset my run</button></div></div>
    <div class="pane" data-pane="log" hidden>
     <div id="objective"></div><h3 style="margin-top:14px">Journal</h3><div id="log"></div>
-    <div class="hint" style="margin-top:10px">How to play: drag a tile card from your hand onto a tile on the road (or tap the card, then tap the tile) to replace it. Cards are single-use until the next boss or a wipe. Fights pay far more gold than rest tiles and build Battle Fervor: +20% gold per consecutive fight (up to +100%), lost when you rest at a Village or Springs or fall. Chain fights, then rest. Tap a hero icon under the battle to level them up; open Company to reorder the formation. Neighbouring tiles can make <span class="gold">combos</span> (gold chip under the tile). Select a card and tap Inscribe to etch a permanent glyph onto it.</div>
+    <div class="hint" style="margin-top:10px">How to play: tap a tile card in your hand to lay it on the next empty slot of the road, or drag it onto any tile on the road to replace it. Cards are single-use until the next boss or a wipe. Fights pay far more gold than rest tiles and build Battle Fervor: +20% gold per consecutive fight (up to +100%), lost when you rest at a Village or Springs or fall. Chain fights, then rest. Tap a hero icon under the battle to level them up; open Company to reorder the formation. Neighbouring tiles can make <span class="gold">combos</span> (gold chip under the tile). Select a card and tap Inscribe to etch a permanent glyph onto it.</div>
     <h3 style="margin-top:16px">Combos</h3><div id="combos"></div>
     <h3 style="margin-top:16px">Glyphs</h3><div id="glyphs"></div>
    </div>
@@ -937,7 +937,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029194525';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261030083517';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2701,16 +2701,18 @@ function deathTip(a){
 /* ---------- sim ---------- */
 const replayAct=()=>region(S.depth)<region(S.best||0)&&!ARENA.live();   // an act this company's Legend has already beaten in an earlier run
 const boosting=()=>!!S.boost&&replayAct();   // Boost: 10x speed and events pick their first option, only while replaying a beaten act
+let autoLayT=0;
 const holding=()=>heldT&&!AWAYSIM&&performance.now()-heldT<20000;   // a tile is being dragged: the road waits so it cannot shift under the finger (20s at most, in case a release is missed)
 function step(dt){
  if(S.boostT>0)S.boostT=Math.max(0,S.boostT-dt);
  S.playSec=(S.playSec||0)+dt;st('sec',dt);
  if(phase==='walk'){
   const wait=S.road[0]==='empty';   // an empty slot: the company stops and waits for a tile
-  if(!wait){scroll+=dt*140;pt+=dt;}
+  if(!wait){scroll+=dt*140;pt+=dt;autoLayT=0;}
+  else if(!S.tutDone&&!AWAYSIM&&!holding()&&S.hand.length&&(autoLayT+=dt)>=3){autoLayT=0;const hurt=S.order.some(i=>S.un[i]&&S.hp[i]<heroMax(i)*.5),pick=k=>S.hand.findIndex(c=>kindOf(c)===k),v=pick('village'),w=pick('wilds');selCard=hurt&&v>=0?v:w>=0?w:0;placeTile(0,1);}   // a new player who has never laid a tile is not left watching an empty road: after 3s a card goes down for them (a Village when the party is hurt, else the easy Wilds fight, else the leftmost), and the Tap a tile pointer stays up until they lay one themselves
   for(let i=0;i<4;i++)if(S.hp[i]>0)S.hp[i]=Math.min(heroMax(i),S.hp[i]+heroMax(i)*.02*dt);
   if(!wait&&pt>=1.0)startTile();
- }else if(phase==='event'){pt+=dt;if(pt>=1.3&&!holding()){if(evState){if(boosting())evChoose(0);else evTick(dt);}else event();}}
+ }else if(phase==='event'){pt+=dt;if(pt>=1.3&&!holding()){if(evState){if(boosting()||!S.tutDone&&!AWAYSIM&&pt>6.3)evChoose(0);else evTick(dt);}else event();}}
  else if(phase==='dead'){pt+=dt;if(pt>=DEATH_TIME&&!reviveWait&&!holding()){if(ADS.ok()&&!PORTAL&&!reviveAsked){if(!sheet)offerRevive();}else wipe();}}
  else if(phase==='fight'){
   if(bossCurse>0)bossCurse-=dt;
@@ -2735,12 +2737,12 @@ function step(dt){
 
 /* ---------- actions ---------- */
 const echoLeft=c=>((S.echoed||{})[c]||0)<S.deck.filter(x=>x===c).length;   // Echo returns each copy to the draw pile once per deck; the next boss kill or wipe resets it
-function placeTile(j){st('tiles');if(S.coach===0||S.coach===undefined&&!S.tutDone){S.tutDone=1;S.coach=1;coachOff();}
+function placeTile(j,auto){st('tiles');if(!auto&&(S.coach===0||S.coach===undefined&&!S.tutDone)){S.tutDone=1;S.coach=1;coachOff();}
  if(selCard<0||j<0||(j===0&&!(S.road[0]==='empty'&&phase==='walk')))return;
  if((S.depth+j)%10===9)return;
   const c=S.hand[selCard];if(!c)return;
  if(S.road[j]===kindOf(c)&&(S.rmod[j]||null)===modOf(c)&&(S.rrank[j]||1)===rankOf(c))return;
- S.road[j]=kindOf(c);S.rmod[j]=modOf(c);S.rrank[j]=rankOf(c);(S.laidAt||(S.laidAt={}))[S.depth+j]=1;SND.play('place');
+ S.road[j]=kindOf(c);S.rmod[j]=modOf(c);S.rrank[j]=rankOf(c);if(!auto)(S.laidAt||(S.laidAt={}))[S.depth+j]=1;SND.play('place');
  if(modOf(c)==='echo'&&echoLeft(c)){const u=S.echoed||(S.echoed={});u[c]=(u[c]||0)+1;S.draw.splice(Math.random()*(S.draw.length+1)|0,0,c);say('Echo: the tile is shuffled back into your pile (once per round).');}else S.disc.push(c);
  S.hand.splice(selCard,1);selCard=-1;inscribing=false;fillHand();sig='';
  save();   // the road you build is part of the saved run (and goes up to the account with it), so store it the moment a tile is laid
@@ -2809,7 +2811,7 @@ function build(){
  }).join('');
  fitTileNames();
  $('hand').innerHTML=S.hand.map((c,i)=>{const t=TILES[kindOf(c)],m=modOf(c),rk=rankOf(c);return `<div class="hc ${i===selCard?'sel':''}" data-h="${i}" data-r="${t.r}" style="--rc:${RAR[t.r].c}"><div class="i">${t.i}</div><div class="n">${t.n}${rk>1?' <i class="cs"></i>'+rk:''}</div><div class="r" style="color:${RAR[t.r].d}">${RAR[t.r].n}</div>${m?`<div class="m" title="${MODS[m].d}">${MODS[m].n}</div>`:''}<div class="d">${m?MODS[m].d:t.d}</div></div>`;}).join('')+(S.hand.length?'':'<div class="hint" style="grid-column:1/-1;text-align:center">No tiles left to play. Beat the boss or fall in battle to gather your deck again. Empty road defaults to Wilds.</div>');
- const ib=$('insbtn'),icost=inscribeCost();ib.textContent='Inscribe '+fmt(icost);ib.disabled=!(selCard>=0&&S.hand[selCard]&&S.gold>=icost);
+ const ib=$('insbtn'),icost=inscribeCost();ib.textContent=insPick?'Pick a tile':'Inscribe '+fmt(icost);ib.disabled=!(S.hand.length&&S.gold>=icost);
  const ip=$('inscribe');ip.hidden=!(inscribing&&S.hand[selCard]);
  if(!ip.hidden){const ik=kindOf(S.hand[selCard]);ip.innerHTML=`<h3>Etch a glyph onto ${TILES[ik].n} (${fmt(icost)} gold)</h3><div class="row">${inscribeOpts.map(m=>`<button data-mod="${m}"><b>${MODS[m].n}</b><br><small>${MODS[m].d}</small></button>`).join('')}<button data-cancel>Cancel</button></div>`;}
  {const g={};for(const c of S.deck)if(modOf(c)){const n=TILES[kindOf(c)].n+' ('+MODS[modOf(c)].n+')';g[n]=(g[n]||0)+1;}const ks=Object.keys(g);$('insum').textContent=ks.length?'Inscribed: '+ks.map(n=>n+(g[n]>1?' x'+g[n]:'')).join(', '):'Select a card in your hand and Inscribe it to etch a permanent glyph.';}
@@ -3150,7 +3152,7 @@ function unlockShow(k){   // animated reveal: a glowing icon, what the menu does
 /* ---------- first-time tutorial: how to build the road with tiles (same animated style as a menu unlock, pointing at the real thing) ---------- */
 const TUT=[
  {sel:'#road',label:'The road',icon:'tut_road',title:'Build the road',text:'The company only marches along tiles <b>you</b> lay. Every empty <b>＋</b> slot stops them until it is filled. Fill nine slots and the act\'s Warden waits at the end.'},
- {sel:'#hand',label:'Your tiles',icon:'tut_tiles',title:'Your tiles',text:'These are the tiles you can lay. <b>Tap one, then tap an empty slot</b> on the road, or drag it there. Wilds are plain fights; Forests and Villages pay better, and more tiles come as you play.'},
+ {sel:'#hand',label:'Your tiles',icon:'tut_tiles',title:'Your tiles',text:'These are the tiles you can lay. <b>Tap one</b> and it goes on the next empty slot of the road, or drag it onto any slot. Wilds are plain fights; Forests and Villages pay better, and more tiles come as you play.'},
  {sel:'#road .tile',label:'Lay one here',icon:'tut_place',title:'Lay your first tile',text:'Pick any tile and put it on the first slot. Tiles you have used come round again when your pile runs out, and some neighbours make bonus combos.'}
 ];
 function tutShow(i){
@@ -3284,7 +3286,7 @@ document.addEventListener('click',e=>{
   else if(b.dataset.unlock!==undefined)unlockHero(+b.dataset.unlock);
   else if(b.dataset.pick!==undefined)pickReplace(+b.dataset.pick);
   else if(b.dataset.swap!==undefined)swapHero(+b.dataset.swap,swapId);
-  else if(b.id==='insbtn')startInscribe();
+  else if(b.id==='insbtn'){if(selCard>=0&&S.hand[selCard])startInscribe();else{insPick=!insPick;sig='';if(insPick)toast('Tap a tile in your hand to inscribe it.');}}
   else if(b.dataset.mod)applyInscribe(b.dataset.mod);
   else if('cancel' in b.dataset){inscribing=false;sig='';}
   else if(b.dataset.evc!==undefined)evChoose(+b.dataset.evc);
@@ -3309,14 +3311,15 @@ document.addEventListener('click',e=>{
   else if(b.id==='leg'||b.id==='retbtn')retire();
   return;
  }
- if(h){if(Date.now()<noClickUntil)return;const i=+h.dataset.h;if(quickLay(i))return;selCard=selCard===i?-1:i;inscribing=false;sig='';}
+ if(h){if(Date.now()<noClickUntil)return;const i=+h.dataset.h;if(insPick){insPick=false;selCard=i;startInscribe();sig='';return;}if(quickLay(i))return;selCard=selCard===i?-1:i;inscribing=false;sig='';}
  else if(t)placeTile(+t.dataset.j);
 });
 
 /* ---------- drag a hand card onto the road (touch + mouse); a plain tap still selects ---------- */
 let drag=null,noClickUntil=0;
-function quickLay(i){   // first act only: a tap sends the tile to the next empty slot
- if(region(Math.max(S.best||0,S.depth||0))>0||!S.hand[i])return false;
+let insPick=false;   // Inscribe was pressed with no card chosen: the next tap on a card chooses it instead of laying it
+function quickLay(i){   // a tap sends the tile to the next empty slot (with none empty it selects, so a tile can still replace one on the road; dragging puts it anywhere)
+ if(insPick||!S.hand[i])return false;
  const t=dropTargets().map(x=>+x.dataset.j).filter(j=>S.road[j]==='empty').sort((a,b)=>a-b)[0];
  if(t===undefined)return false;
  selCard=i;placeTile(t);return true;
