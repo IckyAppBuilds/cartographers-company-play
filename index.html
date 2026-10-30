@@ -175,6 +175,10 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 @media (prefers-reduced-motion:reduce){#retbtn{animation:none}}
 #loot{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,rgba(var(--lc),.28),rgba(6,4,2,.82) 70%);animation:lootbg .25s ease-out;cursor:pointer;overflow:hidden}
 #loot.out{animation:lootout .25s ease-in forwards}
+#loot:not(.spoils){touch-action:none}#loot.nx{animation:none}#loot.nx .lc,#loot.nx.big .lc{animation:lootslide .22s ease-out}
+@keyframes lootslide{from{transform:translateX(var(--sx));opacity:.3}to{transform:none;opacity:1}}
+#loot .lnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;font-size:12px;color:var(--dim,#cdbb9a)}
+#loot .lall{min-height:0;padding:6px 12px;border-radius:8px;border:1px solid rgba(var(--lc),.7);background:rgba(0,0,0,.35);color:#fff3c4;font:700 12px Georgia,serif;cursor:pointer}
 @keyframes lootbg{from{opacity:0}to{opacity:1}}@keyframes lootout{to{opacity:0}}
 #loot .rays{position:absolute;left:50%;top:46%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;background:repeating-conic-gradient(from 0deg,rgba(var(--lc),.34) 0 7deg,transparent 7deg 18deg);-webkit-mask:radial-gradient(circle,#000 0,transparent 42%);mask:radial-gradient(circle,#000 0,transparent 42%);animation:lootspin 14s linear infinite}
 @keyframes lootspin{to{transform:rotate(360deg)}}
@@ -931,7 +935,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029193147';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029193435';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2947,22 +2951,37 @@ const lootQ=[];let lootEl=null,lootTm=0;
 let lootHold=0;const lootBlocked=()=>phase==='fight'||performance.now()<lootHold;   // no reward popups while a fight is going on
 let lootNow=false;   // true while applying a reward the player just asked for inside a menu (an ad, a purchase): those show at once
 function loot(o){if(AWAYSIM)return;if(boosting()){toast(o.head+': '+o.name);return;}o.now=false;   // no reveal over a menu, even for what you just claimed in it: it comes up when the menu closes
- if(lootQ.length>=5)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now)&&(o.now||!lootBlocked()))nextLoot();}
+ if(lootQ.length>=12)lootQ.shift();lootQ.push(o);if(!lootEl&&(!sheet||o.now)&&(o.now||!lootBlocked()))nextLoot();}
+let lootPast=[];   // popups already seen in the current stack, so a swipe right can bring them back
+const lootNext=()=>sheet?lootQ.findIndex(x=>x.now):lootQ.length?0:-1;   // in a menu, only popups for what you just did in it come up; the rest wait
 function nextLoot(){
- const ix=sheet?lootQ.findIndex(x=>x.now):0;   // in a menu, only popups for what you just did in it come up; the rest wait
- const o=ix<0?null:lootQ.splice(ix,1)[0];if(!o){lootEl=null;return;}
- SND.play('loot',{rar:o.rar});
- const col=o.col||[255,208,74],big=o.rar>=3,n=big?64:o.rar>=1?42:28;
- const el=document.createElement('div');el.id='loot';el.className=big?'big':'';el.style.setProperty('--lc',col.join(','));
+ const ix=lootNext();
+ const o=ix<0?null:lootQ.splice(ix,1)[0];if(!o){lootEl=null;lootPast=[];return;}
+ showLoot(o,0);
+}
+// one reward card; when several are waiting they form a stack: tap or swipe left for the next, swipe right to go back, or dismiss them all
+function showLoot(o,dir){
+ if(!dir)SND.play('loot',{rar:o.rar});
+ const col=o.col||[255,208,74],big=o.rar>=3,n=dir?0:big?64:o.rar>=1?42:28;
+ const el=document.createElement('div');el.id='loot';el.className=(big?'big':'')+(dir?' nx':'');el.style.setProperty('--lc',col.join(','));el.style.setProperty('--sx',(dir*60)+'px');
  let ps='';const pal=['#ffd24a','#fff3c4','rgb('+col.join(',')+')','#ffffff'];
  for(let i=0;i<n;i++){const a=Math.random()*TAU,d=90+Math.random()*(big?300:210);ps+='<i class="pt" style="--dx:'+(Math.cos(a)*d|0)+'px;--dy:'+(Math.sin(a)*d-30|0)+'px;--rt:'+(Math.random()*720-360|0)+'deg;--t:'+(.9+Math.random()*.9).toFixed(2)+'s;--dl:'+(Math.random()*.15).toFixed(2)+'s;--pc:'+pal[i%4]+'"></i>';}
- const dbl=o.dbl&&ADS.ok();
- el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div>'+(dbl?'<button class="ldb">'+adIc()+'Watch ad: double it</button>':'')+'<div class="lh">tap to continue</div></div>'+ps;
+ const dbl=o.dbl&&ADS.ok(),left=sheet?lootQ.filter(x=>x.now).length:lootQ.length,tot=lootPast.length+1+left;
+ const nav=tot>1?'<div class="lnav"><span>'+(lootPast.length+1)+' of '+tot+'</span><button class="lall" type="button">Dismiss all</button></div>':'';
+ el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div>'+(dbl?'<button class="ldb">'+adIc()+'Watch ad: double it</button>':'')+nav+'<div class="lh">'+(tot>1?'tap or swipe for the next':'tap to continue')+'</div></div>'+ps;
+ if(lootEl&&lootEl!==el)lootEl.remove();
  document.body.appendChild(el);lootEl=el;
- try{navigator.vibrate&&navigator.vibrate(big?[40,40,90]:30);}catch(e){}
- const done=()=>{clearTimeout(lootTm);if(lootEl!==el)return;el.classList.add('out');setTimeout(()=>{el.remove();lootEl=null;nextLoot();},240);};
- el.onclick=done;   // a reward popup stays until you tap it
- if(dbl)el.querySelector('.ldb').onclick=async e=>{e.stopPropagation();clearTimeout(lootTm);const b=e.currentTarget;b.disabled=true;if(await ADS.show()){o.dbl();sig='';save();toast('Doubled!');}else{toast('No reward: the ad was not finished.');}done();};
+ if(!dir)try{navigator.vibrate&&navigator.vibrate(big?[40,40,90]:30);}catch(e){}
+ const close=()=>{clearTimeout(lootTm);if(lootEl!==el)return;el.classList.add('out');setTimeout(()=>{el.remove();if(lootEl===el){lootEl=null;nextLoot();}},240);};
+ const fwd=()=>{if(lootEl!==el)return;const ix=lootNext();if(ix<0){lootPast=[];close();return;}lootPast.push(o);showLoot(lootQ.splice(ix,1)[0],1);};
+ const back=()=>{if(lootEl!==el||!lootPast.length)return;lootQ.unshift(o);showLoot(lootPast.pop(),-1);};
+ const all=()=>{if(sheet){for(let i=lootQ.length-1;i>=0;i--)if(lootQ[i].now)lootQ.splice(i,1);}else lootQ.length=0;lootPast=[];el.classList.add('out');setTimeout(()=>{el.remove();if(lootEl===el)lootEl=null;},240);};
+ let sx=null,swiped=false;
+ el.addEventListener('pointerdown',e=>{sx=e.clientX;swiped=false;});
+ el.addEventListener('pointerup',e=>{if(sx===null)return;const dx=e.clientX-sx;sx=null;if(Math.abs(dx)>40){swiped=true;dx<0?fwd():back();}});
+ el.onclick=e=>{if(swiped){swiped=false;return;}fwd();};   // a reward popup stays until you tap it
+ const ab=el.querySelector('.lall');if(ab)ab.onclick=e=>{e.stopPropagation();all();};
+ if(dbl)el.querySelector('.ldb').onclick=async e=>{e.stopPropagation();clearTimeout(lootTm);const b=e.currentTarget;b.disabled=true;if(await ADS.show()){o.dbl();sig='';save();toast('Doubled!');}else{toast('No reward: the ad was not finished.');}fwd();};
 }
 const RCOL=[[154,138,106],[95,191,106],[90,160,255],[176,107,255],[255,176,46]];
 function lootRelic(r,how,nodbl){const n=S.relics[r];loot({head:how||'Relic found!',icon:RELICS[r].ico||RELICS[r].i,name:RELICS[r].n,sub:n>1?'Relic · now ×'+n:'Relic · new!',desc:RELICS[r].d,rar:2,col:[255,176,46],dbl:nodbl?null:()=>{S.relics[r]=(S.relics[r]||0)+1;say('Ad bonus: a second '+RELICS[r].n+'!');}});}
@@ -4008,7 +4027,7 @@ window.__artReady=new Promise(res=>setTimeout(()=>{   // after the first frame, 
  const go=()=>{if(!artHold)return;artHold=false;for(const q of ARTQ)if(!q[2])q[0].src=q[1];ARTQ.length=0;res();};
  Promise.all(wait).then(go);setTimeout(go,12000);
 },150));
-window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase},get foes(){return foes}};
+window.__dbg={get S(){return S},step,levelUp,placeTile,get hand(){return S.hand},set sel(v){selCard=v},get phase(){return phase},get foes(){return foes},lootRelic};
 </script>
 </body>
 </html>
