@@ -177,8 +177,10 @@ body.th-midnight .hc .d,body.th-midnight .hc .m{color:#b8b0ff}
 #loot.out{animation:lootout .25s ease-in forwards}
 #loot:not(.spoils){touch-action:none}#loot.nx{animation:none}#loot.nx .lc,#loot.nx.big .lc{animation:lootslide .22s ease-out}
 @keyframes lootslide{from{transform:translateX(var(--sx));opacity:.3}to{transform:none;opacity:1}}
-#loot .lnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;font-size:12px;color:var(--dim,#cdbb9a)}
-#loot .lall{min-height:0;padding:6px 12px;border-radius:8px;border:1px solid rgba(var(--lc),.7);background:rgba(0,0,0,.35);color:#fff3c4;font:700 12px Georgia,serif;cursor:pointer}
+#loot{flex-direction:column}
+#loot .lbar{position:relative;display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:16px}
+#loot .ldots{display:flex;gap:7px}#loot .ldots i{width:8px;height:8px;border-radius:50%;background:rgba(255,243,196,.3)}#loot .ldots i.on{background:rgb(var(--lc));box-shadow:0 0 8px rgba(var(--lc),.9)}
+#loot .lall{border:12px solid transparent;border-image:var(--ui-blue) 16 fill/12px stretch;background:none;border-radius:0;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.6);font-weight:700;min-height:42px;min-width:170px;padding:0 6px;cursor:pointer}
 @keyframes lootbg{from{opacity:0}to{opacity:1}}@keyframes lootout{to{opacity:0}}
 #loot .rays{position:absolute;left:50%;top:46%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;background:repeating-conic-gradient(from 0deg,rgba(var(--lc),.34) 0 7deg,transparent 7deg 18deg);-webkit-mask:radial-gradient(circle,#000 0,transparent 42%);mask:radial-gradient(circle,#000 0,transparent 42%);animation:lootspin 14s linear infinite}
 @keyframes lootspin{to{transform:rotate(360deg)}}
@@ -935,7 +937,7 @@ html.portal input,html.portal textarea{-webkit-user-select:text;user-select:text
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 /* ---------- accounts and cloud save (Supabase). The game script below starts only after sign-in. ---------- */
-const BUILD='20261029193435';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
+const BUILD='20261029193627';   // stamped with a timestamp by tools/publish.sh on every publish; used to bust caches
 const CAPTCHA_SITE_KEY='';   // Cloudflare Turnstile site key. Empty = no check. When Supabase has CAPTCHA protection on, every sign-in, sign-up, guest start and password reset needs the token this gives.
 const SB_URL='https://mhijikmuofwralqedvyr.supabase.co',SB_KEY='sb_publishable_Krc_uWuANKyaiO8GKwOXAQ_9popGhIJ';
 if(!Node.prototype.closest)Node.prototype.closest=function(s){return this.parentElement?this.parentElement.closest(s):null;};   // taps whose target is a text node or the document would otherwise throw in the game's event handlers
@@ -2967,8 +2969,8 @@ function showLoot(o,dir){
  let ps='';const pal=['#ffd24a','#fff3c4','rgb('+col.join(',')+')','#ffffff'];
  for(let i=0;i<n;i++){const a=Math.random()*TAU,d=90+Math.random()*(big?300:210);ps+='<i class="pt" style="--dx:'+(Math.cos(a)*d|0)+'px;--dy:'+(Math.sin(a)*d-30|0)+'px;--rt:'+(Math.random()*720-360|0)+'deg;--t:'+(.9+Math.random()*.9).toFixed(2)+'s;--dl:'+(Math.random()*.15).toFixed(2)+'s;--pc:'+pal[i%4]+'"></i>';}
  const dbl=o.dbl&&ADS.ok(),left=sheet?lootQ.filter(x=>x.now).length:lootQ.length,tot=lootPast.length+1+left;
- const nav=tot>1?'<div class="lnav"><span>'+(lootPast.length+1)+' of '+tot+'</span><button class="lall" type="button">Dismiss all</button></div>':'';
- el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div>'+(dbl?'<button class="ldb">'+adIc()+'Watch ad: double it</button>':'')+nav+'<div class="lh">'+(tot>1?'tap or swipe for the next':'tap to continue')+'</div></div>'+ps;
+ const at=lootPast.length,nav=tot>1?'<div class="lbar"><div class="ldots">'+Array.from({length:tot},(_,i)=>'<i'+(i===at?' class="on"':'')+'></i>').join('')+'</div><button class="lall" type="button">Dismiss all</button></div>':'';
+ el.innerHTML='<div class="rays"></div><div class="lc"><div class="lk">'+o.head+'</div><div class="li">'+o.icon+'</div><div class="ln">'+o.name+'</div><div class="lr">'+o.sub+'</div><div class="ld">'+o.desc+'</div>'+(dbl?'<button class="ldb">'+adIc()+'Watch ad: double it</button>':'')+'<div class="lh">'+(tot>1?'tap or swipe for the next':'tap to continue')+'</div></div>'+nav+ps;
  if(lootEl&&lootEl!==el)lootEl.remove();
  document.body.appendChild(el);lootEl=el;
  if(!dir)try{navigator.vibrate&&navigator.vibrate(big?[40,40,90]:30);}catch(e){}
